@@ -1,0 +1,32 @@
+[
+  {
+    "id": "slide-1",
+    "url": "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1920&q=85",
+    "title": "Brahmana Ella & Waterfalls",
+    "sinhala": "බ්‍රාහ්මණ ඇල්ල සහ දූවිලි ඇල්ල දියඇලි මිටියාවත"
+  },
+  {
+    "id": "slide-3",
+    "url": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=85",
+    "title": "Gin Ganga Natural River Pools",
+    "sinhala": "ලංකාගම ගිං ගඟ අද්දර ස්වාභාවික නාන තටාක"
+  },
+  {
+    "url": "/uploads/img-1792419205817-images.jpg",
+    "title": "Sathmahal Ella",
+    "sinhala": "Sathmahal Ella",
+    "id": "slide-1792419238486"
+  },
+  {
+    "url": "/uploads/img-1792419265712-images__3_.jpg",
+    "title": "Sinhaaja Forest",
+    "sinhala": "Sinhaaja Forest",
+    "id": "slide-1792419274908"
+  },
+  {
+    "url": "/uploads/img-1792419302114-images__2_.jpg",
+    "title": "Sinharaja Forest",
+    "sinhala": "Sinharaja Forest",
+    "id": "slide-1792419315235"
+  }
+]

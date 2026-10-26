@@ -1,0 +1,70 @@
+[
+  {
+    "id": "gear-pack-1",
+    "name": "Full 4-Person Rainforest Wilderness Camp Set",
+    "sinhalaName": "සම්පූර්ණ පුද්ගලයින් 4 කඳවුරු කට්ටලය",
+    "category": "package",
+    "description": "Everything you need for an unforgettable camping night in Lankagama. Heavy-duty waterproof tent resistant to rainforest downpours, thermal ground mats, cooking kit and high-beam lights.",
+    "includes": [
+      "1x 4-Person Double-Layer Waterproof Tent (Rain-Proof 3000mm)",
+      "4x Thermal Sleeping Bags + Ground Moisture Foam Mats",
+      "1x Portable Butane Gas Camping Cooker + 2 Gas Cartridges",
+      "1x Stainless Steel Mess Cookware Set (Pan, Pot, Kettle)",
+      "2x 1000lm Rechargeable Waterproof Camp Lanterns + 2 Headlamps",
+      "4x Anti-Leech Protection Socks (Complimentary Free Use)"
+    ],
+    "pricePerDayLKR": 5500,
+    "capacity": "Up to 4 Persons",
+    "imageUrl": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "gear-pack-2",
+    "name": "Couple Rainforest Adventure Camp Set",
+    "sinhalaName": "පුද්ගලයින් 2 කූඩාරම් සහ කඳවුරු පැක්",
+    "category": "package",
+    "description": "Compact, ultra-comfortable 2-person camping setup ready to pitch beside the river or in approved camp zones.",
+    "includes": [
+      "1x 2-Person Wind & Rain Shield Dome Tent",
+      "2x Inflatable Sleeping Mats & Lightweight Warm Sleeping Bags",
+      "1x Compact Gas Burner with Mini Gas Cylinder",
+      "1x Camping Tea Kettle & Cups Set",
+      "1x Multi-function LED Tent Lamp with Powerbank feature",
+      "2x Leech Socks"
+    ],
+    "pricePerDayLKR": 3800,
+    "capacity": "2 Persons",
+    "imageUrl": "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "gear-pack-3",
+    "name": "Night BBQ & Campfire Gathering Pack",
+    "sinhalaName": "බාබකියු සහ රාත්‍රී ගිනිමැල කට්ටලය",
+    "category": "accessory",
+    "description": "Add sizzle to your Lankagama camping trip with our easy portable grill setup and firewood bundle.",
+    "includes": [
+      "Heavy-Duty Portable Folding Charcoal BBQ Grill",
+      "Stainless Steel Skewers, Meat Tongs & Grill Brush",
+      "1x Bag of Coconut Shell Lump Charcoal (Burns for 3+ Hours)",
+      "Dry Rainforest Firewood Bundle with Eco Firestarters",
+      "Fire-safe Grill Table Mat"
+    ],
+    "pricePerDayLKR": 2500,
+    "capacity": "Group Add-on",
+    "imageUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": "gear-item-1",
+    "name": "Solo 4-Person Dome Tent (Tent Only)",
+    "sinhalaName": "පුද්ගලයින් 4 ජලයට ඔරොත්තු දෙන කූඩාරම පමණක්",
+    "category": "tent",
+    "description": "Stand-alone double-layer waterproof 4-person tent with flysheet, pegs, and carry bag.",
+    "includes": [
+      "Waterproof Dome Tent",
+      "Ground Pegs & Guy Lines",
+      "Carry Bag"
+    ],
+    "pricePerDayLKR": 2200,
+    "capacity": "4 Persons",
+    "imageUrl": "https://images.unsplash.com/photo-1478860409698-8707f313ee8b?auto=format&fit=crop&w=800&q=80"
+  }
+]

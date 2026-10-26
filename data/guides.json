@@ -1,0 +1,23 @@
+[
+  {
+    "id": "guide-3",
+    "name": "Nalin Pradeep",
+    "nickname": "Adventure Nalin",
+    "experienceYears": 7,
+    "languages": [
+      "Sinhala (Native)",
+      "English (Conversational)"
+    ],
+    "specialties": [
+      "Off-trail Trekking",
+      "Camping Site Selection & Campfire Setup",
+      "Night Rainforest Sound Walks"
+    ],
+    "dailyRateLKR": 4200,
+    "halfDayRateLKR": 2500,
+    "bio": "Energetic youth guide from Lankagama with extensive wilderness survival and first-aid training. Great companion for active youth groups, camping parties, and adventurous hikers wanting to explore the scenic ridges around Lankagama.",
+    "imageUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=600&q=80",
+    "rating": 4.8,
+    "verifiedLocal": true
+  }
+]

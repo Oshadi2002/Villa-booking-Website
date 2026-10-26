@@ -1,0 +1,479 @@
+[
+  {
+    "name": "Villa 01",
+    "sinhalaName": "Villa 01",
+    "tagline": "Peaceful riverside stay in Lankagama",
+    "description": "",
+    "pricePerNightLKR": 12000,
+    "maxGuests": 4,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "bedConfig": "2 Queen Beds",
+    "checkInTime": "02:00 PM",
+    "checkOutTime": "11:00 AM",
+    "features": [
+      "Natural River Bathing Pool",
+      "Woodfire Village Meals",
+      "Solar Hot Water",
+      "Leech Protection Gear",
+      "Free Local Tea"
+    ],
+    "imageUrl": "/uploads/img-1792498275743-WhatsApp_Image_2026-10-18_at_20.45.16.jpeg",
+    "images": [
+      "/uploads/img-1792498275743-WhatsApp_Image_2026-10-18_at_20.45.16.jpeg"
+    ],
+    "locationDetails": "Lankagama, near Gin Ganga riverbank",
+    "ownerContact": "0767976081",
+    "highlights": [
+      {
+        "title": "River Proximity",
+        "desc": "Direct access to Gin Ganga river waters.",
+        "icon": "Droplets"
+      },
+      {
+        "title": "Village Food",
+        "desc": "Authentic local woodfire cooked meals.",
+        "icon": "Utensils"
+      }
+    ],
+    "facilities": [
+      {
+        "category": "Room Comfort & Setup",
+        "items": [
+          "2 Separate Bedrooms with fresh linens",
+          "2 Bathrooms with hot showers",
+          "Bed configuration: 2 Queen Beds",
+          "Private river viewing balcony"
+        ]
+      },
+      {
+        "category": "Included Amenities",
+        "items": [
+          "Natural River Bathing Pool",
+          "Woodfire Village Meals",
+          "Solar Hot Water",
+          "Leech Protection Gear"
+        ]
+      }
+    ],
+    "foodOptions": [
+      "Traditional Sri Lankan Village Rice & Curry",
+      "Fresh Village Breakfast"
+    ],
+    "houseRules": [
+      "Respect rainforest silence after 10 PM",
+      "Polythene prohibited in natural streams"
+    ],
+    "id": "villa-1792498331997"
+  },
+  {
+    "id": "villa-1",
+    "name": "Sinharaja Gin Ganga River Edge Villa",
+    "sinhalaName": "ගිං ගඟ අද්දර ඉකෝ විලා",
+    "tagline": "Natural river bath, bird calls & authentic village cuisine",
+    "description": "Located directly by the crystal-clear waters of Gin Ganga in Lankagama. Step straight from your wooden balcony into cool natural stream pools. Perfect for peaceful nature retreats with traditional Sri Lankan meals prepared on woodfire hearths.",
+    "pricePerNightLKR": 12500,
+    "maxGuests": 5,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "bedConfig": "1 King Bed, 1 Queen Bed, 1 Single Daybed",
+    "checkInTime": "02:00 PM",
+    "checkOutTime": "11:00 AM",
+    "features": [
+      "Natural River Bathing Pool",
+      "Woodfire Village Meals",
+      "Balcony with Jungle View",
+      "Solar Hot Water",
+      "Leech Protection Gear",
+      "Free Local Tea"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1000&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "locationDetails": "Near Lankagama suspension bridge & Gin Ganga riverbank",
+    "ownerContact": "+94 71 450 1122 (Mr. Karunathilaka)",
+    "highlights": [
+      {
+        "title": "Direct River Access",
+        "desc": "Private wooden stairs directly into the crystal-clear natural swimming pool of Gin Ganga.",
+        "icon": "Droplets"
+      },
+      {
+        "title": "Authentic Woodfire Cooking",
+        "desc": "Traditional Sri Lankan village curries cooked on earthen clay pots and woodfire.",
+        "icon": "Utensils"
+      },
+      {
+        "title": "Solar Hot Water",
+        "desc": "Eco-friendly hot water showers in both private bathrooms.",
+        "icon": "Sun"
+      },
+      {
+        "title": "Free Anti-Leech Protection",
+        "desc": "Complimentary high-grade leech socks and herbal citronella spray for all guests.",
+        "icon": "ShieldCheck"
+      }
+    ],
+    "facilities": [
+      {
+        "category": "Nature & River Access",
+        "items": [
+          "Natural river swimming pool right in front of villa",
+          "Wooden viewing deck with sun chairs over Gin Ganga",
+          "Fish therapy / pedicure pool in natural stream",
+          "Private riverbank barbecue & campfire corner"
+        ]
+      },
+      {
+        "category": "Bedrooms & Comfort",
+        "items": [
+          "2 Separate bedrooms with ceiling fans & mosquito nets",
+          "Premium linen, fluffy towels and extra warm blankets",
+          "2 Attached private bathrooms with solar hot water showers",
+          "Natural herbal toiletries and organic shampoo provided"
+        ]
+      },
+      {
+        "category": "Dining & Local Cuisine",
+        "items": [
+          "Traditional village breakfast included (Hoppers/Milk rice/Roti with lunu miris)",
+          "Lunch & Dinner available on request (Authentic local organic vegetables & river fish)",
+          "Unlimited fresh mountain spring drinking water & herbal tea",
+          "Outdoor riverside dining table under bamboo shade"
+        ]
+      },
+      {
+        "category": "Safety & Guest Care",
+        "items": [
+          "Complimentary anti-leech socks & organic repellent spray",
+          "Free safe vehicle parking on premises",
+          "24/7 Local caretaker on call",
+          "First aid kit with leech bite remedies"
+        ]
+      }
+    ],
+    "foodOptions": [
+      "Traditional Village Rice & Curry (Woodfire cooked in clay pots)",
+      "Sri Lankan Breakfast (String hoppers, Pol sambol, Kiri hodi, Dhal)",
+      "Evening Ceylon Highland Tea with Kithul Jaggery (කිරි කෝපි සහ හකුරු)",
+      "Riverside Charcoal BBQ Dinner (Chicken, Fish, Corn on cob)"
+    ],
+    "houseRules": [
+      "Check-in from 02:00 PM | Check-out by 11:00 AM",
+      "No soap, shampoo, or chemicals in the natural river to protect aquatic species",
+      "Please keep noise down after 10:00 PM to respect rainforest wildlife",
+      "No single-use polythene bags or plastic bottles left near river banks"
+    ]
+  },
+  {
+    "id": "villa-2",
+    "name": "Brahmana Ella Fall View Eco Lodge",
+    "sinhalaName": "බ්‍රාහ්මණ ඇල්ල වීව් ඉකෝ ලොජ්",
+    "tagline": "Wake up to the roaring sound of Brahmana Ella waterfall",
+    "description": "Perched on the upper slope with panoramic views of the famous 35m Brahmana Ella waterfall and surrounding tea estates. Cozy private chalets surrounded by endemic Sinharaja flora and mist in the early mornings.",
+    "pricePerNightLKR": 16000,
+    "maxGuests": 6,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "bedConfig": "2 Queen Beds, 2 Single Beds",
+    "checkInTime": "02:00 PM",
+    "checkOutTime": "11:00 AM",
+    "features": [
+      "Brahmana Waterfall View",
+      "Private Dining Deck",
+      "Hot Water Shower",
+      "High-Speed Wi-Fi",
+      "Guided Walk Included",
+      "Traditional Breakfast"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1000&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "locationDetails": "Brahmana Ella access road, Lankagama",
+    "ownerContact": "+94 77 334 9871 (Saman Weerasinghe)",
+    "highlights": [
+      {
+        "title": "Panoramic Waterfall View",
+        "desc": "Unobstructed direct line of sight to the roaring Brahmana Ella cascade.",
+        "icon": "Eye"
+      },
+      {
+        "title": "Complimentary Waterfall Walk",
+        "desc": "A guided morning walk through tea estate paths directly to the waterfall base.",
+        "icon": "Compass"
+      },
+      {
+        "title": "High-Speed Wi-Fi",
+        "desc": "Fast 4G Wi-Fi connection for remote workers and trip planning.",
+        "icon": "Wifi"
+      },
+      {
+        "title": "Waterfall Deck Dining",
+        "desc": "Private outdoor dining deck with mist sweeping past during morning breakfast.",
+        "icon": "Coffee"
+      }
+    ],
+    "facilities": [
+      {
+        "category": "Scenic Views & Location",
+        "items": [
+          "Direct balcony view of Brahmana Ella waterfall",
+          "Private 10-minute trek path to the waterfall basin",
+          "Bordered by organic highland tea garden",
+          "Bird watching vantage point with high biodiversity"
+        ]
+      },
+      {
+        "category": "Rooms & Living Areas",
+        "items": [
+          "3 Spacious bedrooms with plush mattresses",
+          "Private panoramic balconies attached to master bedrooms",
+          "High-pressure hot water rain showers in both bathrooms",
+          "Work desk with electric outlets & backup emergency lighting"
+        ]
+      },
+      {
+        "category": "Food & Beverage",
+        "items": [
+          "Complimentary full village breakfast included daily",
+          "Fresh hand-plucked organic tea served on arrival",
+          "Traditional lunch & dinner menus featuring jackfruit, river fish & local greens",
+          "Outdoor charcoal BBQ grill set provided on request"
+        ]
+      },
+      {
+        "category": "Technology & Work",
+        "items": [
+          "Reliable high-speed Wi-Fi across all rooms and terrace",
+          "Bluetooth sound system for soft acoustic ambient music",
+          "Hairdryer, ironing facilities and luggage storage available",
+          "Secure parking for up to 2 vehicles"
+        ]
+      }
+    ],
+    "foodOptions": [
+      "Signature Brahmana Breakfast (Pittu or Hoppers with Seeni Sambol & Kiri Hodi)",
+      "Rainforest Special Rice & Curry (7 curries with papadum & woodfire chutney)",
+      "Fresh Tea Tasting Platter with Jaggery",
+      "Evening Firepit BBQ (Marinated chicken/fish skewers with garlic bread)"
+    ],
+    "houseRules": [
+      "Check-in: 02:00 PM | Check-out: 11:00 AM",
+      "Please do not cross waterfall safety ropes when water level rises",
+      "Smoking strictly permitted only in designated outdoor garden zones",
+      "Quiet hours begin at 10:30 PM"
+    ]
+  },
+  {
+    "id": "villa-3",
+    "name": "Lankagama Deep Forest Wooden Chalet",
+    "sinhalaName": "ලංකාගම ඩීප් ෆොරස්ට් වුඩන් චැලේ",
+    "tagline": "Rustic luxury at the buffer border of Sinharaja Rainforest",
+    "description": "Crafted from sustainable local timber, this secluded chalet blends right into the rainforest canopy. Unplug from the busy city, breathe the cleanest air in Sri Lanka, and fall asleep to the symphony of cicadas and nocturnal jungle sounds.",
+    "pricePerNightLKR": 18500,
+    "maxGuests": 4,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "bedConfig": "2 King Canopy Beds",
+    "checkInTime": "02:00 PM",
+    "checkOutTime": "11:00 AM",
+    "features": [
+      "Canopy Observation Deck",
+      "Eco-Architecture",
+      "Star Gazing Patio",
+      "Organic Homegrown Vegetables",
+      "Firepit Lounge",
+      "Free Trekking Maps"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1000&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "locationDetails": "Upper Lankagama, bordering Sinharaja reserve boundary",
+    "ownerContact": "+94 70 219 8834 (Bandara)",
+    "highlights": [
+      {
+        "title": "Rainforest Canopy Deck",
+        "desc": "Elevated wooden deck touching rainforest tree branches where giant squirrels visit.",
+        "icon": "Trees"
+      },
+      {
+        "title": "Star Gazing Firepit",
+        "desc": "Stone campfire circle with zero light pollution for observing star constellations.",
+        "icon": "Sparkles"
+      },
+      {
+        "title": "Pure Spring Water",
+        "desc": "Drinking and bath water fed directly by a pristine mountain natural spring.",
+        "icon": "Droplets"
+      },
+      {
+        "title": "Handcrafted Wood Architecture",
+        "desc": "Built entirely with eco-timber following traditional Sri Lankan forestry techniques.",
+        "icon": "Home"
+      }
+    ],
+    "facilities": [
+      {
+        "category": "Rainforest Experience",
+        "items": [
+          "High elevation canopy balcony overlooking virgin rainforest",
+          "Private stone firepit and wood campfire lounge",
+          "Night wildlife observation torches & binoculars provided",
+          "Free Sinharaja trail map and bird guide books"
+        ]
+      },
+      {
+        "category": "Timber Architecture",
+        "items": [
+          "Hand-carved timber king canopy beds with soft draping mosquito netting",
+          "Open-air jungle showers with hot water & natural stone tiling",
+          "Warm wool blankets for crisp mountain night air",
+          "Solar energy power backup system"
+        ]
+      },
+      {
+        "category": "Organic Produce & Dining",
+        "items": [
+          "100% Organic village vegetables harvested from adjacent garden",
+          "Full board meal packages available (Breakfast, Lunch, Dinner)",
+          "Traditional herbal porridge (Kola Kenda) served every morning",
+          "Woodfire roasted tea & fresh wild honey"
+        ]
+      },
+      {
+        "category": "Trekking Support",
+        "items": [
+          "Direct departure point for upper Sinharaja buffer trails",
+          "Leech socks, walking bamboo sticks and rain ponchos included",
+          "Local trail guide arrangements with priority booking"
+        ]
+      }
+    ],
+    "foodOptions": [
+      "Morning Herbal Kola Kenda with Jaggery (කොළ කැඳ සහ හකුරු)",
+      "Lankagama Farm Lunch (7 curries with freshly harvested vegetables)",
+      "Clay Pot Rice with Village Chicken or Dry Fish Curry",
+      "Campfire Roasted Corn & Kithul Honey Pancakes"
+    ],
+    "houseRules": [
+      "Check-in: 02:00 PM | Check-out: 11:00 AM",
+      "Strictly non-smoking indoors to preserve timber structure",
+      "No loud loudspeakers or disruptive music (nature sounds only)",
+      "Do not feed wild animals visiting the canopy deck"
+    ]
+  },
+  {
+    "id": "villa-4",
+    "name": "Nilwella Green Stream Family Cottage",
+    "sinhalaName": "නිල්වැල්ල ග්‍රීන් ස්ට්‍රීම් ෆැමිලි කොට්ජ්",
+    "tagline": "Spacious cottage ideal for families and trekking groups",
+    "description": "A cozy, family-friendly estate bungalow nestled amidst cardamom and tea gardens with a gentle natural stream running through the front garden. Safe for children with large verandas and delicious home-cooked village spreads.",
+    "pricePerNightLKR": 14000,
+    "maxGuests": 8,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "bedConfig": "2 Queen Beds, 4 Single Bunk Beds",
+    "checkInTime": "02:00 PM",
+    "checkOutTime": "11:00 AM",
+    "features": [
+      "Accommodates up to 8 Guests",
+      "Private Stream In Garden",
+      "Full Kitchen Available",
+      "BBQ Grill Facilities",
+      "Spacious Veranda",
+      "Vehicle Parking"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1000&q=80",
+    "images": [
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "locationDetails": "Nilwella junction, Lankagama approach",
+    "ownerContact": "+94 76 991 4455 (Mrs. Kanthi)",
+    "highlights": [
+      {
+        "title": "Accommodates up to 8",
+        "desc": "Ideal for extended families, university groups, and trekking teams.",
+        "icon": "Users"
+      },
+      {
+        "title": "Child-Safe Garden Stream",
+        "desc": "Gentle, ankle-deep natural stream flowing through the front lawn safe for children to paddle.",
+        "icon": "Droplets"
+      },
+      {
+        "title": "Self-Cooking Kitchen",
+        "desc": "Fully equipped kitchen with refrigerator and gas stove for groups who want to cook.",
+        "icon": "Utensils"
+      },
+      {
+        "title": "Spacious Veranda & Parking",
+        "desc": "Large traditional front veranda with ample secure parking for multiple vehicles.",
+        "icon": "Home"
+      }
+    ],
+    "facilities": [
+      {
+        "category": "Family & Group Comfort",
+        "items": [
+          "3 Bedrooms with bedding for up to 8 adult guests",
+          "Spacious living room with sofa set and family dining table",
+          "Child-safe garden with grassy lawn for outdoor games",
+          "Large open veranda with lounge chairs overlooking garden stream"
+        ]
+      },
+      {
+        "category": "Kitchen & Self-Catering",
+        "items": [
+          "Full kitchen equipped with gas stove, refrigerator & utensils",
+          "Rice cooker, blender, cookware and tableware provided",
+          "Outdoor charcoal BBQ grill with skewers included",
+          "Option to hire local village cook for on-site cooking"
+        ]
+      },
+      {
+        "category": "Bathrooms & Laundry",
+        "items": [
+          "2 Clean full bathrooms with hot water showers",
+          "Washing machine available for trekking laundry",
+          "Fresh towels and linen provided for all guests"
+        ]
+      },
+      {
+        "category": "Access & Parking",
+        "items": [
+          "Wide concrete driveway with parking for 3 vans / SUVs",
+          "Easy ground-level access suitable for elderly family members",
+          "Convenient access to Neluwa-Lankagama main route"
+        ]
+      }
+    ],
+    "foodOptions": [
+      "Self-cooking in equipped kitchen (Buy fresh village veggies locally)",
+      "Cook-on-Demand (Village cook Mrs. Kanthi can prepare traditional meals)",
+      "Family BBQ Evening Pack (Charcoal grill, marinated meat/fish)",
+      "Traditional Village Breakfast (String hoppers, roti, pol sambol)"
+    ],
+    "houseRules": [
+      "Check-in: 02:00 PM | Check-out: 11:00 AM",
+      "Please supervise small children when playing in garden stream",
+      "Kitchen must be left reasonably clean after self-cooking",
+      "Pets allowed on prior notice"
+    ]
+  }
+]

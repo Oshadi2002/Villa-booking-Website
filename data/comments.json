@@ -1,0 +1,68 @@
+[
+  {
+    "id": "rev-1",
+    "author": "Dr. Shanil Wickramasinghe",
+    "cityOrCountry": "Colombo, Sri Lanka",
+    "rating": 5,
+    "category": "Pure Kithul & Hakuru",
+    "comment": "We stayed at Sinharaja Gin Ganga River Edge Villa and ordered 3 bottles of Kithul Pani and jaggery through the site. It arrived at our villa within 30 minutes! The treacle is 100% pure—no sugar crystals, just that deep aromatic forest flavour with hoppers. We bought 6 more bottles to take to Colombo.",
+    "stayedAtOrOrdered": "Sinharaja Gin Ganga River Edge Villa",
+    "createdAt": "2026-10-14",
+    "isVerified": true
+  },
+  {
+    "id": "rev-2",
+    "author": "Mark & Elena Schmidt",
+    "cityOrCountry": "Munich, Germany",
+    "rating": 5,
+    "category": "Fresh Raa Experience",
+    "comment": "The fresh Kithul toddy experience was the highlight of our 2-week Sri Lanka holiday! The local tapper showed us how he climbs 50 feet up the palm with ropes. Drinking sweet, foaming toddy fresh from the clay pot in the cool morning mist was extraordinary. 10/10 authenticity!",
+    "stayedAtOrOrdered": "Fresh Toddy Tasting Tour & Brahmana Lodge",
+    "createdAt": "2026-10-11",
+    "isVerified": true
+  },
+  {
+    "id": "rev-3",
+    "author": "Kavindi & Nimesh Ratnayake",
+    "cityOrCountry": "Kandy, Sri Lanka",
+    "rating": 5,
+    "category": "Villa Stay",
+    "comment": "ලංකාගම එන්න කලින් හිතුවේ ගොඩක් අමාරු වෙයි කියලා. ඒත් The Sinharaja Collection හරහා Villa එකයි, Camping gear සෙට් එකයි, Tour Guide Sunil අයියවයි හැමදේම එකම තැනින් බුක් කරගත්තා. විලා එකටම නැවුම් කිතුල් පැණි සහ රා ගෙනත් දුන්න එක සුපිරි සේවාවක්!",
+    "stayedAtOrOrdered": "Brahmana Ella Fall View Eco Lodge",
+    "createdAt": "2026-10-08",
+    "isVerified": true
+  },
+  {
+    "id": "rev-4",
+    "author": "Ruwan Jayakody",
+    "cityOrCountry": "Galle, Sri Lanka",
+    "rating": 5,
+    "category": "Camping Gear",
+    "comment": "The 4-person waterproof tent pack withstood heavy evening rainforest showers without a single drop entering! Having the gas cooker and rechargeable lanterns included made camping by Gin Ganga super easy. Highly recommend getting everything from them in one go.",
+    "stayedAtOrOrdered": "Full 4-Person Wilderness Camp Set",
+    "createdAt": "2026-10-02",
+    "isVerified": true
+  },
+  {
+    "id": "rev-5",
+    "author": "Sophie Dubois",
+    "cityOrCountry": "Lyon, France",
+    "rating": 5,
+    "category": "Pure Kithul & Hakuru",
+    "comment": "Pure forest luxury. The clay pot kithul treacle with village curd for breakfast was divine. The agency team delivered everything right to our chalet deck with genuine Sri Lankan hospitality.",
+    "stayedAtOrOrdered": "Lankagama Deep Forest Wooden Chalet",
+    "createdAt": "2026-09-28",
+    "isVerified": true
+  },
+  {
+    "id": "rev-6",
+    "author": "Ashen Bandara",
+    "cityOrCountry": "Gampaha, Sri Lanka",
+    "rating": 5,
+    "category": "Fresh Raa Experience",
+    "comment": "කොළඹින් ගන්න තියෙන සීනි දාපු රා වගේ නෙවෙයි, මෙහේ තියෙන්නේ නියම ස්වාභාවික පැණි රස පිරිසිදු කිතුල් රා. විලා එකේ බැල්කනියටම ගෙනත් දුන්න සීතල බෝතල් දෙකෙන් සවස දියනාලා ඇවිත් ගත්ත ආතල් එක උපරිමයි!",
+    "stayedAtOrOrdered": "Freshly Tapped Sinharaja Kithul Raa",
+    "createdAt": "2026-09-22",
+    "isVerified": true
+  }
+]
