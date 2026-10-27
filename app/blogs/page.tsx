@@ -31,7 +31,7 @@ const FEATURED_GUIDES: BlogPost[] = [
   {
     id: 'guide-brahmana',
     title: 'Brahmana Ella: The 35-Meter Crown Jewel of Lankagama',
-    sinhalaTitle: 'බ්‍රාහ්මණ ඇල්ල - ලංකාගම මහා දියඇලි අසිරිය',
+    sinhalaTitle: 'The Most Celebrated Cascade of the Gin River Basin',
     category: 'Waterfalls',
     readTime: '4 min read',
     badge: '35m Waterfall',
@@ -45,7 +45,7 @@ const FEATURED_GUIDES: BlogPost[] = [
   {
     id: 'guide-doowili',
     title: 'Doowili Ella: Chasing the Enchanted Rainforest Mist',
-    sinhalaTitle: 'දූවිලි ඇල්ල - සිංහරාජයේ සැඟවුණු මීදුම් ඇල්ල',
+    sinhalaTitle: 'Enchanted Micro-Mist Within the Virgin Canopy',
     category: 'Waterfalls',
     readTime: '6 min read',
     badge: 'Mist Waterfall',
@@ -59,7 +59,7 @@ const FEATURED_GUIDES: BlogPost[] = [
   {
     id: 'guide-gin-ganga',
     title: 'Secret Rock Pools of Gin Ganga: Natural River Spa',
-    sinhalaTitle: 'ගිං ගඟ ස්වභාවික ගල් තටාක සහ මත්ස්‍ය සම්භාහනය',
+    sinhalaTitle: 'Crystal Waters & Gentle Natural Whirlpools',
     category: 'Waterfalls',
     readTime: '3 min read',
     badge: 'Natural River Pools',
@@ -73,7 +73,7 @@ const FEATURED_GUIDES: BlogPost[] = [
   {
     id: 'guide-trekking-tips',
     title: 'Sinharaja Trekking Checklist: Leech Defense & Gear Advice',
-    sinhalaTitle: 'කූඩැල්ලන්ගෙන් ආරක්ෂා වී සිංහරාජයේ සංචාරය කරමු',
+    sinhalaTitle: 'Essential Equipment Guide for Exploring Tropical Wet Zones',
     category: 'Rainforest Tips',
     readTime: '5 min read',
     badge: 'Trekker Safety',
@@ -87,7 +87,7 @@ const FEATURED_GUIDES: BlogPost[] = [
   {
     id: 'guide-kithul-culture',
     title: 'The Ancient Art of Lankagama Rainforest Kithul Tapping',
-    sinhalaTitle: 'ලංකාගම පාරම්පරික කිතුල් මැදීමේ කලාව සහ සැබෑ රසය',
+    sinhalaTitle: 'Preserving Century-Old Sustainable Harvesting Traditions',
     category: 'Village Culture',
     readTime: '5 min read',
     badge: 'Heritage & Food',
@@ -100,7 +100,7 @@ const FEATURED_GUIDES: BlogPost[] = [
   {
     id: 'guide-neluwa-road',
     title: 'Neluwa to Lankagama Route: Bridges, Rivers & Scenic Vistas',
-    sinhalaTitle: 'නෙළුව - ලංකාගම මනරම් ගමනාන්ත මාර්ගය',
+    sinhalaTitle: 'Scenic Mountain Drive Flanking the Upper Gin Ganga River',
     category: 'Trekking',
     readTime: '4 min read',
     badge: 'Scenic Road & Bridges',

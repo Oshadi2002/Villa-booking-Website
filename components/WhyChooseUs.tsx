@@ -21,7 +21,7 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
     {
       icon: Home,
       title: 'Villas & Nature Stays',
-      sinhalaTitle: 'ලංකාගම හොඳම නවාතැන්',
+      subtitle: 'Curated Riverside & Waterfall Chalets',
       description: 'Carefully vetted riverside chalets and waterfall-view eco lodges bordering Sinharaja Rainforest. Verified vacancy and transparent pricing.',
       benefit: 'River bathing pools & home-cooked meals included',
       ctaText: 'View Stays',
@@ -32,7 +32,7 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
     {
       icon: ShoppingBag,
       title: '100% Pure Kithul Direct to Villa',
-      sinhalaTitle: 'විලා එකටම පිරිසිදු කිතුල් පැණි & හකුරු',
+      subtitle: 'Zero Additives & Organic Jaggery',
       description: 'Zero added sugar, zero chemicals. Pure organic Kithul treacle and solid jaggery halves tapped in Lankagama, delivered right to your villa door.',
       benefit: 'Doorstep delivery to your room or campsite',
       ctaText: 'Order Kithul',
@@ -43,7 +43,7 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
     {
       icon: Wine,
       title: 'Fresh Kithul Raa & Tapping Tour',
-      sinhalaTitle: 'නැවුම් කිතුල් රා සහ සජීවී අත්දැකීම',
+      subtitle: 'Living Sinharaja Palm Culture',
       description: 'Experience genuine Sinharaja palm culture. Enjoy freshly tapped sweet morning toddy delivered chilled, or join a master tapper on a live tree-climbing session.',
       benefit: 'Tapped fresh at dawn from rainforest palms',
       ctaText: 'Toddy Experience',
@@ -54,7 +54,7 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
     {
       icon: Tent,
       title: 'Expedition Camping & BBQ Sets',
-      sinhalaTitle: 'සම්පූර්ණ කඳවුරු සහ BBQ උපකරණ',
+      subtitle: '3000mm Rainproof All-Weather Tents',
       description: 'High-grade 3000mm rainproof tents, sleeping bags, gas cookers, lanterns, and charcoal BBQ kits. Ready-to-camp packs ready when you arrive.',
       benefit: 'No need to transport bulky gear from home',
       ctaText: 'Browse Gear',
@@ -65,7 +65,7 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
     {
       icon: Compass,
       title: 'Native Rainforest Field Guides',
-      sinhalaTitle: 'ස්වදේශික පළපුරුදු මගපෙන්වන්නන්',
+      subtitle: 'Certified Endemic Flora & Fauna Trackers',
       description: 'Born-and-raised local guides who know every hidden cascade, safe rock pool in Gin Ganga, and endemic bird trails while keeping you safe from flash floods.',
       benefit: 'Safety first + leech socks provided',
       ctaText: 'Explore Waterfalls',
@@ -86,7 +86,7 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#2C3E33]/90 border border-[#3B5244] text-[#D4AF37] text-xs font-semibold tracking-wider uppercase shadow-xs">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>All-In-One Platform • ඇයි අපව තෝරාගත යුත්තේ?</span>
+            <span>Curated Rainforest Hospitality • Why Choose Us</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-[#F5F2EB] tracking-tight">
@@ -95,8 +95,8 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
           </h2>
 
           <p className="text-sm sm:text-base text-[#C2BCB0] leading-relaxed max-w-2xl mx-auto">
-            ලංකාගම සංචාරයේදී නවාතැන්, පිරිසිදු කිතුල් පැණි සහ හකුරු, නැවුම් රා, කඳවුරු බඩු සහ මගපෙන්වන්නන් — 
-            සියල්ල එකම විශ්වාසනීය තැනකින්, විලා එකටම ඩිලිවරි පහසුකම සමගින් ලබාගන්න.
+            From vetted riverfront eco-lodges and authentic woodfire cooking to organic rainforest Kithul treacle, 
+            expedition camping gear, and native certified naturalists — we coordinate every aspect of your journey with seamless concierge care.
           </p>
         </div>
 
@@ -127,7 +127,7 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
                     {item.title}
                   </h3>
                   <span className="text-xs text-[#D4AF37] font-medium block mt-1">
-                    {item.sinhalaTitle}
+                    {item.subtitle}
                   </span>
 
                   {/* Description */}

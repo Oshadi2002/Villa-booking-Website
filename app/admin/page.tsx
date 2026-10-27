@@ -1109,7 +1109,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
             >
               <div className="flex items-center gap-2.5">
                 <ShoppingBag className="w-4 h-4" />
-                <span>Kithul & Toddy (රා)</span>
+                <span>Kithul & Toddy</span>
               </div>
               <span className="text-[11px] opacity-75">{kithulProducts.length}</span>
             </button>
@@ -1201,7 +1201,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 activeTab === 'bookings' ? 'Customer Bookings & Approvals' : 
                 activeTab === 'slides' ? 'Hero Slideshow Photos' : 
                 activeTab === 'villas' ? 'Villas & Homestays' : 
-                activeTab === 'kithul' ? 'Kithul Treacle, Jaggery & Toddy (රා)' : 
+                activeTab === 'kithul' ? 'Kithul Treacle, Jaggery & Toddy' : 
                 activeTab === 'camping' ? 'Expedition Camping Sets' : 
                 activeTab === 'inquiries' ? 'Customer Questions & Inquiries' : 
                 activeTab === 'comments' ? 'Customer Reviews Wall' : 
@@ -1604,7 +1604,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>+ Add New Villa (විලා එකක් එක් කරන්න)</span>
+                  <span>+ Add New Villa</span>
                 </button>
               </div>
 
@@ -1730,7 +1730,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>+ Add New Equipment (කූඩාරම්/උපකරණ එක් කරන්න)</span>
+                  <span>+ Add New Equipment</span>
                 </button>
               </div>
 
@@ -1813,7 +1813,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>+ Add New Waterfall / Sight (ස්ථානයක් එක් කරන්න)</span>
+                  <span>+ Add New Waterfall / Sight</span>
                 </button>
               </div>
 
@@ -1882,7 +1882,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
               <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-slate-900">
-                    100% Pure Kithul Products & Fresh Toddy (රා)
+                    100% Pure Kithul Products & Fresh Toddy
                   </h2>
                   <p className="text-xs text-slate-500">
                     Manage treacle, jaggery halves, fresh chilled toddy bottles, and live tapping tours delivered to villas.
@@ -1894,7 +1894,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   className="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>+ Add Kithul Product / Tour (කිතුල් නිෂ්පාදනයක්)</span>
+                  <span>+ Add Kithul Product / Tour</span>
                 </button>
               </div>
 
@@ -2224,11 +2224,11 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Sinhala Subtitle (සිංහල විස්තරය)
+                  Slide Subtitle / Description
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. බ්‍රාහ්මණ ඇල්ල දියඇලි මිටියාවත"
+                  placeholder="e.g. Pristine waterfalls and tranquil bathing basins"
                   value={newSlide.sinhala}
                   onChange={e => setNewSlide({ ...newSlide, sinhala: e.target.value })}
                   className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
@@ -2263,7 +2263,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Add New Villa & Stays (නව නවාතැනක් එක් කරන්න)</h3>
+                <h3 className="text-lg font-bold text-slate-900">Add New Villa & Stays</h3>
                 <p className="text-xs text-slate-500">Configure room details, amenities, and upload photos directly.</p>
               </div>
               <button onClick={() => setIsAddVillaModalOpen(false)} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer">
@@ -2285,10 +2285,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Sinhala Name (සිංහල නම)</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Local / Sinhala Name (Optional)</label>
                   <input
                     type="text"
-                    placeholder="e.g. වැසි වනාන්තර ගිං ගඟ අද්දර විලා"
+                    placeholder="e.g. Traditional Riverside Lodge"
                     value={newVilla.sinhalaName}
                     onChange={e => setNewVilla({ ...newVilla, sinhalaName: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
@@ -2322,7 +2322,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
               {/* Room Config Box */}
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
                 <span className="text-xs font-bold text-slate-800 uppercase block tracking-wider">
-                  Room Configuration & Rates (කාමර විස්තර සහ මිල)
+                  Room Configuration & Rates
                 </span>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
@@ -2337,7 +2337,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Bedrooms Count (කාමර) *</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Bedrooms Count *</label>
                     <input
                       type="number"
                       required
@@ -2348,7 +2348,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Bathrooms (නාන කාමර) *</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Bathrooms *</label>
                     <input
                       type="number"
                       required
@@ -2359,7 +2359,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Max Guests (අමුත්තන්) *</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Max Guests *</label>
                     <input
                       type="number"
                       required
@@ -2398,7 +2398,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                       <Snowflake className="w-3.5 h-3.5 text-blue-600" />
-                      <span>A/C Availability (A/C තත්ත්වය) *</span>
+                      <span>A/C Availability *</span>
                     </label>
                     <div className="grid grid-cols-3 gap-1.5">
                       <button
@@ -2432,7 +2432,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                             : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
                         }`}
                       >
-                        ❄️🍃 Both (දෙකම)
+                        ❄️🍃 Both (A/C & Non-A/C)
                       </button>
                     </div>
                   </div>
@@ -2441,7 +2441,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                       <Utensils className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Kitchen Facility (මුළුතැන්ගෙය) *</span>
+                      <span>Kitchen Facility *</span>
                     </label>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
@@ -2453,7 +2453,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                             : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
                         }`}
                       >
-                        🍳 Kitchen ඇත (Yes)
+                        🍳 Kitchen Available
                       </button>
                       <button
                         type="button"
@@ -2464,7 +2464,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                             : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
                         }`}
                       >
-                        ✕ නැත (No Kitchen)
+                        ✕ No Kitchen
                       </button>
                     </div>
                   </div>
@@ -2574,7 +2574,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Sinhala Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. කූඩාරම් කට්ටලය"
+                    placeholder="e.g. Complete Expedition Camping Set"
                     value={newCamping.sinhalaName}
                     onChange={e => setNewCamping({ ...newCamping, sinhalaName: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
@@ -2672,11 +2672,11 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Name (English & Sinhala) *</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Attraction Name *</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Uruma Ella (උරුම ඇල්ල)"
+                    placeholder="e.g. Uruma Ella Falls"
                     value={newAttraction.name}
                     onChange={e => setNewAttraction({ ...newAttraction, name: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
@@ -2778,7 +2778,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Sinhala Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. සිංහරාජ පිරිසිදු කිතුල් පැණි"
+                    placeholder="e.g. Sinharaja Pure Kithul Treacle"
                     value={newKithul.sinhalaName}
                     onChange={e => setNewKithul({ ...newKithul, sinhalaName: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
@@ -2794,10 +2794,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     onChange={e => setNewKithul({ ...newKithul, category: e.target.value as any })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   >
-                    <option value="treacle">Treacle (පැණි)</option>
-                    <option value="jaggery">Jaggery (හකුරු)</option>
-                    <option value="toddy">Fresh Toddy (රා බෝතල්)</option>
-                    <option value="experience">Live Tapping Tour (අත්දැකීම)</option>
+                    <option value="treacle">Treacle (Pure)</option>
+                    <option value="jaggery">Jaggery (Hearth Smoked)</option>
+                    <option value="toddy">Fresh Toddy (Chilled Bottle)</option>
+                    <option value="experience">Live Tapping Tour (Guided)</option>
                   </select>
                 </div>
 
@@ -3114,7 +3114,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Sinhala Subtitle (සිංහල)</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Slide Subtitle</label>
                 <input
                   type="text"
                   value={editingSlide.sinhala}
@@ -3179,7 +3179,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Sinhala Name (සිංහල නම)</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Local / Sinhala Name (Optional)</label>
                   <input
                     type="text"
                     value={editingVilla.sinhalaName || ''}
@@ -3301,7 +3301,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                     <Snowflake className="w-3.5 h-3.5 text-blue-600" />
-                    <span>A/C Availability (A/C තත්ත්වය) *</span>
+                    <span>A/C Availability *</span>
                   </label>
                   <div className="grid grid-cols-3 gap-1.5">
                     <button
@@ -3335,7 +3335,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                           : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
                       }`}
                     >
-                      ❄️🍃 Both (දෙකම)
+                      ❄️🍃 Both (A/C & Non-A/C)
                     </button>
                   </div>
                 </div>
@@ -3344,7 +3344,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                     <Utensils className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Kitchen Facility (මුළුතැන්ගෙය) *</span>
+                    <span>Kitchen Facility *</span>
                   </label>
                   <div className="grid grid-cols-2 gap-1.5">
                     <button
@@ -3356,7 +3356,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                           : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
                       }`}
                     >
-                      🍳 Kitchen ඇත (Yes)
+                      🍳 Kitchen Available
                     </button>
                     <button
                       type="button"
@@ -3367,7 +3367,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                           : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
                       }`}
                     >
-                      ✕ නැත (No Kitchen)
+                      ✕ No Kitchen
                     </button>
                   </div>
                 </div>
@@ -3705,10 +3705,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     onChange={e => setEditingKithul({ ...editingKithul, category: e.target.value as any })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   >
-                    <option value="treacle">Treacle (පැණි)</option>
-                    <option value="jaggery">Jaggery (හකුරු)</option>
-                    <option value="toddy">Fresh Toddy (රා බෝතල්)</option>
-                    <option value="experience">Live Tapping Tour (අත්දැකීම)</option>
+                    <option value="treacle">Treacle (Pure)</option>
+                    <option value="jaggery">Jaggery (Hearth Smoked)</option>
+                    <option value="toddy">Fresh Toddy (Chilled Bottle)</option>
+                    <option value="experience">Live Tapping Tour (Guided)</option>
                   </select>
                 </div>
                 <div>

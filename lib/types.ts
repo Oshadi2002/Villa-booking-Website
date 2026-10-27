@@ -96,7 +96,8 @@ export interface HeroSlide {
   id: string;
   url: string;
   title: string;
-  sinhala: string;
+  subtitle?: string;
+  sinhala?: string;
 }
 
 export interface Attraction {

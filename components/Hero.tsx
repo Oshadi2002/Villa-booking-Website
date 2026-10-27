@@ -8,32 +8,32 @@ const HERO_SLIDES: HeroSlide[] = [
   {
     id: 'slide-1',
     url: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1920&q=85',
-    title: 'Brahmana Ella & Waterfalls',
-    sinhala: 'බ්‍රාහ්මණ ඇල්ල සහ දූවිලි ඇල්ල දියඇලි මිටියාවත'
+    title: 'Brahmana Ella & Hidden Cascades',
+    subtitle: 'Pristine rainforest waterfalls flowing through the Sinharaja valley'
   },
   {
     id: 'slide-2',
     url: 'https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1920&q=85',
     title: 'Sinharaja Virgin Rainforest Canopy',
-    sinhala: 'සිංහරාජ ලෝක උරුම වැසි වනාන්තර මායිම'
+    subtitle: 'UNESCO World Heritage biological hotspot with endemic wildlife'
   },
   {
     id: 'slide-3',
     url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=85',
     title: 'Gin Ganga Natural River Pools',
-    sinhala: 'ලංකාගම ගිං ගඟ අද්දර ස්වාභාවික නාන තටාක'
+    subtitle: 'Crystal-clear freshwater streams and serene natural rock baths'
   },
   {
     id: 'slide-4',
     url: 'https://images.unsplash.com/photo-1542332213-9b5a5a3fad35?auto=format&fit=crop&w=1920&q=85',
     title: 'Deep Jungle Trails & Suspension Bridges',
-    sinhala: 'ගැඹුරු වැසි වනාන්තර අඩිපාරවල් සහ ලී පාලම්'
+    subtitle: 'Ancient walking trails through misty tropical evergreen canopies'
   },
   {
     id: 'slide-5',
     url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=85',
     title: 'Mist-Shrouded Mountain Ridges',
-    sinhala: 'නෙළුව - ලංකාගම මීදුම් සළු බැඳි කඳු පන්ති'
+    subtitle: 'Dramatic sunrise vistas over Neluwa and the Lankagama valley'
   }
 ];
 
@@ -126,7 +126,7 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
             Where the Virgin Rainforest <br className="hidden sm:inline" />
             Meets the Living Waters of <br />
             <span className="italic font-normal text-[#D4AF37]">
-              Lankagama (ලංකාගම)
+              Lankagama Valley
             </span>
           </h1>
 
@@ -206,7 +206,7 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
               {activeSlides[currentSlide]?.title || ''}
             </span>
             <span className="hidden md:inline text-[#C2BCB0]">
-              • {activeSlides[currentSlide]?.sinhala || ''}
+              • {activeSlides[currentSlide]?.subtitle || activeSlides[currentSlide]?.sinhala || ''}
             </span>
           </div>
 

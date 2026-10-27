@@ -55,15 +55,15 @@ export default function KithulOrderModal({ isOpen, onClose, product, villas }: K
     setError('');
 
     if (!customerName.trim()) {
-      setError('Please enter your name (කරුණාකර ඔබේ නම ඇතුළත් කරන්න)');
+      setError('Please enter your full name');
       return;
     }
     if (!customerPhone.trim() || customerPhone.length < 9) {
-      setError('Please provide a valid WhatsApp number (වලංගු WhatsApp අංකයක් ඇතුළත් කරන්න)');
+      setError('Please provide a valid WhatsApp contact number');
       return;
     }
     if (!deliveryDate) {
-      setError('Please select a delivery date (දිනය තෝරන්න)');
+      setError('Please select a preferred delivery date');
       return;
     }
 
@@ -235,7 +235,7 @@ Please confirm delivery to my location in Lankagama. Thank you!`;
             {/* Delivery Destination Selector */}
             <div className="space-y-2">
               <label className="block text-[11px] font-semibold text-[#C2BCB0] uppercase tracking-wider">
-                Where should we deliver? (ඔබ නැවතී සිටින ස්ථානය) <span className="text-[#D4AF37]">*</span>
+                Delivery Location in Lankagama <span className="text-[#D4AF37]">*</span>
               </label>
 
               {/* Destination Type Toggle */}
@@ -442,13 +442,13 @@ Please confirm delivery to my location in Lankagama. Thank you!`;
 
             <div>
               <span className="inline-block px-3 py-1 rounded-full bg-[#2C3E33] text-[#D4AF37] border border-[#3B5244] text-[10px] font-semibold uppercase tracking-[0.16em] mb-2">
-                Order Received • ඩිලිවරි ඉල්ලීම ලැබුණා
+                Order Received • Concierge Verification
               </span>
               <h4 className="text-2xl font-serif text-[#F5F2EB] font-medium">
                 Order Confirmed!
               </h4>
               <p className="text-xs text-[#C2BCB0] mt-1 max-w-sm mx-auto leading-relaxed">
-                අපගේ ලංකාගම කණ්ඩායම ඔබේ කිතුල් ඇණවුම ඔබ නැවතී සිටින ස්ථානයටම නියමිත වේලාවට ගෙනැවිත් භාරදෙනු ඇත.
+                Our local concierge team will coordinate with the tappers and deliver your fresh Kithul harvest directly to your villa or campsite at your requested time.
               </p>
             </div>
 

@@ -229,7 +229,7 @@ export default function ReviewsPage() {
               className="px-5 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md shrink-0 self-start md:self-auto"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>Leave a Review / අදහස් දක්වන්න</span>
+              <span>Leave a Review</span>
             </button>
           </div>
 
@@ -327,7 +327,7 @@ export default function ReviewsPage() {
             {/* Right: Message Form */}
             <div className="bg-[#1E2A22] rounded-3xl p-6 sm:p-8 border border-[#3B5244] shadow-xl">
               <h3 className="text-lg font-serif font-semibold text-[#F5F2EB] mb-4">
-                Send an Online Inquiry / විමසීමක් එවන්න
+                Send an Online Inquiry
               </h3>
 
               {inquirySuccess ? (
@@ -379,7 +379,7 @@ export default function ReviewsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">Message / ඔබේ විමසීම</label>
+                    <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">Message / Your Question</label>
                     <textarea
                       required
                       rows={3}
@@ -458,7 +458,7 @@ export default function ReviewsPage() {
           <div className="bg-[#1E2A22] rounded-3xl border border-[#3B5244] max-w-md w-full p-6 sm:p-7 shadow-2xl relative animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#2C3E33]">
               <h3 className="text-base font-serif font-bold text-[#F5F2EB]">
-                Share Your Experience / ඔබේ අදහස
+                Share Your Experience
               </h3>
               <button
                 onClick={() => setIsCommentModalOpen(false)}
@@ -540,7 +540,7 @@ export default function ReviewsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">Your Comment / අදහස</label>
+                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">Your Review / Comment</label>
                   <textarea
                     required
                     rows={3}

@@ -141,13 +141,13 @@ export default function CustomerReviewsAndInquirySection({
             <div className="space-y-2 max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#2C3E33] border border-[#3B5244] text-[#D4AF37] text-xs font-semibold uppercase tracking-wider">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Guest Testimonials • පාරිභෝගික අදහස්</span>
+                <span>Guest Testimonials • Verified Experiences</span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-serif font-medium text-[#F5F2EB]">
                 What Travelers Say About Our <span className="italic text-[#D4AF37]">Stays & Kithul</span>
               </h2>
               <p className="text-xs sm:text-sm text-[#C2BCB0] leading-relaxed">
-                සැබෑ අත්දැකීම්: අපගේ විලා නවාතැන්, විලා එකටම ලැබෙන පිරිසිදු කිතුල් පැණි සහ හකුරු, නැවුම් රා සහ කඳවුරු උපකරණ ලබාගත් සංචාරකයින්ගේ සටහන්.
+                Authentic impressions from international trekkers, nature lovers, and travelers who experienced our stays, pure rainforest Kithul, fresh toddy, and camping adventures.
               </p>
             </div>
 
@@ -156,7 +156,7 @@ export default function CustomerReviewsAndInquirySection({
               className="px-5 py-3 rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md self-start md:self-auto shrink-0"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>Leave a Review / අදහස් දක්වන්න</span>
+              <span>Write a Review</span>
             </button>
           </div>
 
@@ -220,7 +220,7 @@ export default function CustomerReviewsAndInquirySection({
         </div>
 
         {/* ============================================================
-           PART 2: INQUIRIES & QUESTIONS FORM (විමසීම් සහ ප්‍රශ්න)
+           PART 2: INQUIRIES & QUESTIONS FORM
            ============================================================ */}
         <div className="bg-[#1E2A22] rounded-3xl p-6 sm:p-10 border border-[#3B5244] shadow-2xl mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
@@ -228,7 +228,7 @@ export default function CustomerReviewsAndInquirySection({
           <div className="lg:col-span-5 space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#14231B] border border-[#3B5244] text-[#D4AF37] text-xs font-semibold uppercase tracking-wider">
               <HelpCircle className="w-3.5 h-3.5" />
-              <span>Questions & Concierge • විමසීම්</span>
+              <span>Questions & Concierge • Support</span>
             </div>
 
             <h3 className="text-2xl sm:text-3xl font-serif text-[#F5F2EB] font-medium">
@@ -236,7 +236,7 @@ export default function CustomerReviewsAndInquirySection({
             </h3>
 
             <p className="text-xs sm:text-sm text-[#C2BCB0] leading-relaxed">
-              ඔබ ලංකාගම සංචාරය සැලසුම් කරමින් සිටිනවාද? පාරේ තත්වය, නවාතැන් වෙන්කරවා ගැනීම්, ඔබේ විලා එකට කිතුල් පැණි හෝ නැවුම් රා ලබාගැනීම හෝ කඳවුරු උපකරණ ගැන ඕනෑම දෙයක් මෙතැනින් විමසන්න.
+              Planning your rainforest journey to Lankagama? Inquire about real-time road conditions, private villa vacancies, doorstep Kithul delivery, or camping gear rentals.
             </p>
 
             <div className="space-y-3 pt-3 border-t border-[#3B5244]">
@@ -277,7 +277,7 @@ export default function CustomerReviewsAndInquirySection({
           {/* Right Inquiry Form Column */}
           <div className="lg:col-span-7 bg-[#14231B] p-6 sm:p-7 rounded-2xl border border-[#3B5244]">
             <h4 className="text-base font-serif text-[#F5F2EB] font-medium mb-1">
-              Send an Instant Inquiry (පණිවිඩයක් එවන්න)
+              Send an Instant Inquiry
             </h4>
             <p className="text-xs text-[#C2BCB0] mb-5">
               Fill out the form below. We log your request in our system and reply directly to your WhatsApp.
@@ -338,7 +338,7 @@ export default function CustomerReviewsAndInquirySection({
                   className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-[#3B5244] focus:outline-none focus:ring-1 focus:ring-[#D4AF37] bg-[#1E2A22] text-[#F5F2EB]"
                 >
                   <option value="Kithul Delivery to Villa & Stay Details">Pure Kithul Treacle & Jaggery Villa Delivery</option>
-                  <option value="Fresh Kithul Raa & Tasting Experience">Fresh Toddy (රා) Tasting & Tour</option>
+                  <option value="Fresh Kithul Raa & Tasting Experience">Fresh Toddy Tasting & Live Palm Tour</option>
                   <option value="Villa Availability & Bookings">Villa & Homestay Availability</option>
                   <option value="Expedition Camping Sets & BBQ">Camping Equipment & Tent Packages</option>
                   <option value="Road Conditions & 4WD Need">Road Conditions (Neluwa to Lankagama route)</option>
@@ -389,7 +389,7 @@ export default function CustomerReviewsAndInquirySection({
             <div className="bg-[#14231B] p-5 flex items-center justify-between border-b border-[#3B5244]">
               <div>
                 <span className="text-[10px] font-bold tracking-widest uppercase text-[#D4AF37] block">
-                  Guest Feedback • අදහස් දැක්වීම
+                  Guest Feedback • Verified Reviews
                 </span>
                 <h3 className="text-base font-serif font-medium text-[#F5F2EB]">
                   Write a Review or Comment

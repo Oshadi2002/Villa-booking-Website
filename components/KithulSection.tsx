@@ -34,17 +34,17 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#2C3E33]/90 border border-[#3B5244] text-[#D4AF37] text-xs font-semibold tracking-wider uppercase shadow-xs">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Sinharaja Rainforest Harvest • කිතුල් පැණි, හකුරු සහ රා</span>
+            <span>Sinharaja Rainforest Harvest • Artisanal Delicacies</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-[#F5F2EB] tracking-tight">
             100% Pure Kithul Delicacies & <br className="hidden sm:inline" />
-            <span className="italic text-[#D4AF37] font-normal">Fresh Toddy (රා) Experience</span>
+            <span className="italic text-[#D4AF37] font-normal">Fresh Toddy Experience</span>
           </h2>
 
           <p className="text-sm sm:text-base text-[#C2BCB0] leading-relaxed max-w-2xl mx-auto">
-            ලංකාගම ගම්මානයේ සැබෑ කිතුල් ගස්වලින් වෑහෙන පිරිසිදුම කිතුල් පැණි, නියම හකුරු සහ නැවුම් කිතුල් රා — 
-            අපේ වෙබ් අඩවිය හරහා ඔබ නැවතී සිටින <strong className="text-[#D4AF37]">විලා එකටම හෝ කඳවුරු බිමටම ගෙන්වා ගැනීමේ</strong> විශේෂ පහසුකම!
+            Tapped from ancient wild fishtail palms deep in the Lankagama rainforest basin. 
+            Enjoy unadulterated pure treacle, jaggery, and fresh morning toddy <strong className="text-[#D4AF37]">delivered directly to your villa veranda or campsite</strong>.
           </p>
         </div>
 
@@ -56,13 +56,13 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-widest text-[#D4AF37] block">
-                Exclusive Villa Guest Benefit • විශේෂ වාසියක්
+                Exclusive Villa Guest Privilege
               </span>
               <h3 className="text-lg sm:text-xl font-serif text-[#F5F2EB] font-bold mt-0.5">
                 Delivered Direct to Your Villa Veranda in Lankagama
               </h3>
               <p className="text-xs text-[#C2BCB0] mt-1 max-w-xl leading-relaxed">
-                ඔබ ලංකාගම ඕනෑම විලා එකක හෝ ටෙන්ට් එකක සිටියදී උදෑසන ආප්ප, කිරිපිට්ටු හෝ තේ සඳහා අවශ්‍ය පිරිසිදු පැණි සහ හකුරු විලා එකටම ඩිලිවරි කරගත හැක.
+                Staying at any villa or campsite in Lankagama? Enjoy complimentary doorstep delivery of warm, organic Kithul syrup and fresh jaggery for your morning hoppers, curd, or Ceylon tea.
               </p>
             </div>
           </div>
@@ -85,7 +85,7 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
                 : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
             }`}
           >
-            All Products & Tours (සියල්ල)
+            All Delicacies & Tours
           </button>
           <button
             onClick={() => setActiveCategory('treacle')}
@@ -95,7 +95,7 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
                 : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
             }`}
           >
-            Pure Treacle (පිරිසිදු පැණි)
+            Pure Treacle
           </button>
           <button
             onClick={() => setActiveCategory('jaggery')}
@@ -105,7 +105,7 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
                 : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
             }`}
           >
-            Palm Jaggery (කිතුල් හකුරු)
+            Palm Jaggery
           </button>
           <button
             onClick={() => setActiveCategory('toddy')}
@@ -115,7 +115,7 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
                 : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
             }`}
           >
-            Fresh Raa Bottle (නැවුම් කිතුල් රා)
+            Fresh Raa Bottle
           </button>
           <button
             onClick={() => setActiveCategory('experience')}
@@ -125,7 +125,7 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
                 : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
             }`}
           >
-            Live Tapping Tour (රා අත්දැකීම)
+            Live Tapping Tour
           </button>
         </div>
 
@@ -223,7 +223,7 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
           <div className="lg:col-span-2 space-y-3">
             <span className="text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] flex items-center gap-1.5">
               <Compass className="w-3.5 h-3.5" />
-              <span>Sinharaja Heritage Tradition • කිතුල් කර්මාන්තයේ ඉතිහාසය</span>
+              <span>Sinharaja Heritage Tradition • The Ancient Palm Craft</span>
             </span>
             <h3 className="text-2xl font-serif text-[#F5F2EB] font-medium">
               The Legend of Sinharaja Kithul Palms

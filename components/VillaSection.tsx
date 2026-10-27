@@ -263,7 +263,7 @@ export default function VillaSection({ onSelectVilla, onViewDetails, villas = VI
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div className="max-w-2xl">
             <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[#D4AF37] block mb-2">
-              Curated Private Stays • ස්වභාවික නවාතැන්
+              Curated Private Stays • Sinharaja Rainforest Border
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-[#F5F2EB] tracking-tight font-medium">
               Villas & Eco-Lodges in Lankagama
@@ -284,7 +284,7 @@ export default function VillaSection({ onSelectVilla, onViewDetails, villas = VI
                   ? 'bg-[#14231B] border-[#D4AF37] text-[#D4AF37]'
                   : 'bg-[#2C3E33] border-[#3B5244] text-[#C2BCB0] hover:text-[#F5F2EB]'
               }`}
-              title={isAutoPlay ? 'Auto-Slide සක්‍රියයි (Click to pause)' : 'Auto-Slide අක්‍රියයි (Click to play)'}
+              title={isAutoPlay ? 'Auto-Slide Active (Click to pause)' : 'Auto-Slide Paused (Click to play)'}
             >
               <span className={`w-2 h-2 rounded-full ${isAutoPlay ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}`} />
               <span>{isAutoPlay ? 'Auto-Slide: ON' : 'Auto-Slide: OFF'}</span>

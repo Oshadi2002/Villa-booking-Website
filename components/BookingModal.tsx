@@ -80,15 +80,15 @@ export default function BookingModal({ isOpen, onClose, bookingType, item }: Boo
     setError('');
 
     if (!formData.customerName.trim()) {
-      setError('Please enter your full name (කරුණාකර ඔබේ නම ඇතුළත් කරන්න)');
+      setError('Please enter your full name');
       return;
     }
     if (!formData.customerPhone.trim() || formData.customerPhone.length < 9) {
-      setError('Please provide a valid WhatsApp/Phone number (වලංගු දුරකථන අංකයක් ඇතුළත් කරන්න)');
+      setError('Please provide a valid WhatsApp / contact number');
       return;
     }
     if (!formData.checkInDate) {
-      setError('Please select your arrival date (පැමිණෙන දිනය තෝරන්න)');
+      setError('Please select your arrival date');
       return;
     }
 
@@ -152,10 +152,10 @@ export default function BookingModal({ isOpen, onClose, bookingType, item }: Boo
   const getWhatsAppBookingText = () => {
     if (!submittedBooking) return '';
     const acLine = bookingType === 'villa' 
-      ? `❄️ Room Type: ${submittedBooking.acPreference === 'ac' ? 'A/C Room (A/C කාමරය)' : 'Non-A/C Room (Non-A/C කාමරය)'}\n` 
+      ? `❄️ Room Type: ${submittedBooking.acPreference === 'ac' ? 'A/C Room' : 'Non-A/C Natural Breeze'}\n` 
       : '';
     const mealLine = bookingType === 'villa'
-      ? `🍲 Village Meals: ${submittedBooking.orderMeals ? 'YES (ගමේ කෑම ඇනවුම් කර ඇත)' : 'NO (කෑම අවශ්‍ය නැත)'}\n`
+      ? `🍲 Village Meals: ${submittedBooking.orderMeals ? 'YES (Authentic Village Meals Requested)' : 'NO (Room Only)'}\n`
       : '';
 
     return `Hello The Sinharaja Collection Lankagama! 🌿
@@ -329,7 +329,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-[#F5F2EB] flex items-center gap-1.5">
                       <Snowflake className="w-4 h-4 text-[#D4AF37]" />
-                      <span>Room A/C Preference (A/C කාමරයක් අවශ්‍යද?)</span>
+                      <span>Room A/C Preference</span>
                     </label>
                     <span className="text-[10px] text-[#D4AF37] font-semibold bg-[#1E2A22] px-2 py-0.5 rounded border border-[#3B5244]">
                       {item?.acType === 'ac' ? 'A/C Only' : item?.acType === 'non-ac' ? 'Non-A/C Only' : 'A/C & Non-A/C Available'}
@@ -358,7 +358,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                         }`}
                       >
                         <Snowflake className={`w-3.5 h-3.5 ${acPreference === 'ac' ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
-                        <span>❄️ A/C Room (A/C)</span>
+                        <span>❄️ Air Conditioned (A/C)</span>
                       </button>
                       <button
                         type="button"
@@ -370,7 +370,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                         }`}
                       >
                         <Wind className={`w-3.5 h-3.5 ${acPreference === 'non-ac' ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
-                        <span>🍃 Non-A/C Room</span>
+                        <span>🍃 Non-A/C Natural Breeze</span>
                       </button>
                     </div>
                   )}
@@ -381,14 +381,14 @@ Please verify live availability with the host and confirm my booking. Thank you!
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-[#F5F2EB] flex items-center gap-1.5">
                       <Utensils className="w-4 h-4 text-[#D4AF37]" />
-                      <span>Village Meals & Food (කෑම ඇනවුම් කරනවාද?)</span>
+                      <span>Authentic Woodfire Village Dining</span>
                     </label>
                     <span className="text-[10px] text-[#D4AF37] font-semibold font-mono bg-[#1E2A22] px-2 py-0.5 rounded border border-[#3B5244]">
                       Woodfire Meals
                     </span>
                   </div>
                   <p className="text-[11px] text-[#C2BCB0] leading-snug">
-                    දර ලිපේ මැටි ඇතිලිවල පිසින සාම්ප්‍රදායික උණුසුම් ගමේ බත් සහ වෑංජන, දේශීය එළවළු, ගඟේ මාළු සහ ගමේ උදෑසන ආහාර.
+                    Traditional Sri Lankan clay-pot curries prepared over woodfire with homegrown organic vegetables, freshwater catch, and village breakfast.
                   </p>
 
                   <div className="grid grid-cols-2 gap-2 pt-1">
@@ -401,7 +401,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                           : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33]'
                       }`}
                     >
-                      <span>✕ No Meals (කෑම අවශ්‍ය නැත)</span>
+                      <span>✕ Room Only (No Meals)</span>
                     </button>
                     <button
                       type="button"
@@ -413,7 +413,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                       }`}
                     >
                       <Utensils className={`w-3.5 h-3.5 ${orderMeals ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
-                      <span>✓ Order Meals (කෑම අවශ්‍යයි)</span>
+                      <span>✓ Add Village Meals</span>
                     </button>
                   </div>
                 </div>
@@ -425,14 +425,14 @@ Please verify live availability with the host and confirm my booking. Thank you!
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-[#F5F2EB] flex items-center gap-1.5">
                   <Compass className="w-4 h-4 text-[#D4AF37]" />
-                  <span>Sinharaja Tour Guide (මගපෙන්වන්නෙක් අවශ්‍යද?)</span>
+                  <span>Accredited Sinharaja Rainforest Guide</span>
                 </label>
                 <span className="text-[10px] text-[#D4AF37] font-semibold font-mono bg-[#1E2A22] px-2 py-0.5 rounded border border-[#3B5244]">
                   +Rs. 4,000 / day
                 </span>
               </div>
               <p className="text-[11px] text-[#C2BCB0] leading-snug">
-                ගිං ගඟේ ආරක්ෂිත දියනාන තැන්, බ්‍රාහ්මණ ඇල්ල සහ සිංහරාජ මායිම් වනාන්තරය නැරඹීමට ප්‍රදේශයේ පළපුරුදු ස්වදේශික ගයිඩ් කෙනෙක්.
+                Certified native naturalist to safely guide you to secluded waterfalls, hidden river pools, and endemic wildlife trails.
               </p>
 
               <div className="grid grid-cols-2 gap-2 pt-1">
@@ -445,7 +445,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                       : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33]'
                   }`}
                 >
-                  <span>✕ No Need (අවශ්‍ය නැත)</span>
+                  <span>✕ No Guide Needed</span>
                 </button>
                 <button
                   type="button"
@@ -457,7 +457,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                   }`}
                 >
                   <Compass className={`w-3.5 h-3.5 ${needGuide ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
-                  <span>✓ Need Guide (අවශ්‍යයි)</span>
+                  <span>✓ Include Local Guide</span>
                 </button>
               </div>
             </div>
@@ -521,7 +521,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                 Booking Request Placed
               </h4>
               <p className="text-xs text-[#C2BCB0] mt-1 max-w-sm mx-auto font-normal leading-relaxed">
-                ඉල්ලීම සාර්ථකව ලැබුණා! අපගේ කණ්ඩායම දැන් සත්කාරකයාගෙන් vacancy එක තහවුරු කර විනාඩි 15කින් ඔබට WhatsApp මගින් දන්වනු ඇත.
+                Your request has been received. Our concierge team is verifying real-time host availability and will confirm your reservation via WhatsApp within 15 minutes.
               </p>
             </div>
 

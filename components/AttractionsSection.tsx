@@ -75,7 +75,7 @@ export default function AttractionsSection({ attractionsList }: AttractionsSecti
         <div className="mt-12 bg-[#2C3E33] border border-[#3B5244] rounded-2xl p-6 sm:p-8 shadow-md">
           <h4 className="text-base font-serif font-semibold text-[#F5F2EB] mb-2 flex items-center gap-2">
             <Compass className="w-5 h-5 text-[#D4AF37]" />
-            <span>How to Reach Lankagama (මාර්ග විස්තරය)</span>
+            <span>How to Reach Lankagama Valley</span>
           </h4>
           <p className="text-xs sm:text-sm text-[#C2BCB0] leading-relaxed font-normal">
             <strong className="text-[#D4AF37] font-semibold">From Galle / Neluwa:</strong> Reach Neluwa town, then proceed along the scenic Gin Ganga road directly into Lankagama village (~14 km). The road features concrete bridges and breathtaking river scenery.<br />

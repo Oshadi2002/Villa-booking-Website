@@ -109,42 +109,42 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
               onClick={() => setMobileMenuOpen(false)}
               className="p-2 rounded-lg hover:bg-[#2C3E33]"
             >
-              Why Choose Us (විශේෂ වාසි)
+              Why Choose Us
             </a>
             <Link 
               href="/#villas" 
               onClick={() => setMobileMenuOpen(false)}
               className="p-2 rounded-lg hover:bg-[#2C3E33]"
             >
-              Villas & Stays (ලංකාගම නවාතැන්)
+              Villas & Eco-Lodges
             </Link>
             <Link 
               href="/#kithul" 
               onClick={() => setMobileMenuOpen(false)}
               className="p-2 rounded-lg hover:bg-[#2C3E33] text-[#D4AF37]"
             >
-              Pure Kithul & Fresh Toddy (කිතුල් පැණි & රා)
+              Artisanal Kithul & Toddy
             </Link>
             <Link 
               href="/#camping" 
               onClick={() => setMobileMenuOpen(false)}
               className="p-2 rounded-lg hover:bg-[#2C3E33]"
             >
-              Expedition Camping Gear (කඳවුරු බඩු)
+              Camping Gear Rentals
             </Link>
             <Link 
               href="/blogs" 
               onClick={() => setMobileMenuOpen(false)}
               className="p-2 rounded-lg hover:bg-[#2C3E33]"
             >
-              Blogs & Waterfalls (ලිපි සහ දියඇලි)
+              Waterfalls & Travel Guides
             </Link>
             <Link 
               href="/reviews" 
               onClick={() => setMobileMenuOpen(false)}
               className="p-2 rounded-lg hover:bg-[#2C3E33]"
             >
-              Guest Reviews & FAQ (අදහස් සහ විමසීම්)
+              Guest Reviews & FAQ
             </Link>
           </nav>
 
