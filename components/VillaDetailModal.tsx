@@ -201,13 +201,31 @@ export default function VillaDetailModal({ isOpen, onClose, villa, onBookNow }: 
               </div>
             </div>
 
-            {/* Bed Layout Callout */}
-            {villa.bedConfig && (
+            {/* Bed Layout, A/C & Kitchen Callout */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {villa.bedConfig && (
+                <div className="p-3 bg-[#2C3E33] border border-[#3B5244] rounded-xl flex items-center gap-2 text-xs text-[#C2BCB0] font-normal">
+                  <Bed className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                  <span><strong className="font-semibold text-[#F5F2EB]">Beds:</strong> {villa.bedConfig}</span>
+                </div>
+              )}
+
               <div className="p-3 bg-[#2C3E33] border border-[#3B5244] rounded-xl flex items-center gap-2 text-xs text-[#C2BCB0] font-normal">
-                <Bed className="w-4 h-4 text-[#D4AF37] shrink-0" />
-                <span><strong className="font-semibold text-[#F5F2EB]">Bed Arrangement:</strong> {villa.bedConfig}</span>
+                <span className="text-base shrink-0">❄️</span>
+                <span>
+                  <strong className="font-semibold text-[#F5F2EB]">A/C Status:</strong>{' '}
+                  {villa.acType === 'ac' ? 'A/C Only' : villa.acType === 'non-ac' ? 'Non-A/C Rainforest Breeze' : 'Both A/C & Non-A/C Available'}
+                </span>
               </div>
-            )}
+
+              <div className="p-3 bg-[#2C3E33] border border-[#3B5244] rounded-xl flex items-center gap-2 text-xs text-[#C2BCB0] font-normal">
+                <span className="text-base shrink-0">🍳</span>
+                <span>
+                  <strong className="font-semibold text-[#F5F2EB]">Kitchen:</strong>{' '}
+                  {villa.hasKitchen ? 'Private Kitchen Available' : 'No Kitchen (Village Meals Available)'}
+                </span>
+              </div>
+            </div>
 
             {/* Description */}
             <div>

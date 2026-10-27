@@ -36,6 +36,8 @@ export const VILLAS: Villa[] = [
     ],
     locationDetails: 'Near Lankagama suspension bridge & Gin Ganga riverbank',
     ownerContact: '+94 71 450 1122 (Mr. Karunathilaka)',
+    acType: 'both',
+    hasKitchen: true,
     highlights: [
       {
         title: 'Direct River Access',
@@ -132,6 +134,8 @@ export const VILLAS: Villa[] = [
     ],
     locationDetails: 'Brahmana Ella access road, Lankagama',
     ownerContact: '+94 77 334 9871 (Saman Weerasinghe)',
+    acType: 'non-ac',
+    hasKitchen: false,
     highlights: [
       {
         title: 'Panoramic Waterfall View',
@@ -228,6 +232,8 @@ export const VILLAS: Villa[] = [
     ],
     locationDetails: 'Upper Lankagama, bordering Sinharaja reserve boundary',
     ownerContact: '+94 70 219 8834 (Bandara)',
+    acType: 'non-ac',
+    hasKitchen: false,
     highlights: [
       {
         title: 'Rainforest Canopy Deck',
@@ -323,6 +329,8 @@ export const VILLAS: Villa[] = [
     ],
     locationDetails: 'Nilwella junction, Lankagama approach',
     ownerContact: '+94 76 991 4455 (Mrs. Kanthi)',
+    acType: 'both',
+    hasKitchen: true,
     highlights: [
       {
         title: 'Accommodates up to 8',

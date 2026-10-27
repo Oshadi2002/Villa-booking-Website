@@ -85,6 +85,8 @@ export default function HomePage() {
     price: number;
     unitLabel?: string;
     imageUrl?: string;
+    acType?: 'ac' | 'non-ac' | 'both';
+    hasKitchen?: boolean;
   } | null>(null);
 
   // View Details trigger (Opens interactive photo gallery & facilities modal)
@@ -102,7 +104,9 @@ export default function HomePage() {
       sinhalaName: villa.sinhalaName,
       price: villa.pricePerNightLKR,
       unitLabel: 'night',
-      imageUrl: villa.imageUrl
+      imageUrl: villa.imageUrl,
+      acType: villa.acType,
+      hasKitchen: villa.hasKitchen
     });
     setIsBookingModalOpen(true);
   };

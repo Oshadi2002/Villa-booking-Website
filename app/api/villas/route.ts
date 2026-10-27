@@ -55,7 +55,9 @@ export async function POST(req: Request) {
         }
       ],
       foodOptions: Array.isArray(body.foodOptions) ? body.foodOptions : ['Traditional Sri Lankan Village Rice & Curry', 'Local Breakfast with Fresh Tea'],
-      houseRules: Array.isArray(body.houseRules) ? body.houseRules : ['Respect rainforest tranquility after 10 PM', 'No polythene disposal in river streams']
+      houseRules: Array.isArray(body.houseRules) ? body.houseRules : ['Respect rainforest tranquility after 10 PM', 'No polythene disposal in river streams'],
+      acType: body.acType || 'both',
+      hasKitchen: body.hasKitchen !== undefined ? Boolean(body.hasKitchen) : true
     });
 
     return NextResponse.json({

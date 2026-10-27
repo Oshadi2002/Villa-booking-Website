@@ -23,6 +23,9 @@ export interface Booking {
   deliveryLocation?: string;
   quantity?: number;
   itemsSummary?: string;
+  acPreference?: 'ac' | 'non-ac';
+  orderMeals?: boolean;
+  mealsNotes?: string;
 }
 
 export interface AmenityHighlight {
@@ -58,6 +61,8 @@ export interface Villa {
   facilities: FacilityGroup[];
   foodOptions: string[];
   houseRules: string[];
+  acType?: 'ac' | 'non-ac' | 'both';
+  hasKitchen?: boolean;
 }
 
 export interface CampingGear {

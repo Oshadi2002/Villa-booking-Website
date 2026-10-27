@@ -54,15 +54,27 @@ function VillaCardItem({
           <div className="absolute inset-0 bg-gradient-to-t from-[#14231B] via-transparent to-transparent opacity-90" />
           
           {/* Top Badges */}
-          <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
-            <span className="px-3 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-xs font-medium border border-[#3B5244] flex items-center gap-1.5 shadow-sm">
+          <div className="absolute top-4 left-4 flex flex-wrap items-center gap-1.5 z-10 max-w-[85%]">
+            <span className="px-2.5 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-xs font-medium border border-[#3B5244] flex items-center gap-1.5 shadow-sm">
               <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Up to {villa.maxGuests} Guests</span>
+              <span>Up to {villa.maxGuests}</span>
             </span>
 
-            <span className="px-3 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-xs font-medium border border-[#3B5244] flex items-center gap-1.5 shadow-sm">
+            {villa.acType && (
+              <span className="px-2.5 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-xs font-medium border border-[#3B5244] shadow-sm">
+                {villa.acType === 'ac' ? '❄️ A/C' : villa.acType === 'non-ac' ? '🍃 Non-A/C' : '❄️ A/C & Non-A/C'}
+              </span>
+            )}
+
+            {villa.hasKitchen && (
+              <span className="px-2.5 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-xs font-medium border border-[#3B5244] shadow-sm">
+                🍳 Kitchen
+              </span>
+            )}
+
+            <span className="px-2.5 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-xs font-medium border border-[#3B5244] flex items-center gap-1.5 shadow-sm">
               <ImageIcon className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>{photoIndex + 1}/{images.length} Photos</span>
+              <span>{photoIndex + 1}/{images.length}</span>
             </span>
           </div>
 

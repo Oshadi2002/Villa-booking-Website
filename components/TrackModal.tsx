@@ -184,6 +184,18 @@ export default function TrackModal({ isOpen, onClose }: TrackModalProps) {
                   <span className="text-[#C2BCB0]">Trekkers:</span>
                   <span className="font-medium text-[#F5F2EB]">{booking.guestsCount} Guests</span>
                 </div>
+                {booking.acPreference && (
+                  <div className="flex justify-between">
+                    <span className="text-[#C2BCB0]">A/C Preference:</span>
+                    <span className="font-medium text-[#F5F2EB]">{booking.acPreference === 'ac' ? '❄️ A/C Room' : '🍃 Non-A/C'}</span>
+                  </div>
+                )}
+                {booking.orderMeals !== undefined && (
+                  <div className="flex justify-between">
+                    <span className="text-[#C2BCB0]">Village Food:</span>
+                    <span className="font-medium text-[#D4AF37]">{booking.orderMeals ? '🍲 Yes (Ordered)' : '✕ Not ordered'}</span>
+                  </div>
+                )}
                 <div className="flex justify-between pt-1.5 border-t border-[#3B5244] font-bold">
                   <span className="text-[#C2BCB0]">Estimated Total:</span>
                   <span className="text-[#D4AF37] font-mono">Rs. {booking.totalLKR.toLocaleString()}</span>

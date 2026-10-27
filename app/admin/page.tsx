@@ -9,11 +9,13 @@ import {
   Plus, Trash2, Bed, Bath, Image as ImageIcon,
   MapPin, X, Tent, Waves, Menu, ChevronRight,
   ShieldCheck, AlertCircle, FileText, ShoppingBag,
-  Wine, Star, MessageSquare, HelpCircle, Mail, Pencil
+  Wine, Star, MessageSquare, HelpCircle, Mail, Pencil,
+  Snowflake, Wind, Utensils
 } from 'lucide-react';
 import { Booking, Villa, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry } from '@/lib/types';
 import { AGENCY_CONFIG } from '@/lib/data';
 import ImageUploadDropzone from '@/components/ImageUploadDropzone';
+import MultiImageUpload from '@/components/MultiImageUpload';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -55,7 +57,9 @@ export default function AdminPage() {
     locationDetails: 'Lankagama, near Gin Ganga riverbank',
     ownerContact: '',
     imageUrl: '',
-    additionalImages: '',
+    galleryImages: [] as string[],
+    acType: 'both' as 'ac' | 'non-ac' | 'both',
+    hasKitchen: true,
     featuresText: 'Natural River Bathing Pool, Woodfire Village Meals, Solar Hot Water, Leech Protection Gear, Free Local Tea',
     foodText: 'Traditional Sri Lankan Village Rice & Curry, Fresh Village Breakfast',
     rulesText: 'Respect rainforest silence after 10 PM, Polythene prohibited in natural streams'
@@ -112,6 +116,7 @@ export default function AdminPage() {
   const [editingVillaFood, setEditingVillaFood] = useState('');
   const [editingVillaRules, setEditingVillaRules] = useState('');
   const [editingVillaAddImages, setEditingVillaAddImages] = useState('');
+  const [editingVillaGallery, setEditingVillaGallery] = useState<string[]>([]);
 
   const [editingCamping, setEditingCamping] = useState<CampingGear | null>(null);
   const [editingCampingIncludes, setEditingCampingIncludes] = useState('');
@@ -291,6 +296,12 @@ export default function AdminPage() {
     const guideLine = b.needGuide
       ? `🧭 Tour Guide: YES (Dedicated native guide assigned - +Rs. ${(b.guideFee || 4000).toLocaleString()})\n`
       : '🧭 Tour Guide: Not requested\n';
+    const acLine = b.acPreference
+      ? `❄️ Room Type: ${b.acPreference === 'ac' ? 'A/C Room' : 'Non-A/C Room'}\n`
+      : '';
+    const mealLine = b.orderMeals !== undefined
+      ? `🍲 Village Food: ${b.orderMeals ? 'YES (Woodfire Village Meals Ordered)' : 'NO'}\n`
+      : '';
 
     const text = `🌿 Greetings from The Sinharaja Collection Lankagama! 🇱🇰
 
@@ -299,7 +310,7 @@ Great news! We have contacted the host and your booking request has been APPROVE
 
 📌 Booking Ref: ${b.id}
 🏠 Item: ${b.itemName}
-📅 Check-in Date: ${b.checkInDate} ${b.checkOutDate ? 'to ' + b.checkOutDate : ''}
+${acLine}${mealLine}📅 Check-in Date: ${b.checkInDate} ${b.checkOutDate ? 'to ' + b.checkOutDate : ''}
 👥 Guests: ${b.guestsCount} Persons
 ${guideLine}💰 Total: Rs. ${b.totalLKR.toLocaleString()}
 
@@ -360,11 +371,14 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     }
 
     try {
-      const additionalList = newVilla.additionalImages
-        .split('\n')
-        .map(url => url.trim())
-        .filter(url => url.length > 0);
-      const allImages = [newVilla.imageUrl || 'https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1000&q=80', ...additionalList];
+      const allImages = [
+        ...(newVilla.imageUrl ? [newVilla.imageUrl] : []),
+        ...newVilla.galleryImages
+      ];
+      const finalImages = allImages.length > 0
+        ? allImages
+        : ['https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1000&q=80'];
+      const coverUrl = newVilla.imageUrl || finalImages[0];
 
       const featuresList = newVilla.featuresText.split(',').map(f => f.trim()).filter(f => f.length > 0);
       const foodList = newVilla.foodText.split(',').map(f => f.trim()).filter(f => f.length > 0);
@@ -387,8 +401,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           checkOutTime: newVilla.checkOutTime,
           locationDetails: newVilla.locationDetails,
           ownerContact: newVilla.ownerContact,
-          imageUrl: newVilla.imageUrl || allImages[0],
-          images: allImages,
+          imageUrl: coverUrl,
+          images: finalImages,
+          acType: newVilla.acType,
+          hasKitchen: newVilla.hasKitchen,
           features: featuresList,
           foodOptions: foodList,
           houseRules: rulesList,
@@ -430,7 +446,9 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           locationDetails: 'Lankagama, near Gin Ganga riverbank',
           ownerContact: '',
           imageUrl: '',
-          additionalImages: '',
+          galleryImages: [],
+          acType: 'both',
+          hasKitchen: true,
           featuresText: 'Natural River Bathing Pool, Woodfire Village Meals, Solar Hot Water, Leech Protection Gear, Free Local Tea',
           foodText: 'Traditional Sri Lankan Village Rice & Curry, Fresh Village Breakfast',
           rulesText: 'Respect rainforest silence after 10 PM, Polythene prohibited in natural streams'
@@ -439,7 +457,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
         alert(data.message || 'Failed to add villa.');
       }
     } catch {
-      alert('Error creating villa.');
+      alert('Error connecting to server.');
     }
   };
 
@@ -684,10 +702,16 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
   // ---------------- EDIT HANDLERS (FULL CRUD) ---------------- //
   const handleOpenEditVilla = (v: Villa) => {
-    setEditingVilla(v);
+    setEditingVilla({
+      ...v,
+      acType: v.acType || 'both',
+      hasKitchen: v.hasKitchen !== undefined ? v.hasKitchen : true
+    });
     setEditingVillaFeatures(v.features ? v.features.join(', ') : '');
     setEditingVillaFood(v.foodOptions ? v.foodOptions.join(', ') : '');
     setEditingVillaRules(v.houseRules ? v.houseRules.join(', ') : '');
+    const existingImgs = v.images && v.images.length > 0 ? v.images : (v.imageUrl ? [v.imageUrl] : []);
+    setEditingVillaGallery(existingImgs);
     setEditingVillaAddImages(v.images && v.images.length > 1 ? v.images.slice(1).join('\n') : '');
   };
 
@@ -696,8 +720,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     if (!editingVilla) return;
 
     try {
-      const addList = editingVillaAddImages.split('\n').map(u => u.trim()).filter(u => u.length > 0);
-      const allImgs = [editingVilla.imageUrl, ...addList];
+      const allImgs = editingVillaGallery.length > 0 
+        ? editingVillaGallery 
+        : (editingVilla.imageUrl ? [editingVilla.imageUrl] : ['https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1000&q=80']);
+      const coverUrl = editingVilla.imageUrl || allImgs[0];
       const feats = editingVillaFeatures.split(',').map(f => f.trim()).filter(f => f.length > 0);
       const foods = editingVillaFood.split(',').map(f => f.trim()).filter(f => f.length > 0);
       const rules = editingVillaRules.split(',').map(f => f.trim()).filter(f => f.length > 0);
@@ -707,6 +733,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...editingVilla,
+          imageUrl: coverUrl,
           images: allImgs,
           features: feats,
           foodOptions: foods,
@@ -1331,15 +1358,29 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                               <span className="text-blue-600 font-bold">•</span>
                               <span>{b.itemName}</span>
                             </div>
-                            {b.needGuide ? (
-                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-xs">
-                                🧭 Guide Requested: YES (+Rs. {(b.guideFee || 4000).toLocaleString()})
-                              </span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                                Guide: Not needed
-                              </span>
-                            )}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {b.acPreference && (
+                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 flex items-center gap-1">
+                                  {b.acPreference === 'ac' ? '❄️ A/C Room' : '🍃 Non-A/C Room'}
+                                </span>
+                              )}
+                              {b.orderMeals !== undefined && (
+                                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1 ${
+                                  b.orderMeals ? 'bg-amber-50 text-amber-900 border-amber-300' : 'bg-slate-100 text-slate-600 border-slate-200'
+                                }`}>
+                                  🍲 {b.orderMeals ? 'Meals: YES' : 'Meals: NO'}
+                                </span>
+                              )}
+                              {b.needGuide ? (
+                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-900 border border-emerald-300 flex items-center gap-1 shadow-xs">
+                                  🧭 Guide: YES (+Rs. {(b.guideFee || 4000).toLocaleString()})
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                                  Guide: No
+                                </span>
+                              )}
+                            </div>
                           </div>
 
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
@@ -1580,8 +1621,20 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                         <div className="absolute bottom-2 right-2 bg-slate-900/90 text-white px-3 py-1 rounded-lg text-xs font-mono font-bold shadow">
                           Rs. {villa.pricePerNightLKR.toLocaleString()} / night
                         </div>
-                        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded text-[11px] font-bold text-slate-800">
-                          {villa.images?.length || 1} Photos
+                        <div className="absolute top-2 left-2 flex items-center gap-1.5 flex-wrap">
+                          <span className="bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded text-[11px] font-bold text-slate-800 shadow-xs">
+                            {villa.images?.length || 1} Photos
+                          </span>
+                          {villa.acType && (
+                            <span className="bg-blue-600/90 backdrop-blur-xs px-2 py-0.5 rounded text-[11px] font-bold text-white shadow-xs">
+                              {villa.acType === 'ac' ? '❄️ A/C Only' : villa.acType === 'non-ac' ? '🍃 Non-A/C' : '❄️🍃 Both'}
+                            </span>
+                          )}
+                          {villa.hasKitchen && (
+                            <span className="bg-amber-600/90 backdrop-blur-xs px-2 py-0.5 rounded text-[11px] font-bold text-white shadow-xs">
+                              🍳 Kitchen
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -2340,29 +2393,103 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {/* A/C Selection */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
+                      <Snowflake className="w-3.5 h-3.5 text-blue-600" />
+                      <span>A/C Availability (A/C තත්ත්වය) *</span>
+                    </label>
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setNewVilla({ ...newVilla, acType: 'ac' })}
+                        className={`py-2 px-1 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                          newVilla.acType === 'ac'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                        }`}
+                      >
+                        ❄️ A/C Only
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewVilla({ ...newVilla, acType: 'non-ac' })}
+                        className={`py-2 px-1 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                          newVilla.acType === 'non-ac'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                        }`}
+                      >
+                        🍃 Non-A/C
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewVilla({ ...newVilla, acType: 'both' })}
+                        className={`py-2 px-1 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                          newVilla.acType === 'both'
+                            ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                        }`}
+                      >
+                        ❄️🍃 Both (දෙකම)
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Kitchen Selection */}
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
+                      <Utensils className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Kitchen Facility (මුළුතැන්ගෙය) *</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setNewVilla({ ...newVilla, hasKitchen: true })}
+                        className={`py-2 px-2 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                          newVilla.hasKitchen
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                        }`}
+                      >
+                        🍳 Kitchen ඇත (Yes)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewVilla({ ...newVilla, hasKitchen: false })}
+                        className={`py-2 px-2 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                          !newVilla.hasKitchen
+                            ? 'bg-slate-700 text-white border-slate-700 shadow-xs'
+                            : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                        }`}
+                      >
+                        ✕ නැත (No Kitchen)
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Photo Upload Zone */}
-              <div className="space-y-3">
+              <div className="space-y-3 pt-1">
                 <ImageUploadDropzone
                   value={newVilla.imageUrl}
-                  onChange={url => setNewVilla({ ...newVilla, imageUrl: url })}
-                  label="Cover Photo (Drag & Drop or Select Image from Computer) *"
-                  hint="Main cover image for the villa card"
+                  onChange={url => {
+                    setNewVilla({ ...newVilla, imageUrl: url });
+                  }}
+                  label="Primary Cover Photo (Drag & Drop or Select File) *"
+                  hint="Main display image for the villa card"
                 />
 
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                    Additional Gallery Images (Paste additional links, one per line)
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="https://...&#10;https://..."
-                    value={newVilla.additionalImages}
-                    onChange={e => setNewVilla({ ...newVilla, additionalImages: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
-                  />
-                </div>
+                <MultiImageUpload
+                  images={newVilla.galleryImages}
+                  onChange={imgs => setNewVilla({ ...newVilla, galleryImages: imgs })}
+                  coverImage={newVilla.imageUrl}
+                  onSetCover={url => setNewVilla({ ...newVilla, imageUrl: url })}
+                  label="Additional Gallery Photos (Upload Multiple Photos from Device)"
+                  hint="You can select or drop multiple image files at once from your computer"
+                />
               </div>
 
               {/* Features & Food */}
@@ -2861,6 +2988,36 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Room A/C Preference</label>
+                  <select
+                    value={editingBooking.acPreference || ''}
+                    onChange={e => setEditingBooking({ ...editingBooking, acPreference: (e.target.value as any) || undefined })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  >
+                    <option value="">Not Applicable / None</option>
+                    <option value="ac">❄️ A/C Room</option>
+                    <option value="non-ac">🍃 Non-A/C Room</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Village Meals Ordered</label>
+                  <select
+                    value={editingBooking.orderMeals === true ? 'yes' : editingBooking.orderMeals === false ? 'no' : ''}
+                    onChange={e => setEditingBooking({ 
+                      ...editingBooking, 
+                      orderMeals: e.target.value === 'yes' ? true : e.target.value === 'no' ? false : undefined 
+                    })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  >
+                    <option value="">Not Specified</option>
+                    <option value="yes">🍲 YES (Woodfire Food Ordered)</option>
+                    <option value="no">✕ NO (No Food Needed)</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Delivery Destination / Villa Name</label>
                 <input
@@ -3139,13 +3296,91 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 />
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {/* A/C Selection */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
+                    <Snowflake className="w-3.5 h-3.5 text-blue-600" />
+                    <span>A/C Availability (A/C තත්ත්වය) *</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setEditingVilla({ ...editingVilla, acType: 'ac' })}
+                      className={`py-2 px-1 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                        editingVilla.acType === 'ac'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      ❄️ A/C Only
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingVilla({ ...editingVilla, acType: 'non-ac' })}
+                      className={`py-2 px-1 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                        editingVilla.acType === 'non-ac'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      🍃 Non-A/C
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingVilla({ ...editingVilla, acType: 'both' })}
+                      className={`py-2 px-1 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                        editingVilla.acType === 'both'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      ❄️🍃 Both (දෙකම)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Kitchen Selection */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
+                    <Utensils className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Kitchen Facility (මුළුතැන්ගෙය) *</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setEditingVilla({ ...editingVilla, hasKitchen: true })}
+                      className={`py-2 px-2 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                        editingVilla.hasKitchen
+                          ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      🍳 Kitchen ඇත (Yes)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingVilla({ ...editingVilla, hasKitchen: false })}
+                      className={`py-2 px-2 text-[11px] rounded-lg font-bold border transition-all cursor-pointer text-center ${
+                        !editingVilla.hasKitchen
+                          ? 'bg-slate-700 text-white border-slate-700 shadow-xs'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      ✕ නැත (No Kitchen)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Additional Gallery Photos (One URL per line)</label>
-                <textarea
-                  rows={2}
-                  value={editingVillaAddImages}
-                  onChange={e => setEditingVillaAddImages(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
+                <MultiImageUpload
+                  images={editingVillaGallery}
+                  onChange={imgs => setEditingVillaGallery(imgs)}
+                  coverImage={editingVilla.imageUrl}
+                  onSetCover={url => setEditingVilla({ ...editingVilla, imageUrl: url })}
+                  label="Gallery Photos (Upload Multiple Photos from Device)"
+                  hint="You can select or drop multiple image files at once from your computer"
                 />
               </div>
 

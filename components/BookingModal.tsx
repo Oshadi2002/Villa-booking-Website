@@ -1,7 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Calendar, User, Phone, Users, FileText, Clock, MessageCircle, AlertCircle, ArrowRight, Compass } from 'lucide-react';
+import { 
+  X, Calendar, User, Phone, Users, FileText, Clock, 
+  MessageCircle, AlertCircle, ArrowRight, Compass,
+  Snowflake, Wind, Utensils
+} from 'lucide-react';
 import { AGENCY_CONFIG } from '@/lib/data';
 import { BookingType } from '@/lib/types';
 
@@ -16,6 +20,8 @@ interface BookingModalProps {
     price: number;
     unitLabel?: string;
     imageUrl?: string;
+    acType?: 'ac' | 'non-ac' | 'both';
+    hasKitchen?: boolean;
   } | null;
 }
 
@@ -32,6 +38,10 @@ export default function BookingModal({ isOpen, onClose, bookingType, item }: Boo
 
   const GUIDE_DAILY_RATE = 4000;
   const [needGuide, setNeedGuide] = useState(false);
+  const [acPreference, setAcPreference] = useState<'ac' | 'non-ac'>(
+    item?.acType === 'non-ac' ? 'non-ac' : 'ac'
+  );
+  const [orderMeals, setOrderMeals] = useState<boolean>(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,6 +55,8 @@ export default function BookingModal({ isOpen, onClose, bookingType, item }: Boo
     guestsCount: number;
     needGuide?: boolean;
     guideFee?: number;
+    acPreference?: 'ac' | 'non-ac';
+    orderMeals?: boolean;
   } | null>(null);
 
   if (!isOpen || !item) return null;
@@ -99,7 +111,9 @@ export default function BookingModal({ isOpen, onClose, bookingType, item }: Boo
           needGuide: needGuide,
           guideFee: guideFee,
           totalLKR: estimatedTotal,
-          specialNotes: formData.specialNotes
+          specialNotes: formData.specialNotes,
+          acPreference: bookingType === 'villa' ? acPreference : undefined,
+          orderMeals: bookingType === 'villa' ? orderMeals : undefined
         })
       });
 
@@ -120,6 +134,8 @@ export default function BookingModal({ isOpen, onClose, bookingType, item }: Boo
   const resetAndClose = () => {
     setSubmittedBooking(null);
     setNeedGuide(false);
+    setOrderMeals(false);
+    setAcPreference(item?.acType === 'non-ac' ? 'non-ac' : 'ac');
     setFormData({
       customerName: '',
       customerPhone: '',
@@ -135,12 +151,19 @@ export default function BookingModal({ isOpen, onClose, bookingType, item }: Boo
 
   const getWhatsAppBookingText = () => {
     if (!submittedBooking) return '';
+    const acLine = bookingType === 'villa' 
+      ? `❄️ Room Type: ${submittedBooking.acPreference === 'ac' ? 'A/C Room (A/C කාමරය)' : 'Non-A/C Room (Non-A/C කාමරය)'}\n` 
+      : '';
+    const mealLine = bookingType === 'villa'
+      ? `🍲 Village Meals: ${submittedBooking.orderMeals ? 'YES (ගමේ කෑම ඇනවුම් කර ඇත)' : 'NO (කෑම අවශ්‍ය නැත)'}\n`
+      : '';
+
     return `Hello The Sinharaja Collection Lankagama! 🌿
 I just submitted a booking request on your website.
 
 📌 Booking Ref: ${submittedBooking.id}
 🏠 Item: ${submittedBooking.itemName}
-📅 Date: ${submittedBooking.checkInDate} ${submittedBooking.checkOutDate ? 'to ' + submittedBooking.checkOutDate : ''}
+${acLine}${mealLine}📅 Date: ${submittedBooking.checkInDate} ${submittedBooking.checkOutDate ? 'to ' + submittedBooking.checkOutDate : ''}
 👥 Guests: ${submittedBooking.guestsCount}
 🧭 Tour Guide: ${submittedBooking.needGuide ? `YES (Rs. ${(submittedBooking.guideFee || 4000).toLocaleString()} included)` : 'NO (Not needed)'}
 💰 Total Est: Rs. ${submittedBooking.totalLKR.toLocaleString()}
@@ -298,6 +321,105 @@ Please verify live availability with the host and confirm my booking. Thank you!
               </div>
             </div>
 
+            {/* Villa Specific Options: A/C Preference & Village Meals */}
+            {bookingType === 'villa' && (
+              <>
+                {/* 1. A/C Selection */}
+                <div className="bg-[#243329] p-3.5 rounded-2xl border border-[#3B5244] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-[#F5F2EB] flex items-center gap-1.5">
+                      <Snowflake className="w-4 h-4 text-[#D4AF37]" />
+                      <span>Room A/C Preference (A/C කාමරයක් අවශ්‍යද?)</span>
+                    </label>
+                    <span className="text-[10px] text-[#D4AF37] font-semibold bg-[#1E2A22] px-2 py-0.5 rounded border border-[#3B5244]">
+                      {item?.acType === 'ac' ? 'A/C Only' : item?.acType === 'non-ac' ? 'Non-A/C Only' : 'A/C & Non-A/C Available'}
+                    </span>
+                  </div>
+
+                  {item?.acType === 'ac' ? (
+                    <div className="p-2.5 bg-[#14231B] rounded-xl border border-[#3B5244] text-xs text-[#F5F2EB] flex items-center gap-2">
+                      <Snowflake className="w-4 h-4 text-[#D4AF37]" />
+                      <span>❄️ Air Conditioned (A/C) Room included</span>
+                    </div>
+                  ) : item?.acType === 'non-ac' ? (
+                    <div className="p-2.5 bg-[#14231B] rounded-xl border border-[#3B5244] text-xs text-[#F5F2EB] flex items-center gap-2">
+                      <Wind className="w-4 h-4 text-[#D4AF37]" />
+                      <span>🍃 Non-A/C Natural Rainforest Breeze Room</span>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => setAcPreference('ac')}
+                        className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                          acPreference === 'ac'
+                            ? 'bg-[#D4AF37] text-[#14231B] border-[#D4AF37] font-bold shadow-xs'
+                            : 'bg-[#1E2A22] text-[#F5F2EB] border-[#3B5244] hover:border-[#D4AF37]'
+                        }`}
+                      >
+                        <Snowflake className={`w-3.5 h-3.5 ${acPreference === 'ac' ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
+                        <span>❄️ A/C Room (A/C)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAcPreference('non-ac')}
+                        className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                          acPreference === 'non-ac'
+                            ? 'bg-[#D4AF37] text-[#14231B] border-[#D4AF37] font-bold shadow-xs'
+                            : 'bg-[#1E2A22] text-[#F5F2EB] border-[#3B5244] hover:border-[#D4AF37]'
+                        }`}
+                      >
+                        <Wind className={`w-3.5 h-3.5 ${acPreference === 'non-ac' ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
+                        <span>🍃 Non-A/C Room</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Village Food & Meals Option */}
+                <div className="bg-[#243329] p-3.5 rounded-2xl border border-[#3B5244] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-[#F5F2EB] flex items-center gap-1.5">
+                      <Utensils className="w-4 h-4 text-[#D4AF37]" />
+                      <span>Village Meals & Food (කෑම ඇනවුම් කරනවාද?)</span>
+                    </label>
+                    <span className="text-[10px] text-[#D4AF37] font-semibold font-mono bg-[#1E2A22] px-2 py-0.5 rounded border border-[#3B5244]">
+                      Woodfire Meals
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#C2BCB0] leading-snug">
+                    දර ලිපේ මැටි ඇතිලිවල පිසින සාම්ප්‍රදායික උණුසුම් ගමේ බත් සහ වෑංජන, දේශීය එළවළු, ගඟේ මාළු සහ ගමේ උදෑසන ආහාර.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setOrderMeals(false)}
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                        !orderMeals
+                          ? 'bg-[#14231B] text-[#F5F2EB] border-[#D4AF37] ring-1 ring-[#D4AF37]'
+                          : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33]'
+                      }`}
+                    >
+                      <span>✕ No Meals (කෑම අවශ්‍ය නැත)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOrderMeals(true)}
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                        orderMeals
+                          ? 'bg-[#D4AF37] text-[#14231B] border-[#D4AF37] font-bold shadow-xs'
+                          : 'bg-[#1E2A22] text-[#F5F2EB] border-[#3B5244] hover:border-[#D4AF37]'
+                      }`}
+                    >
+                      <Utensils className={`w-3.5 h-3.5 ${orderMeals ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
+                      <span>✓ Order Meals (කෑම අවශ්‍යයි)</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
             {/* Native Rainforest Guide Option (Need / No Need) */}
             <div className="bg-[#243329] p-3.5 rounded-2xl border border-[#3B5244] space-y-2">
               <div className="flex items-center justify-between">
@@ -420,6 +542,22 @@ Please verify live availability with the host and confirm my booking. Thank you!
                 <span className="text-[#C2BCB0]">Guests:</span>
                 <span className="font-medium text-[#F5F2EB]">{submittedBooking.guestsCount} Trekkers</span>
               </div>
+              {submittedBooking.acPreference && (
+                <div className="flex justify-between">
+                  <span className="text-[#C2BCB0]">Room A/C Type:</span>
+                  <span className="font-medium text-[#F5F2EB]">
+                    {submittedBooking.acPreference === 'ac' ? '❄️ A/C Room' : '🍃 Non-A/C Room'}
+                  </span>
+                </div>
+              )}
+              {submittedBooking.orderMeals !== undefined && (
+                <div className="flex justify-between">
+                  <span className="text-[#C2BCB0]">Village Food:</span>
+                  <span className={`font-semibold ${submittedBooking.orderMeals ? 'text-[#D4AF37]' : 'text-[#C2BCB0]'}`}>
+                    {submittedBooking.orderMeals ? '🍲 Yes, Village Meals Ordered' : '✕ No Meals'}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-[#C2BCB0]">Tour Guide:</span>
                 <span className={`font-semibold ${submittedBooking.needGuide ? 'text-[#D4AF37]' : 'text-[#F5F2EB]'}`}>

@@ -36,7 +36,10 @@ export async function POST(req: Request) {
       needGuide: Boolean(body.needGuide),
       guideFee: Number(body.guideFee) || 0,
       totalLKR: Number(body.totalLKR) || 0,
-      specialNotes: body.specialNotes || ''
+      specialNotes: body.specialNotes || '',
+      acPreference: body.acPreference || undefined,
+      orderMeals: body.orderMeals !== undefined ? Boolean(body.orderMeals) : undefined,
+      mealsNotes: body.mealsNotes || undefined
     });
 
     return NextResponse.json({
