@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { UploadCloud, CheckCircle2, X, RefreshCw, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { compressImageFile } from '@/lib/imageCompressor';
 
 interface ImageUploadDropzoneProps {
   value: string;
@@ -32,6 +33,8 @@ export default function ImageUploadDropzone({
     setIsUploading(true);
 
     try {
+      const compressedDataUrl = await compressImageFile(file, 1200, 0.75);
+
       const formData = new FormData();
       formData.append('file', file);
 
@@ -44,7 +47,13 @@ export default function ImageUploadDropzone({
       if (data.success && data.url) {
         onChange(data.url);
       } else {
-        // Fallback to base64 Data URL if server upload fails
+        onChange(compressedDataUrl);
+      }
+    } catch {
+      try {
+        const compressedDataUrl = await compressImageFile(file, 1200, 0.75);
+        onChange(compressedDataUrl);
+      } catch {
         const reader = new FileReader();
         reader.onloadend = () => {
           if (reader.result) {
@@ -53,15 +62,6 @@ export default function ImageUploadDropzone({
         };
         reader.readAsDataURL(file);
       }
-    } catch {
-      // Fallback to base64 reader
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result) {
-          onChange(reader.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
     } finally {
       setIsUploading(false);
     }

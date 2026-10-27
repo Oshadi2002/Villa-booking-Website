@@ -24,13 +24,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = decodeURIComponent(rawId);
     const body = await req.json();
 
     const updated = updateVilla(id, body);
-    if (!updated) {
-      return NextResponse.json({ success: false, message: 'Villa not found to update' }, { status: 404, headers: NO_CACHE_HEADERS });
-    }
 
     if (isPostgresConfigured()) {
       await dbSaveItem('lankagama_villas', updated);
@@ -49,15 +47,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
-    const deleted = deleteVilla(id);
+    const { id: rawId } = await params;
+    const id = decodeURIComponent(rawId);
+    deleteVilla(id);
 
     if (isPostgresConfigured()) {
       await dbDeleteItem('lankagama_villas', id);
-    }
-
-    if (!deleted) {
-      return NextResponse.json({ success: false, message: 'Villa not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
     return NextResponse.json({

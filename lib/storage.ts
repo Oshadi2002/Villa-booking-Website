@@ -341,10 +341,38 @@ export function createVilla(newVilla: Omit<Villa, 'id'> & { id?: string }): Vill
   return villa;
 }
 
-export function updateVilla(id: string, updatedData: Partial<Villa>): Villa | null {
+export function updateVilla(id: string, updatedData: Partial<Villa>): Villa {
   const all = getAllVillas();
   const index = all.findIndex(v => v.id === id);
-  if (index === -1) return null;
+  if (index === -1) {
+    const newV: Villa = {
+      id,
+      name: updatedData.name || 'Lankagama Villa',
+      sinhalaName: updatedData.sinhalaName || updatedData.name || 'ලංකාගම විලා',
+      tagline: updatedData.tagline || '',
+      pricePerNightLKR: updatedData.pricePerNightLKR || 0,
+      maxGuests: updatedData.maxGuests || 4,
+      bedrooms: updatedData.bedrooms || 1,
+      bathrooms: updatedData.bathrooms || 1,
+      bedConfig: updatedData.bedConfig || '1 Double Bed',
+      checkInTime: updatedData.checkInTime || '02:00 PM',
+      checkOutTime: updatedData.checkOutTime || '11:00 AM',
+      locationDetails: updatedData.locationDetails || 'Lankagama, Sinharaja',
+      description: updatedData.description || '',
+      imageUrl: updatedData.imageUrl || '',
+      images: updatedData.images && updatedData.images.length > 0 ? updatedData.images : (updatedData.imageUrl ? [updatedData.imageUrl] : []),
+      features: updatedData.features || [],
+      highlights: updatedData.highlights || [],
+      facilities: updatedData.facilities || [],
+      foodOptions: updatedData.foodOptions || [],
+      houseRules: updatedData.houseRules || [],
+      ...updatedData
+    };
+    all.unshift(newV);
+    inMemoryVillas = all;
+    writeDataFile('villas.json', all, 'lankagama_villas');
+    return newV;
+  }
 
   all[index] = {
     ...all[index],

@@ -101,33 +101,49 @@ export async function ensurePostgresTables(): Promise<boolean> {
       CREATE TABLE IF NOT EXISTS lankagama_attractions (
         id VARCHAR(255) PRIMARY KEY,
         data JSONB NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS lankagama_guides (
         id VARCHAR(255) PRIMARY KEY,
         data JSONB NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS lankagama_bookings (
         id VARCHAR(255) PRIMARY KEY,
         data JSONB NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS lankagama_comments (
         id VARCHAR(255) PRIMARY KEY,
         data JSONB NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE TABLE IF NOT EXISTS lankagama_inquiries (
         id VARCHAR(255) PRIMARY KEY,
         data JSONB NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Ensure columns exist even if tables were created previously
+    const tables = [
+      'lankagama_villas', 'lankagama_camping', 'lankagama_kithul',
+      'lankagama_slides', 'lankagama_attractions', 'lankagama_guides',
+      'lankagama_bookings', 'lankagama_comments', 'lankagama_inquiries'
+    ];
+    for (const tbl of tables) {
+      await query(`ALTER TABLE ${tbl} ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
+      await query(`ALTER TABLE ${tbl} ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
+    }
 
     // Auto-seed villas if empty
     const existingVillas = await query<{ id: string }>('SELECT id FROM lankagama_villas LIMIT 1');
@@ -256,7 +272,8 @@ export async function ensurePostgresTables(): Promise<boolean> {
 
 export async function dbGetAll<T>(table: string): Promise<T[]> {
   await ensurePostgresTables();
-  const rows = await query<{ data: T }>(`SELECT data FROM ${table} ORDER BY updated_at DESC, created_at DESC`);
+  // Safe query that returns all items
+  const rows = await query<{ data: T }>(`SELECT data FROM ${table}`);
   return rows.map(r => r.data);
 }
 

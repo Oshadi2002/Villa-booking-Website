@@ -6,6 +6,8 @@ import {
   Image as ImageIcon, Star, Trash2, Plus, Sparkles
 } from 'lucide-react';
 
+import { compressImageFile } from '@/lib/imageCompressor';
+
 interface MultiImageUploadProps {
   images: string[];
   onChange: (images: string[]) => void;
@@ -30,17 +32,6 @@ export default function MultiImageUpload({
   const [customUrl, setCustomUrl] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Read a file to base64 Data URL fallback
-  const readFileAsDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleFilesUpload = async (fileList: FileList | File[]) => {
     const validFiles: File[] = [];
     for (let i = 0; i < fileList.length; i++) {
@@ -59,28 +50,12 @@ export default function MultiImageUpload({
     setIsUploading(true);
 
     try {
-      const formData = new FormData();
-      validFiles.forEach(file => {
-        formData.append('files', file);
-      });
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      const data = await res.json();
-      if (data.success && Array.isArray(data.urls) && data.urls.length > 0) {
-        onChange([...images, ...data.urls]);
-      } else {
-        // Fallback to base64 Data URLs
-        const dataUrls = await Promise.all(validFiles.map(f => readFileAsDataUrl(f)));
-        onChange([...images, ...dataUrls]);
-      }
+      // Automatically compress all uploaded images to web-optimized HD (~60KB each)
+      const compressedUrls = await Promise.all(validFiles.map(f => compressImageFile(f)));
+      const validUrls = compressedUrls.filter(u => u && u.length > 0);
+      onChange([...images, ...validUrls]);
     } catch {
-      // Direct client fallback
-      const dataUrls = await Promise.all(validFiles.map(f => readFileAsDataUrl(f)));
-      onChange([...images, ...dataUrls]);
+      setUploadError('Failed to process one or more images.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {

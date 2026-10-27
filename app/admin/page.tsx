@@ -16,6 +16,7 @@ import { Booking, Villa, HeroSlide, Attraction, CampingGear, KithulProduct, Cust
 import { AGENCY_CONFIG } from '@/lib/data';
 import ImageUploadDropzone from '@/components/ImageUploadDropzone';
 import MultiImageUpload from '@/components/MultiImageUpload';
+import { compressDataUrl } from '@/lib/imageCompressor';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -117,6 +118,7 @@ export default function AdminPage() {
   const [editingVillaRules, setEditingVillaRules] = useState('');
   const [editingVillaAddImages, setEditingVillaAddImages] = useState('');
   const [editingVillaGallery, setEditingVillaGallery] = useState<string[]>([]);
+  const [isSavingVilla, setIsSavingVilla] = useState(false);
 
   const [editingCamping, setEditingCamping] = useState<CampingGear | null>(null);
   const [editingCampingIncludes, setEditingCampingIncludes] = useState('');
@@ -258,36 +260,36 @@ export default function AdminPage() {
 
       // 2. Slides
       fetch(`/api/hero-slides?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.slides)) {
-          setSlides(prev => (prev.length > d.slides.length ? prev : d.slides));
+        if (d.success && Array.isArray(d.slides) && d.slides.length > 0) {
+          setSlides(d.slides);
         }
       }).catch(() => {});
 
       // 3. Villas
       fetch(`/api/villas?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.villas)) {
-          setVillas(prev => (prev.length > d.villas.length ? prev : d.villas));
+        if (d.success && Array.isArray(d.villas) && d.villas.length > 0) {
+          setVillas(d.villas);
         }
       }).catch(() => {});
 
       // 4. Camping
       fetch(`/api/camping?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.gear)) {
-          setCampingGear(prev => (prev.length > d.gear.length ? prev : d.gear));
+        if (d.success && Array.isArray(d.gear) && d.gear.length > 0) {
+          setCampingGear(d.gear);
         }
       }).catch(() => {});
 
       // 5. Attractions
       fetch(`/api/attractions?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.attractions)) {
-          setAttractions(prev => (prev.length > d.attractions.length ? prev : d.attractions));
+        if (d.success && Array.isArray(d.attractions) && d.attractions.length > 0) {
+          setAttractions(d.attractions);
         }
       }).catch(() => {});
 
       // 6. Kithul & Toddy
       fetch(`/api/kithul?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.products)) {
-          setKithulProducts(prev => (prev.length > d.products.length ? prev : d.products));
+        if (d.success && Array.isArray(d.products) && d.products.length > 0) {
+          setKithulProducts(d.products);
         }
       }).catch(() => {});
 
@@ -472,6 +474,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
         : ['https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1000&q=80'];
       const coverUrl = newVilla.imageUrl || finalImages[0];
 
+      // Compress all images before uploading to stay well below 4.5MB
+      const compressedCover = await compressDataUrl(coverUrl);
+      const compressedImages = await Promise.all(finalImages.map(img => compressDataUrl(img)));
+
       const featuresList = newVilla.featuresText.split(',').map(f => f.trim()).filter(f => f.length > 0);
       const foodList = newVilla.foodText.split(',').map(f => f.trim()).filter(f => f.length > 0);
       const rulesList = newVilla.rulesText.split(',').map(f => f.trim()).filter(f => f.length > 0);
@@ -493,8 +499,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           checkOutTime: newVilla.checkOutTime,
           locationDetails: newVilla.locationDetails,
           ownerContact: newVilla.ownerContact,
-          imageUrl: coverUrl,
-          images: finalImages,
+          imageUrl: compressedCover,
+          images: compressedImages,
           acType: newVilla.acType,
           hasKitchen: newVilla.hasKitchen,
           features: featuresList,
@@ -811,6 +817,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     e.preventDefault();
     if (!editingVilla) return;
 
+    setIsSavingVilla(true);
     try {
       const allImgs = editingVillaGallery.length > 0 
         ? editingVillaGallery 
@@ -820,13 +827,17 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       const foods = editingVillaFood.split(',').map(f => f.trim()).filter(f => f.length > 0);
       const rules = editingVillaRules.split(',').map(f => f.trim()).filter(f => f.length > 0);
 
-      const res = await fetch(`/api/villas/${editingVilla.id}`, {
+      // Pre-compress all images to guarantee total payload is small and fits within Vercel's 4.5MB limit
+      const compressedCover = await compressDataUrl(coverUrl);
+      const compressedImgs = await Promise.all(allImgs.map(img => compressDataUrl(img)));
+
+      const res = await fetch(`/api/villas/${encodeURIComponent(editingVilla.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...editingVilla,
-          imageUrl: coverUrl,
-          images: allImgs,
+          imageUrl: compressedCover,
+          images: compressedImgs,
           features: feats,
           foodOptions: foods,
           houseRules: rules
@@ -842,6 +853,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       }
     } catch {
       alert('Error updating villa.');
+    } finally {
+      setIsSavingVilla(false);
     }
   };
 
@@ -856,11 +869,13 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
     try {
       const incList = editingCampingIncludes.split(',').map(i => i.trim()).filter(i => i.length > 0);
-      const res = await fetch(`/api/camping/${editingCamping.id}`, {
+      const compressedImage = editingCamping.imageUrl ? await compressDataUrl(editingCamping.imageUrl) : '';
+      const res = await fetch(`/api/camping/${encodeURIComponent(editingCamping.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...editingCamping,
+          imageUrl: compressedImage || editingCamping.imageUrl,
           includes: incList
         })
       });
@@ -886,10 +901,14 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     if (!editingKithul) return;
 
     try {
-      const res = await fetch(`/api/kithul/${editingKithul.id}`, {
+      const compressedImage = editingKithul.imageUrl ? await compressDataUrl(editingKithul.imageUrl) : '';
+      const res = await fetch(`/api/kithul/${encodeURIComponent(editingKithul.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingKithul)
+        body: JSON.stringify({
+          ...editingKithul,
+          imageUrl: compressedImage || editingKithul.imageUrl
+        })
       });
       const data = await res.json();
       if (data.success && data.product) {
@@ -913,10 +932,14 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     if (!editingSlide) return;
 
     try {
-      const res = await fetch(`/api/hero-slides/${editingSlide.id}`, {
+      const compressedUrl = editingSlide.url ? await compressDataUrl(editingSlide.url) : '';
+      const res = await fetch(`/api/hero-slides/${encodeURIComponent(editingSlide.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingSlide)
+        body: JSON.stringify({
+          ...editingSlide,
+          url: compressedUrl || editingSlide.url
+        })
       });
       const data = await res.json();
       if (data.success && data.slide) {
@@ -940,10 +963,14 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     if (!editingAttraction) return;
 
     try {
-      const res = await fetch(`/api/attractions/${editingAttraction.id}`, {
+      const compressedImage = editingAttraction.imageUrl ? await compressDataUrl(editingAttraction.imageUrl) : '';
+      const res = await fetch(`/api/attractions/${encodeURIComponent(editingAttraction.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingAttraction)
+        body: JSON.stringify({
+          ...editingAttraction,
+          imageUrl: compressedImage || editingAttraction.imageUrl
+        })
       });
       const data = await res.json();
       if (data.success && data.attraction) {
@@ -3526,9 +3553,17 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-sm"
+                  disabled={isSavingVilla}
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 cursor-pointer shadow-sm flex items-center gap-1.5"
                 >
-                  Save Villa Changes
+                  {isSavingVilla ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    <span>Save Villa Changes</span>
+                  )}
                 </button>
               </div>
             </form>
