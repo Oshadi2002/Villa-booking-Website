@@ -9,11 +9,26 @@ import {
 } from './types';
 
 function getConnectionString(): string | null {
-  return process.env.POSTGRES_URL || 
-         process.env.DATABASE_URL || 
-         process.env.POSTGRES_PRISMA_URL || 
-         process.env.SUPABASE_DATABASE_URL || 
-         null;
+  // 1. Direct standard keys
+  const direct = process.env.POSTGRES_URL || 
+                 process.env.DATABASE_URL || 
+                 process.env.STORAGE_POSTGRES_URL || 
+                 process.env.STORAGE_DATABASE_URL || 
+                 process.env.STORAGE_URL || 
+                 process.env.POSTGRES_PRISMA_URL || 
+                 process.env.SUPABASE_DATABASE_URL;
+  if (direct && (direct.startsWith('postgres://') || direct.startsWith('postgresql://'))) {
+    return direct;
+  }
+
+  // 2. Scan all environment variables for any postgresql connection string
+  for (const [, value] of Object.entries(process.env)) {
+    if (typeof value === 'string' && (value.startsWith('postgres://') || value.startsWith('postgresql://'))) {
+      return value;
+    }
+  }
+
+  return direct || null;
 }
 
 let pool: Pool | null = null;
