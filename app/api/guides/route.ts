@@ -1,13 +1,27 @@
 import { NextResponse } from 'next/server';
-import { getAllGuides, createGuide } from '@/lib/storage';
+import { getAllGuides, createGuide, fetchFromCloudKV } from '@/lib/storage';
+import { TourGuide } from '@/lib/types';
 
-export async function GET() {
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store'
+};
+
+export async function GET(req: Request) {
   try {
-    const guides = getAllGuides();
-    return NextResponse.json({ success: true, guides });
+    const { searchParams } = new URL(req.url);
+    void searchParams;
+
+    const cloudGuides = await fetchFromCloudKV<TourGuide[]>('lankagama_guides');
+    const guides = cloudGuides && Array.isArray(cloudGuides) && cloudGuides.length > 0
+      ? cloudGuides
+      : getAllGuides();
+
+    return NextResponse.json({ success: true, guides }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -18,7 +32,7 @@ export async function POST(req: Request) {
     if (!body.name || !body.dailyRateLKR) {
       return NextResponse.json(
         { success: false, message: 'Guide name and daily rate are required.' },
-        { status: 400 }
+        { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -40,9 +54,9 @@ export async function POST(req: Request) {
       success: true,
       message: 'Guide created successfully!',
       guide
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

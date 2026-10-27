@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getBookingById, updateBooking, deleteBooking } from '@/lib/storage';
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store'
+};
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -12,14 +18,14 @@ export async function GET(
     if (!booking) {
       return NextResponse.json(
         { success: false, message: 'Booking not found' },
-        { status: 404 }
+        { status: 404, headers: NO_CACHE_HEADERS }
       );
     }
 
-    return NextResponse.json({ success: true, booking });
+    return NextResponse.json({ success: true, booking }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -36,7 +42,7 @@ export async function PATCH(
     if (!updated) {
       return NextResponse.json(
         { success: false, message: 'Booking not found to update' },
-        { status: 404 }
+        { status: 404, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -44,10 +50,10 @@ export async function PATCH(
       success: true,
       message: `Booking ${id} updated successfully`,
       booking: updated
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -62,16 +68,16 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json(
         { success: false, message: 'Booking not found or already deleted' },
-        { status: 404 }
+        { status: 404, headers: NO_CACHE_HEADERS }
       );
     }
 
     return NextResponse.json({
       success: true,
       message: `Booking ${id} deleted successfully`
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

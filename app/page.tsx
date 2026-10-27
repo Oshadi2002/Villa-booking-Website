@@ -39,42 +39,127 @@ export default function HomePage() {
   const [gearList, setGearList] = useState<CampingGear[]>(CAMPING_GEAR);
   const [kithulList, setKithulList] = useState<KithulProduct[]>(KITHUL_PRODUCTS);
 
+  // Helper to load locally synced data from Admin panel
+  const loadLocalSyncedData = () => {
+    try {
+      const v = localStorage.getItem('lankagama_synced_villas');
+      if (v) {
+        const parsed = JSON.parse(v);
+        if (Array.isArray(parsed) && parsed.length > 0) setVillasList(parsed);
+      }
+      const s = localStorage.getItem('lankagama_synced_slides');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) setSlidesList(parsed);
+      }
+      const g = localStorage.getItem('lankagama_synced_camping');
+      if (g) {
+        const parsed = JSON.parse(g);
+        if (Array.isArray(parsed) && parsed.length > 0) setGearList(parsed);
+      }
+      const k = localStorage.getItem('lankagama_synced_kithul');
+      if (k) {
+        const parsed = JSON.parse(k);
+        if (Array.isArray(parsed) && parsed.length > 0) setKithulList(parsed);
+      }
+    } catch {}
+  };
+
   useEffect(() => {
-    fetch('/api/villas')
+    loadLocalSyncedData();
+
+    // Listen for storage events across tabs
+    const handleStorage = () => {
+      loadLocalSyncedData();
+    };
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('lankagama_data_updated', handleStorage);
+
+    // BroadcastChannel for instant real-time sync across open browser tabs
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('lankagama_sync_channel');
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'SYNC_VILLAS' && Array.isArray(event.data.data)) setVillasList(event.data.data);
+        if (event.data?.type === 'SYNC_SLIDES' && Array.isArray(event.data.data)) setSlidesList(event.data.data);
+        if (event.data?.type === 'SYNC_CAMPING' && Array.isArray(event.data.data)) setGearList(event.data.data);
+        if (event.data?.type === 'SYNC_KITHUL' && Array.isArray(event.data.data)) setKithulList(event.data.data);
+        loadLocalSyncedData();
+      };
+    } catch {}
+
+    const timestamp = Date.now();
+
+    fetch(`/api/villas?t=${timestamp}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.villas) && data.villas.length > 0) {
-          setVillasList(data.villas);
+          setVillasList(prev => {
+            const hasLocalChanges = typeof window !== 'undefined' && localStorage.getItem('lankagama_synced_villas');
+            if (hasLocalChanges) {
+              const localParsed = JSON.parse(localStorage.getItem('lankagama_synced_villas') || '[]');
+              if (localParsed.length >= data.villas.length) return localParsed;
+            }
+            return data.villas;
+          });
         }
       })
       .catch(() => {});
 
-    fetch('/api/hero-slides')
+    fetch(`/api/hero-slides?t=${timestamp}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.slides) && data.slides.length > 0) {
-          setSlidesList(data.slides);
+          setSlidesList(prev => {
+            const hasLocal = typeof window !== 'undefined' && localStorage.getItem('lankagama_synced_slides');
+            if (hasLocal) {
+              const localParsed = JSON.parse(localStorage.getItem('lankagama_synced_slides') || '[]');
+              if (localParsed.length >= data.slides.length) return localParsed;
+            }
+            return data.slides;
+          });
         }
       })
       .catch(() => {});
 
-    fetch('/api/camping')
+    fetch(`/api/camping?t=${timestamp}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.gear) && data.gear.length > 0) {
-          setGearList(data.gear);
+          setGearList(prev => {
+            const hasLocal = typeof window !== 'undefined' && localStorage.getItem('lankagama_synced_camping');
+            if (hasLocal) {
+              const localParsed = JSON.parse(localStorage.getItem('lankagama_synced_camping') || '[]');
+              if (localParsed.length >= data.gear.length) return localParsed;
+            }
+            return data.gear;
+          });
         }
       })
       .catch(() => {});
 
-    fetch('/api/kithul')
+    fetch(`/api/kithul?t=${timestamp}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-          setKithulList(data.products);
+          setKithulList(prev => {
+            const hasLocal = typeof window !== 'undefined' && localStorage.getItem('lankagama_synced_kithul');
+            if (hasLocal) {
+              const localParsed = JSON.parse(localStorage.getItem('lankagama_synced_kithul') || '[]');
+              if (localParsed.length >= data.products.length) return localParsed;
+            }
+            return data.products;
+          });
         }
       })
       .catch(() => {});
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('lankagama_data_updated', handleStorage);
+      if (bc) bc.close();
+    };
   }, []);
 
   const [bookingType, setBookingType] = useState<BookingType>('villa');

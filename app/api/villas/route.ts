@@ -1,13 +1,31 @@
 import { NextResponse } from 'next/server';
-import { getAllVillas, createVilla } from '@/lib/storage';
+import { getAllVillas, createVilla, fetchFromCloudKV } from '@/lib/storage';
+import { Villa } from '@/lib/types';
 
-export async function GET() {
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store'
+};
+
+export async function GET(req: Request) {
   try {
-    const villas = getAllVillas();
-    return NextResponse.json({ success: true, villas });
+    // Access URL to ensure dynamic evaluation
+    const { searchParams } = new URL(req.url);
+    void searchParams;
+
+    const cloudVillas = await fetchFromCloudKV<Villa[]>('lankagama_villas');
+    const villas = cloudVillas && Array.isArray(cloudVillas) && cloudVillas.length > 0
+      ? cloudVillas
+      : getAllVillas();
+
+    return NextResponse.json(
+      { success: true, villas },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -18,7 +36,7 @@ export async function POST(req: Request) {
     if (!body.name || !body.pricePerNightLKR) {
       return NextResponse.json(
         { success: false, message: 'Villa name and price per night are required.' },
-        { status: 400 }
+        { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -64,9 +82,9 @@ export async function POST(req: Request) {
       success: true,
       message: 'Villa created successfully!',
       villa
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

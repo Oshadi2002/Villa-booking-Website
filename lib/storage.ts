@@ -1,18 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { Booking, Villa, TourGuide, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry } from './types';
 import { VILLAS, TOUR_GUIDES, CAMPING_GEAR, ATTRACTIONS, KITHUL_PRODUCTS, CUSTOMER_COMMENTS, CUSTOMER_INQUIRIES } from './data';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
-const BOOKINGS_FILE = path.join(DATA_DIR, 'bookings.json');
-const VILLAS_FILE = path.join(DATA_DIR, 'villas.json');
-const GUIDES_FILE = path.join(DATA_DIR, 'guides.json');
-const HERO_SLIDES_FILE = path.join(DATA_DIR, 'hero_slides.json');
-const CAMPING_FILE = path.join(DATA_DIR, 'camping.json');
-const ATTRACTIONS_FILE = path.join(DATA_DIR, 'attractions.json');
-const KITHUL_FILE = path.join(DATA_DIR, 'kithul.json');
-const COMMENTS_FILE = path.join(DATA_DIR, 'comments.json');
-const INQUIRIES_FILE = path.join(DATA_DIR, 'inquiries.json');
+const TMP_DATA_DIR = path.join(os.tmpdir(), 'lankagama_data');
 
 // Initial defaults
 const INITIAL_HERO_SLIDES: HeroSlide[] = [
@@ -63,7 +56,7 @@ const INITIAL_ATTRACTIONS: Attraction[] = ATTRACTIONS.map((a, idx) => ({
     : 'https://images.unsplash.com/photo-1542332213-9b5a5a3fad35?auto=format&fit=crop&w=800&q=80'
 }));
 
-// In-memory fallbacks
+// In-memory runtime cache
 let inMemoryBookings: Booking[] = [
   {
     id: 'LET-8401',
@@ -126,40 +119,117 @@ let inMemoryKithul: KithulProduct[] = [...KITHUL_PRODUCTS];
 let inMemoryComments: CustomerComment[] = [...CUSTOMER_COMMENTS];
 let inMemoryInquiries: CustomerInquiry[] = [...CUSTOMER_INQUIRIES];
 
-function ensureDataFiles() {
+// Ensure writable directories exist
+function ensureDirectories() {
+  try {
+    if (!fs.existsSync(TMP_DATA_DIR)) {
+      fs.mkdirSync(TMP_DATA_DIR, { recursive: true });
+    }
+  } catch {}
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
-    if (!fs.existsSync(BOOKINGS_FILE)) {
-      fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(inMemoryBookings, null, 2), 'utf-8');
+  } catch {}
+}
+
+// Cloud KV Sync (Upstash Redis or Vercel KV)
+export async function syncToCloudKV(key: string, data: any): Promise<void> {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return;
+
+  try {
+    await fetch(`${url}/set/${key}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+  } catch (err) {
+    console.error(`Cloud KV sync error for key: ${key}`, err);
+  }
+}
+
+export async function fetchFromCloudKV<T>(key: string): Promise<T | null> {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+
+  try {
+    const res = await fetch(`${url}/get/${key}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    if (json && json.result) {
+      if (typeof json.result === 'string') {
+        try {
+          return JSON.parse(json.result);
+        } catch {
+          return json.result;
+        }
+      }
+      return json.result;
     }
-    if (!fs.existsSync(VILLAS_FILE)) {
-      fs.writeFileSync(VILLAS_FILE, JSON.stringify(inMemoryVillas, null, 2), 'utf-8');
+  } catch (err) {
+    console.error(`Cloud KV fetch error for key: ${key}`, err);
+  }
+  return null;
+}
+
+// Generic file reading with multi-level fallback
+function readDataFile<T>(fileName: string, fallback: T): T {
+  ensureDirectories();
+
+  // 1. Try /tmp directory (writable in serverless)
+  const tmpFile = path.join(TMP_DATA_DIR, fileName);
+  try {
+    if (fs.existsSync(tmpFile)) {
+      const data = fs.readFileSync(tmpFile, 'utf-8');
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) ? parsed.length > 0 : parsed) {
+        return parsed;
+      }
     }
-    if (!fs.existsSync(GUIDES_FILE)) {
-      fs.writeFileSync(GUIDES_FILE, JSON.stringify(inMemoryGuides, null, 2), 'utf-8');
+  } catch {}
+
+  // 2. Try project data/ directory
+  const localFile = path.join(DATA_DIR, fileName);
+  try {
+    if (fs.existsSync(localFile)) {
+      const data = fs.readFileSync(localFile, 'utf-8');
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) ? parsed.length > 0 : parsed) {
+        return parsed;
+      }
     }
-    if (!fs.existsSync(HERO_SLIDES_FILE)) {
-      fs.writeFileSync(HERO_SLIDES_FILE, JSON.stringify(inMemoryHeroSlides, null, 2), 'utf-8');
-    }
-    if (!fs.existsSync(CAMPING_FILE)) {
-      fs.writeFileSync(CAMPING_FILE, JSON.stringify(inMemoryCamping, null, 2), 'utf-8');
-    }
-    if (!fs.existsSync(ATTRACTIONS_FILE)) {
-      fs.writeFileSync(ATTRACTIONS_FILE, JSON.stringify(inMemoryAttractions, null, 2), 'utf-8');
-    }
-    if (!fs.existsSync(KITHUL_FILE)) {
-      fs.writeFileSync(KITHUL_FILE, JSON.stringify(inMemoryKithul, null, 2), 'utf-8');
-    }
-    if (!fs.existsSync(COMMENTS_FILE)) {
-      fs.writeFileSync(COMMENTS_FILE, JSON.stringify(inMemoryComments, null, 2), 'utf-8');
-    }
-    if (!fs.existsSync(INQUIRIES_FILE)) {
-      fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(inMemoryInquiries, null, 2), 'utf-8');
-    }
-  } catch {
-    // fallback
+  } catch {}
+
+  return fallback;
+}
+
+// Generic file writing (writes to /tmp, data/ and triggers cloud KV sync)
+function writeDataFile<T>(fileName: string, data: T, cloudKey?: string): void {
+  ensureDirectories();
+  const content = JSON.stringify(data, null, 2);
+
+  // 1. Write to /tmp (always succeeds on Vercel)
+  try {
+    fs.writeFileSync(path.join(TMP_DATA_DIR, fileName), content, 'utf-8');
+  } catch {}
+
+  // 2. Write to data/ (succeeds locally)
+  try {
+    fs.writeFileSync(path.join(DATA_DIR, fileName), content, 'utf-8');
+  } catch {}
+
+  // 3. Trigger cloud KV sync if key provided
+  if (cloudKey) {
+    syncToCloudKV(cloudKey, data).catch(() => {});
   }
 }
 
@@ -167,17 +237,7 @@ function ensureDataFiles() {
    1. BOOKINGS MANAGEMENT
    ============================================================ */
 export function getAllBookings(): Booking[] {
-  try {
-    ensureDataFiles();
-    if (fs.existsSync(BOOKINGS_FILE)) {
-      const data = fs.readFileSync(BOOKINGS_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed)) {
-        inMemoryBookings = parsed;
-        return parsed;
-      }
-    }
-  } catch {}
+  inMemoryBookings = readDataFile<Booking[]>('bookings.json', inMemoryBookings);
   return inMemoryBookings;
 }
 
@@ -202,12 +262,7 @@ export function createBooking(newBooking: Omit<Booking, 'id' | 'createdAt' | 'st
 
   all.unshift(booking);
   inMemoryBookings = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('bookings.json', all, 'lankagama_bookings');
   return booking;
 }
 
@@ -222,12 +277,7 @@ export function updateBookingStatus(id: string, status: 'pending' | 'approved' |
   }
 
   inMemoryBookings = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('bookings.json', all, 'lankagama_bookings');
   return all[index];
 }
 
@@ -243,12 +293,7 @@ export function updateBooking(id: string, updatedData: Partial<Booking>): Bookin
   };
 
   inMemoryBookings = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('bookings.json', all, 'lankagama_bookings');
   return all[index];
 }
 
@@ -258,12 +303,7 @@ export function deleteBooking(id: string): boolean {
   if (filtered.length === all.length) return false;
 
   inMemoryBookings = filtered;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('bookings.json', filtered, 'lankagama_bookings');
   return true;
 }
 
@@ -271,17 +311,7 @@ export function deleteBooking(id: string): boolean {
    2. VILLAS MANAGEMENT
    ============================================================ */
 export function getAllVillas(): Villa[] {
-  try {
-    ensureDataFiles();
-    if (fs.existsSync(VILLAS_FILE)) {
-      const data = fs.readFileSync(VILLAS_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryVillas = parsed;
-        return parsed;
-      }
-    }
-  } catch {}
+  inMemoryVillas = readDataFile<Villa[]>('villas.json', inMemoryVillas);
   return inMemoryVillas;
 }
 
@@ -307,12 +337,7 @@ export function createVilla(newVilla: Omit<Villa, 'id'> & { id?: string }): Vill
 
   all.unshift(villa);
   inMemoryVillas = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(VILLAS_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('villas.json', all, 'lankagama_villas');
   return villa;
 }
 
@@ -328,12 +353,7 @@ export function updateVilla(id: string, updatedData: Partial<Villa>): Villa | nu
   };
 
   inMemoryVillas = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(VILLAS_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('villas.json', all, 'lankagama_villas');
   return all[index];
 }
 
@@ -343,12 +363,7 @@ export function deleteVilla(id: string): boolean {
   if (filtered.length === all.length) return false;
 
   inMemoryVillas = filtered;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(VILLAS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('villas.json', filtered, 'lankagama_villas');
   return true;
 }
 
@@ -356,17 +371,7 @@ export function deleteVilla(id: string): boolean {
    3. GUIDES MANAGEMENT
    ============================================================ */
 export function getAllGuides(): TourGuide[] {
-  try {
-    ensureDataFiles();
-    if (fs.existsSync(GUIDES_FILE)) {
-      const data = fs.readFileSync(GUIDES_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryGuides = parsed;
-        return parsed;
-      }
-    }
-  } catch {}
+  inMemoryGuides = readDataFile<TourGuide[]>('guides.json', inMemoryGuides);
   return inMemoryGuides;
 }
 
@@ -384,12 +389,7 @@ export function createGuide(newGuide: Omit<TourGuide, 'id'> & { id?: string }): 
 
   all.unshift(guide);
   inMemoryGuides = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(GUIDES_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('guides.json', all, 'lankagama_guides');
   return guide;
 }
 
@@ -399,30 +399,15 @@ export function deleteGuide(id: string): boolean {
   if (filtered.length === all.length) return false;
 
   inMemoryGuides = filtered;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(GUIDES_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('guides.json', filtered, 'lankagama_guides');
   return true;
 }
 
 /* ============================================================
-   4. HERO SLIDESHOW MANAGEMENT (මුල් පිටුවේ Slideshow Photos)
+   4. HERO SLIDESHOW MANAGEMENT
    ============================================================ */
 export function getAllHeroSlides(): HeroSlide[] {
-  try {
-    ensureDataFiles();
-    if (fs.existsSync(HERO_SLIDES_FILE)) {
-      const data = fs.readFileSync(HERO_SLIDES_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryHeroSlides = parsed;
-        return parsed;
-      }
-    }
-  } catch {}
+  inMemoryHeroSlides = readDataFile<HeroSlide[]>('hero_slides.json', inMemoryHeroSlides);
   return inMemoryHeroSlides;
 }
 
@@ -437,31 +422,19 @@ export function createHeroSlide(newSlide: Omit<HeroSlide, 'id'> & { id?: string 
 
   all.push(slide);
   inMemoryHeroSlides = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(HERO_SLIDES_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('hero_slides.json', all, 'lankagama_hero_slides');
   return slide;
 }
 
 export function deleteHeroSlide(id: string): boolean {
   const all = getAllHeroSlides();
-  if (all.length <= 1) {
-    // Keep at least 1 slide
-    return false;
-  }
+  if (all.length <= 1) return false;
+
   const filtered = all.filter(s => s.id !== id);
   if (filtered.length === all.length) return false;
 
   inMemoryHeroSlides = filtered;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(HERO_SLIDES_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('hero_slides.json', filtered, 'lankagama_hero_slides');
   return true;
 }
 
@@ -477,30 +450,15 @@ export function updateHeroSlide(id: string, updatedData: Partial<HeroSlide>): He
   };
 
   inMemoryHeroSlides = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(HERO_SLIDES_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('hero_slides.json', all, 'lankagama_hero_slides');
   return all[index];
 }
 
 /* ============================================================
-   5. CAMPING GEAR MANAGEMENT (කඳවුරු උපකරණ)
+   5. CAMPING GEAR MANAGEMENT
    ============================================================ */
 export function getAllCampingGear(): CampingGear[] {
-  try {
-    ensureDataFiles();
-    if (fs.existsSync(CAMPING_FILE)) {
-      const data = fs.readFileSync(CAMPING_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryCamping = parsed;
-        return parsed;
-      }
-    }
-  } catch {}
+  inMemoryCamping = readDataFile<CampingGear[]>('camping.json', inMemoryCamping);
   return inMemoryCamping;
 }
 
@@ -516,12 +474,7 @@ export function createCampingGear(newGear: Omit<CampingGear, 'id'> & { id?: stri
 
   all.unshift(gear);
   inMemoryCamping = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(CAMPING_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('camping.json', all, 'lankagama_camping');
   return gear;
 }
 
@@ -537,12 +490,7 @@ export function updateCampingGear(id: string, updatedData: Partial<CampingGear>)
   };
 
   inMemoryCamping = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(CAMPING_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('camping.json', all, 'lankagama_camping');
   return all[index];
 }
 
@@ -552,30 +500,15 @@ export function deleteCampingGear(id: string): boolean {
   if (filtered.length === all.length) return false;
 
   inMemoryCamping = filtered;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(CAMPING_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('camping.json', filtered, 'lankagama_camping');
   return true;
 }
 
 /* ============================================================
-   6. ATTRACTIONS & WATERFALLS (දියඇලි සහ නැරඹුම් ස්ථාන)
+   6. ATTRACTIONS & WATERFALLS
    ============================================================ */
 export function getAllAttractions(): Attraction[] {
-  try {
-    ensureDataFiles();
-    if (fs.existsSync(ATTRACTIONS_FILE)) {
-      const data = fs.readFileSync(ATTRACTIONS_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryAttractions = parsed;
-        return parsed;
-      }
-    }
-  } catch {}
+  inMemoryAttractions = readDataFile<Attraction[]>('attractions.json', inMemoryAttractions);
   return inMemoryAttractions;
 }
 
@@ -590,12 +523,7 @@ export function createAttraction(newAttr: Omit<Attraction, 'id'> & { id?: string
 
   all.push(attr);
   inMemoryAttractions = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(ATTRACTIONS_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('attractions.json', all, 'lankagama_attractions');
   return attr;
 }
 
@@ -605,12 +533,7 @@ export function deleteAttraction(id: string): boolean {
   if (filtered.length === all.length) return false;
 
   inMemoryAttractions = filtered;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(ATTRACTIONS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('attractions.json', filtered, 'lankagama_attractions');
   return true;
 }
 
@@ -626,30 +549,15 @@ export function updateAttraction(id: string, updatedData: Partial<Attraction>): 
   };
 
   inMemoryAttractions = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(ATTRACTIONS_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('attractions.json', all, 'lankagama_attractions');
   return all[index];
 }
 
 /* ============================================================
-   7. KITHUL & TODDY PRODUCTS (කිතුල් පැණි, හකුරු සහ රා)
+   7. KITHUL & TODDY PRODUCTS
    ============================================================ */
 export function getAllKithulProducts(): KithulProduct[] {
-  try {
-    ensureDataFiles();
-    if (fs.existsSync(KITHUL_FILE)) {
-      const data = fs.readFileSync(KITHUL_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryKithul = parsed;
-        return parsed;
-      }
-    }
-  } catch {}
+  inMemoryKithul = readDataFile<KithulProduct[]>('kithul.json', inMemoryKithul);
   return inMemoryKithul;
 }
 
@@ -670,12 +578,7 @@ export function createKithulProduct(newProd: Omit<KithulProduct, 'id'> & { id?: 
 
   all.unshift(prod);
   inMemoryKithul = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(KITHUL_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('kithul.json', all, 'lankagama_kithul');
   return prod;
 }
 
@@ -691,12 +594,7 @@ export function updateKithulProduct(id: string, updatedData: Partial<KithulProdu
   };
 
   inMemoryKithul = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(KITHUL_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('kithul.json', all, 'lankagama_kithul');
   return all[index];
 }
 
@@ -706,30 +604,15 @@ export function deleteKithulProduct(id: string): boolean {
   if (filtered.length === all.length) return false;
 
   inMemoryKithul = filtered;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(KITHUL_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('kithul.json', filtered, 'lankagama_kithul');
   return true;
 }
 
 /* ============================================================
-   8. CUSTOMER REVIEWS & COMMENTS (පාරිභෝගික අදහස්)
+   8. CUSTOMER REVIEWS & COMMENTS
    ============================================================ */
 export function getAllComments(): CustomerComment[] {
-  try {
-    ensureDataFiles();
-    if (fs.existsSync(COMMENTS_FILE)) {
-      const data = fs.readFileSync(COMMENTS_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryComments = parsed;
-        return parsed;
-      }
-    }
-  } catch {}
+  inMemoryComments = readDataFile<CustomerComment[]>('comments.json', inMemoryComments);
   return inMemoryComments;
 }
 
@@ -747,12 +630,7 @@ export function createComment(newComment: Omit<CustomerComment, 'id' | 'createdA
 
   all.unshift(comment);
   inMemoryComments = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(COMMENTS_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('comments.json', all, 'lankagama_comments');
   return comment;
 }
 
@@ -762,12 +640,7 @@ export function deleteComment(id: string): boolean {
   if (filtered.length === all.length) return false;
 
   inMemoryComments = filtered;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(COMMENTS_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('comments.json', filtered, 'lankagama_comments');
   return true;
 }
 
@@ -783,30 +656,15 @@ export function updateComment(id: string, updatedData: Partial<CustomerComment>)
   };
 
   inMemoryComments = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(COMMENTS_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('comments.json', all, 'lankagama_comments');
   return all[index];
 }
 
 /* ============================================================
-   9. CUSTOMER INQUIRIES & QUESTIONS (විමසීම්)
+   9. CUSTOMER INQUIRIES & QUESTIONS
    ============================================================ */
 export function getAllInquiries(): CustomerInquiry[] {
-  try {
-    ensureDataFiles();
-    if (fs.existsSync(INQUIRIES_FILE)) {
-      const data = fs.readFileSync(INQUIRIES_FILE, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        inMemoryInquiries = parsed;
-        return parsed;
-      }
-    }
-  } catch {}
+  inMemoryInquiries = readDataFile<CustomerInquiry[]>('inquiries.json', inMemoryInquiries);
   return inMemoryInquiries;
 }
 
@@ -824,12 +682,7 @@ export function createInquiry(newInq: Omit<CustomerInquiry, 'id' | 'createdAt' |
 
   all.unshift(inq);
   inMemoryInquiries = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('inquiries.json', all, 'lankagama_inquiries');
   return inq;
 }
 
@@ -840,12 +693,7 @@ export function updateInquiryStatus(id: string, status: 'new' | 'contacted' | 'r
 
   all[index].status = status;
   inMemoryInquiries = all;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(all, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('inquiries.json', all, 'lankagama_inquiries');
   return all[index];
 }
 
@@ -855,11 +703,6 @@ export function deleteInquiry(id: string): boolean {
   if (filtered.length === all.length) return false;
 
   inMemoryInquiries = filtered;
-
-  try {
-    ensureDataFiles();
-    fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(filtered, null, 2), 'utf-8');
-  } catch {}
-
+  writeDataFile('inquiries.json', filtered, 'lankagama_inquiries');
   return true;
 }

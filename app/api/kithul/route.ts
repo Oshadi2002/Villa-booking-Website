@@ -1,13 +1,27 @@
 import { NextResponse } from 'next/server';
-import { getAllKithulProducts, createKithulProduct } from '@/lib/storage';
+import { getAllKithulProducts, createKithulProduct, fetchFromCloudKV } from '@/lib/storage';
+import { KithulProduct } from '@/lib/types';
 
-export async function GET() {
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store'
+};
+
+export async function GET(req: Request) {
   try {
-    const products = getAllKithulProducts();
-    return NextResponse.json({ success: true, products });
+    const { searchParams } = new URL(req.url);
+    void searchParams;
+
+    const cloudProducts = await fetchFromCloudKV<KithulProduct[]>('lankagama_kithul');
+    const products = cloudProducts && Array.isArray(cloudProducts) && cloudProducts.length > 0
+      ? cloudProducts
+      : getAllKithulProducts();
+
+    return NextResponse.json({ success: true, products }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -16,7 +30,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     if (!body.name || !body.priceLKR) {
-      return NextResponse.json({ success: false, message: 'Product name and price are required' }, { status: 400 });
+      return NextResponse.json({ success: false, message: 'Product name and price are required' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
     const product = createKithulProduct({
@@ -39,9 +53,9 @@ export async function POST(req: Request) {
       success: true,
       message: 'Kithul product added successfully!',
       product
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

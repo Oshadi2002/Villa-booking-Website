@@ -161,11 +161,93 @@ export default function AdminPage() {
     setTimeout(() => setActionMessage(''), 4500);
   };
 
+  // Cross-Tab & Local Storage Real-Time Sync Helpers
+  const broadcastSync = (type: string, data: unknown) => {
+    try {
+      const bc = new BroadcastChannel('lankagama_sync_channel');
+      bc.postMessage({ type, data });
+      bc.close();
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('lankagama_data_updated', { detail: { type, data } }));
+    }
+  };
+
+  const syncVillasState = (newVillas: Villa[]) => {
+    setVillas(newVillas);
+    try {
+      localStorage.setItem('lankagama_synced_villas', JSON.stringify(newVillas));
+    } catch {}
+    broadcastSync('SYNC_VILLAS', newVillas);
+  };
+
+  const syncCampingState = (newGear: CampingGear[]) => {
+    setCampingGear(newGear);
+    try {
+      localStorage.setItem('lankagama_synced_camping', JSON.stringify(newGear));
+    } catch {}
+    broadcastSync('SYNC_CAMPING', newGear);
+  };
+
+  const syncKithulState = (newProducts: KithulProduct[]) => {
+    setKithulProducts(newProducts);
+    try {
+      localStorage.setItem('lankagama_synced_kithul', JSON.stringify(newProducts));
+    } catch {}
+    broadcastSync('SYNC_KITHUL', newProducts);
+  };
+
+  const syncSlidesState = (newSlides: HeroSlide[]) => {
+    setSlides(newSlides);
+    try {
+      localStorage.setItem('lankagama_synced_slides', JSON.stringify(newSlides));
+    } catch {}
+    broadcastSync('SYNC_SLIDES', newSlides);
+  };
+
+  const syncAttractionsState = (newAttractions: Attraction[]) => {
+    setAttractions(newAttractions);
+    try {
+      localStorage.setItem('lankagama_synced_attractions', JSON.stringify(newAttractions));
+    } catch {}
+    broadcastSync('SYNC_ATTRACTIONS', newAttractions);
+  };
+
   const fetchAllData = async () => {
     setLoading(true);
+    // 1. Initial check from localStorage for instant admin display
+    try {
+      const v = localStorage.getItem('lankagama_synced_villas');
+      if (v) {
+        const parsed = JSON.parse(v);
+        if (Array.isArray(parsed) && parsed.length > 0) setVillas(parsed);
+      }
+      const s = localStorage.getItem('lankagama_synced_slides');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) setSlides(parsed);
+      }
+      const g = localStorage.getItem('lankagama_synced_camping');
+      if (g) {
+        const parsed = JSON.parse(g);
+        if (Array.isArray(parsed) && parsed.length > 0) setCampingGear(parsed);
+      }
+      const k = localStorage.getItem('lankagama_synced_kithul');
+      if (k) {
+        const parsed = JSON.parse(k);
+        if (Array.isArray(parsed) && parsed.length > 0) setKithulProducts(parsed);
+      }
+      const a = localStorage.getItem('lankagama_synced_attractions');
+      if (a) {
+        const parsed = JSON.parse(a);
+        if (Array.isArray(parsed) && parsed.length > 0) setAttractions(parsed);
+      }
+    } catch {}
+
+    const timestamp = Date.now();
     try {
       // 1. Bookings
-      fetch('/api/bookings').then(r => r.json()).then(d => {
+      fetch(`/api/bookings?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
         if (d.success && Array.isArray(d.bookings)) {
           setBookings(d.bookings);
           const notesMap: { [id: string]: string } = {};
@@ -175,37 +257,47 @@ export default function AdminPage() {
       }).catch(() => {});
 
       // 2. Slides
-      fetch('/api/hero-slides').then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.slides)) setSlides(d.slides);
+      fetch(`/api/hero-slides?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
+        if (d.success && Array.isArray(d.slides)) {
+          setSlides(prev => (prev.length > d.slides.length ? prev : d.slides));
+        }
       }).catch(() => {});
 
       // 3. Villas
-      fetch('/api/villas').then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.villas)) setVillas(d.villas);
+      fetch(`/api/villas?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
+        if (d.success && Array.isArray(d.villas)) {
+          setVillas(prev => (prev.length > d.villas.length ? prev : d.villas));
+        }
       }).catch(() => {});
 
       // 4. Camping
-      fetch('/api/camping').then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.gear)) setCampingGear(d.gear);
+      fetch(`/api/camping?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
+        if (d.success && Array.isArray(d.gear)) {
+          setCampingGear(prev => (prev.length > d.gear.length ? prev : d.gear));
+        }
       }).catch(() => {});
 
       // 5. Attractions
-      fetch('/api/attractions').then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.attractions)) setAttractions(d.attractions);
+      fetch(`/api/attractions?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
+        if (d.success && Array.isArray(d.attractions)) {
+          setAttractions(prev => (prev.length > d.attractions.length ? prev : d.attractions));
+        }
       }).catch(() => {});
 
       // 6. Kithul & Toddy
-      fetch('/api/kithul').then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.products)) setKithulProducts(d.products);
+      fetch(`/api/kithul?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
+        if (d.success && Array.isArray(d.products)) {
+          setKithulProducts(prev => (prev.length > d.products.length ? prev : d.products));
+        }
       }).catch(() => {});
 
       // 7. Comments & Reviews
-      fetch('/api/comments').then(r => r.json()).then(d => {
+      fetch(`/api/comments?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
         if (d.success && Array.isArray(d.comments)) setComments(d.comments);
       }).catch(() => {});
 
       // 8. Inquiries
-      fetch('/api/inquiries').then(r => r.json()).then(d => {
+      fetch(`/api/inquiries?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
         if (d.success && Array.isArray(d.inquiries)) setInquiries(d.inquiries);
       }).catch(() => {});
     } catch {
@@ -334,7 +426,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       });
       const data = await res.json();
       if (data.success && data.slide) {
-        setSlides(prev => [...prev, data.slide]);
+        syncSlidesState([...slides, data.slide]);
         setIsAddSlideModalOpen(false);
         showNotification(`New Hero Slide "${data.slide.title}" added!`);
         setNewSlide({ title: '', sinhala: '', url: '' });
@@ -352,7 +444,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       const res = await fetch(`/api/hero-slides/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        setSlides(prev => prev.filter(s => s.id !== id));
+        syncSlidesState(slides.filter(s => s.id !== id));
         showNotification(`Slide "${title}" removed.`);
       } else {
         alert(data.message || 'Failed to delete slide (at least 1 slide must remain).');
@@ -428,7 +520,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
       const data = await res.json();
       if (data.success && data.villa) {
-        setVillas(prev => [data.villa, ...prev]);
+        syncVillasState([data.villa, ...villas]);
         setIsAddVillaModalOpen(false);
         showNotification(`Villa "${data.villa.name}" added successfully to website!`);
         setNewVilla({
@@ -467,7 +559,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       const res = await fetch(`/api/villas/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        setVillas(prev => prev.filter(v => v.id !== id));
+        syncVillasState(villas.filter(v => v.id !== id));
         showNotification(`Villa "${name}" deleted.`);
       } else {
         alert(data.message || 'Failed to delete villa.');
@@ -505,7 +597,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
       const data = await res.json();
       if (data.success && data.gear) {
-        setCampingGear(prev => [data.gear, ...prev]);
+        syncCampingState([data.gear, ...campingGear]);
         setIsAddCampingModalOpen(false);
         showNotification(`Camping item "${data.gear.name}" added to website!`);
         setNewCamping({
@@ -532,7 +624,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       const res = await fetch(`/api/camping/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        setCampingGear(prev => prev.filter(g => g.id !== id));
+        syncCampingState(campingGear.filter(g => g.id !== id));
         showNotification(`Camping item "${name}" deleted.`);
       } else {
         alert(data.message || 'Failed to delete gear.');
@@ -558,7 +650,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       });
       const data = await res.json();
       if (data.success && data.attraction) {
-        setAttractions(prev => [...prev, data.attraction]);
+        syncAttractionsState([...attractions, data.attraction]);
         setIsAddAttractionModalOpen(false);
         showNotification(`Attraction "${data.attraction.name}" added to website!`);
         setNewAttraction({
@@ -582,7 +674,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       const res = await fetch(`/api/attractions/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        setAttractions(prev => prev.filter(a => a.id !== id));
+        syncAttractionsState(attractions.filter(a => a.id !== id));
         showNotification(`Attraction "${name}" removed.`);
       } else {
         alert(data.message || 'Failed to delete attraction.');
@@ -608,7 +700,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       });
       const data = await res.json();
       if (data.success && data.product) {
-        setKithulProducts(prev => [data.product, ...prev]);
+        syncKithulState([data.product, ...kithulProducts]);
         setIsAddKithulModalOpen(false);
         showNotification(`Kithul product "${data.product.name}" added to website!`);
         setNewKithul({
@@ -639,7 +731,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       const res = await fetch(`/api/kithul/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        setKithulProducts(prev => prev.filter(p => p.id !== id));
+        syncKithulState(kithulProducts.filter(p => p.id !== id));
         showNotification(`Product "${name}" deleted.`);
       } else {
         alert(data.message || 'Failed to delete product.');
@@ -742,7 +834,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       });
       const data = await res.json();
       if (data.success && data.villa) {
-        setVillas(prev => prev.map(v => v.id === editingVilla.id ? data.villa : v));
+        syncVillasState(villas.map(v => v.id === editingVilla.id ? data.villa : v));
         setEditingVilla(null);
         showNotification(`Villa "${data.villa.name}" updated successfully!`);
       } else {
@@ -774,7 +866,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       });
       const data = await res.json();
       if (data.success && data.gear) {
-        setCampingGear(prev => prev.map(g => g.id === editingCamping.id ? data.gear : g));
+        syncCampingState(campingGear.map(g => g.id === editingCamping.id ? data.gear : g));
         setEditingCamping(null);
         showNotification(`Camping item "${data.gear.name}" updated successfully!`);
       } else {
@@ -801,7 +893,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       });
       const data = await res.json();
       if (data.success && data.product) {
-        setKithulProducts(prev => prev.map(p => p.id === editingKithul.id ? data.product : p));
+        syncKithulState(kithulProducts.map(p => p.id === editingKithul.id ? data.product : p));
         setEditingKithul(null);
         showNotification(`Product "${data.product.name}" updated successfully!`);
       } else {
@@ -828,7 +920,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       });
       const data = await res.json();
       if (data.success && data.slide) {
-        setSlides(prev => prev.map(s => s.id === editingSlide.id ? data.slide : s));
+        syncSlidesState(slides.map(s => s.id === editingSlide.id ? data.slide : s));
         setEditingSlide(null);
         showNotification(`Slide "${data.slide.title}" updated successfully!`);
       } else {
@@ -855,7 +947,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       });
       const data = await res.json();
       if (data.success && data.attraction) {
-        setAttractions(prev => prev.map(a => a.id === editingAttraction.id ? data.attraction : a));
+        syncAttractionsState(attractions.map(a => a.id === editingAttraction.id ? data.attraction : a));
         setEditingAttraction(null);
         showNotification(`Attraction "${data.attraction.name}" updated successfully!`);
       } else {

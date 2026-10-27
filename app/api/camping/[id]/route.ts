@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { deleteCampingGear, updateCampingGear } from '@/lib/storage';
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store'
+};
+
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -13,13 +19,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     });
 
     if (!updated) {
-      return NextResponse.json({ success: false, message: 'Camping gear not found' }, { status: 404 });
+      return NextResponse.json({ success: false, message: 'Camping gear not found' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
-    return NextResponse.json({ success: true, message: 'Camping gear updated successfully', gear: updated });
+    return NextResponse.json({ success: true, message: 'Camping gear updated successfully', gear: updated }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -29,12 +35,12 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     const deleted = deleteCampingGear(id);
 
     if (!deleted) {
-      return NextResponse.json({ success: false, message: 'Gear item not found or already deleted' }, { status: 404 });
+      return NextResponse.json({ success: false, message: 'Gear item not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
-    return NextResponse.json({ success: true, message: 'Camping gear deleted' });
+    return NextResponse.json({ success: true, message: 'Camping gear deleted' }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

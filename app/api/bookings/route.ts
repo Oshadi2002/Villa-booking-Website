@@ -1,13 +1,27 @@
 import { NextResponse } from 'next/server';
-import { getAllBookings, createBooking } from '@/lib/storage';
+import { getAllBookings, createBooking, fetchFromCloudKV } from '@/lib/storage';
+import { Booking } from '@/lib/types';
 
-export async function GET() {
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'CDN-Cache-Control': 'no-store',
+  'Vercel-CDN-Cache-Control': 'no-store'
+};
+
+export async function GET(req: Request) {
   try {
-    const bookings = getAllBookings();
-    return NextResponse.json({ success: true, bookings });
+    const { searchParams } = new URL(req.url);
+    void searchParams;
+
+    const cloudBookings = await fetchFromCloudKV<Booking[]>('lankagama_bookings');
+    const bookings = cloudBookings && Array.isArray(cloudBookings) && cloudBookings.length > 0
+      ? cloudBookings
+      : getAllBookings();
+
+    return NextResponse.json({ success: true, bookings }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -19,7 +33,7 @@ export async function POST(req: Request) {
     if (!body.customerName || !body.customerPhone || !body.itemName || !body.checkInDate) {
       return NextResponse.json(
         { success: false, message: 'Missing required booking fields (Name, Phone, Item, Date)' },
-        { status: 400 }
+        { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -46,9 +60,9 @@ export async function POST(req: Request) {
       success: true,
       message: 'Booking request placed successfully with status: PENDING.',
       booking
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
