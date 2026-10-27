@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAllAttractions, createAttraction, fetchFromCloudKV } from '@/lib/storage';
+import { getAllAttractions, createAttraction } from '@/lib/storage';
+import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
 import { Attraction } from '@/lib/types';
 
 const NO_CACHE_HEADERS = {
@@ -13,10 +14,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const cloudAttractions = await fetchFromCloudKV<Attraction[]>('lankagama_attractions');
-    const attractions = cloudAttractions && Array.isArray(cloudAttractions) && cloudAttractions.length > 0
-      ? cloudAttractions
-      : getAllAttractions();
+    let attractions: Attraction[] = [];
+    if (isPostgresConfigured()) {
+      attractions = await dbGetAll<Attraction>('lankagama_attractions');
+    }
+
+    if (!attractions || attractions.length === 0) {
+      attractions = getAllAttractions();
+    }
 
     return NextResponse.json({ success: true, attractions }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
@@ -40,6 +45,10 @@ export async function POST(req: Request) {
       caution: body.caution || 'Travel with care; respect nature and river currents.',
       imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80'
     });
+
+    if (isPostgresConfigured()) {
+      await dbSaveItem('lankagama_attractions', attraction);
+    }
 
     return NextResponse.json({
       success: true,

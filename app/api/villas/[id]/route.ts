@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getVillaById, updateVilla, deleteVilla } from '@/lib/storage';
+import { isPostgresConfigured, dbSaveItem, dbDeleteItem } from '@/lib/db';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -31,6 +32,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ success: false, message: 'Villa not found to update' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
+    if (isPostgresConfigured()) {
+      await dbSaveItem('lankagama_villas', updated);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Villa updated successfully',
@@ -46,6 +51,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   try {
     const { id } = await params;
     const deleted = deleteVilla(id);
+
+    if (isPostgresConfigured()) {
+      await dbDeleteItem('lankagama_villas', id);
+    }
 
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Villa not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });

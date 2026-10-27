@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAllHeroSlides, createHeroSlide, fetchFromCloudKV } from '@/lib/storage';
+import { getAllHeroSlides, createHeroSlide } from '@/lib/storage';
+import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
 import { HeroSlide } from '@/lib/types';
 
 const NO_CACHE_HEADERS = {
@@ -13,10 +14,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const cloudSlides = await fetchFromCloudKV<HeroSlide[]>('lankagama_hero_slides');
-    const slides = cloudSlides && Array.isArray(cloudSlides) && cloudSlides.length > 0
-      ? cloudSlides
-      : getAllHeroSlides();
+    let slides: HeroSlide[] = [];
+    if (isPostgresConfigured()) {
+      slides = await dbGetAll<HeroSlide>('lankagama_slides');
+    }
+
+    if (!slides || slides.length === 0) {
+      slides = getAllHeroSlides();
+    }
 
     return NextResponse.json({ success: true, slides }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
@@ -38,6 +43,10 @@ export async function POST(req: Request) {
       title: body.title,
       sinhala: body.sinhala || body.title
     });
+
+    if (isPostgresConfigured()) {
+      await dbSaveItem('lankagama_slides', slide);
+    }
 
     return NextResponse.json({
       success: true,

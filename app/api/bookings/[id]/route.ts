@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getBookingById, updateBooking, deleteBooking } from '@/lib/storage';
+import { isPostgresConfigured, dbSaveItem, dbDeleteItem } from '@/lib/db';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -46,6 +47,10 @@ export async function PATCH(
       );
     }
 
+    if (isPostgresConfigured()) {
+      await dbSaveItem('lankagama_bookings', updated);
+    }
+
     return NextResponse.json({
       success: true,
       message: `Booking ${id} updated successfully`,
@@ -64,6 +69,10 @@ export async function DELETE(
   try {
     const { id } = await params;
     const deleted = deleteBooking(id);
+
+    if (isPostgresConfigured()) {
+      await dbDeleteItem('lankagama_bookings', id);
+    }
 
     if (!deleted) {
       return NextResponse.json(

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAllVillas, createVilla, fetchFromCloudKV } from '@/lib/storage';
+import { getAllVillas, createVilla } from '@/lib/storage';
+import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
 import { Villa } from '@/lib/types';
 
 const NO_CACHE_HEADERS = {
@@ -10,14 +11,17 @@ const NO_CACHE_HEADERS = {
 
 export async function GET(req: Request) {
   try {
-    // Access URL to ensure dynamic evaluation
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const cloudVillas = await fetchFromCloudKV<Villa[]>('lankagama_villas');
-    const villas = cloudVillas && Array.isArray(cloudVillas) && cloudVillas.length > 0
-      ? cloudVillas
-      : getAllVillas();
+    let villas: Villa[] = [];
+    if (isPostgresConfigured()) {
+      villas = await dbGetAll<Villa>('lankagama_villas');
+    }
+
+    if (!villas || villas.length === 0) {
+      villas = getAllVillas();
+    }
 
     return NextResponse.json(
       { success: true, villas },
@@ -77,6 +81,10 @@ export async function POST(req: Request) {
       acType: body.acType || 'both',
       hasKitchen: body.hasKitchen !== undefined ? Boolean(body.hasKitchen) : true
     });
+
+    if (isPostgresConfigured()) {
+      await dbSaveItem('lankagama_villas', villa);
+    }
 
     return NextResponse.json({
       success: true,

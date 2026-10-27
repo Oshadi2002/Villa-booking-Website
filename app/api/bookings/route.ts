@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAllBookings, createBooking, fetchFromCloudKV } from '@/lib/storage';
+import { getAllBookings, createBooking } from '@/lib/storage';
+import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
 import { Booking } from '@/lib/types';
 
 const NO_CACHE_HEADERS = {
@@ -13,10 +14,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const cloudBookings = await fetchFromCloudKV<Booking[]>('lankagama_bookings');
-    const bookings = cloudBookings && Array.isArray(cloudBookings) && cloudBookings.length > 0
-      ? cloudBookings
-      : getAllBookings();
+    let bookings: Booking[] = [];
+    if (isPostgresConfigured()) {
+      bookings = await dbGetAll<Booking>('lankagama_bookings');
+    }
+
+    if (!bookings || bookings.length === 0) {
+      bookings = getAllBookings();
+    }
 
     return NextResponse.json({ success: true, bookings }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
@@ -55,6 +60,10 @@ export async function POST(req: Request) {
       orderMeals: body.orderMeals !== undefined ? Boolean(body.orderMeals) : undefined,
       mealsNotes: body.mealsNotes || undefined
     });
+
+    if (isPostgresConfigured()) {
+      await dbSaveItem('lankagama_bookings', booking);
+    }
 
     return NextResponse.json({
       success: true,

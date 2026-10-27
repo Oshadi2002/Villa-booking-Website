@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { deleteKithulProduct, updateKithulProduct } from '@/lib/storage';
+import { isPostgresConfigured, dbSaveItem, dbDeleteItem } from '@/lib/db';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -11,6 +12,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   try {
     const { id } = await params;
     const deleted = deleteKithulProduct(id);
+
+    if (isPostgresConfigured()) {
+      await dbDeleteItem('lankagama_kithul', id);
+    }
 
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Kithul product not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });
@@ -31,6 +36,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const updated = updateKithulProduct(id, body);
     if (!updated) {
       return NextResponse.json({ success: false, message: 'Kithul product not found' }, { status: 404, headers: NO_CACHE_HEADERS });
+    }
+
+    if (isPostgresConfigured()) {
+      await dbSaveItem('lankagama_kithul', updated);
     }
 
     return NextResponse.json({ success: true, product: updated }, { headers: NO_CACHE_HEADERS });

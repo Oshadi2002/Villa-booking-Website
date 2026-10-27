@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { deleteHeroSlide, updateHeroSlide } from '@/lib/storage';
+import { isPostgresConfigured, dbSaveItem, dbDeleteItem } from '@/lib/db';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -17,6 +18,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ success: false, message: 'Slide not found' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
+    if (isPostgresConfigured()) {
+      await dbSaveItem('lankagama_slides', updated);
+    }
+
     return NextResponse.json({ success: true, message: 'Slide updated successfully', slide: updated }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
@@ -28,6 +33,10 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   try {
     const { id } = await params;
     const deleted = deleteHeroSlide(id);
+
+    if (isPostgresConfigured()) {
+      await dbDeleteItem('lankagama_slides', id);
+    }
 
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Cannot delete: at least 1 slide must remain or slide not found' }, { status: 400, headers: NO_CACHE_HEADERS });

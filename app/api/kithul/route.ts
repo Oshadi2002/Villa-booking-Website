@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAllKithulProducts, createKithulProduct, fetchFromCloudKV } from '@/lib/storage';
+import { getAllKithulProducts, createKithulProduct } from '@/lib/storage';
+import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
 import { KithulProduct } from '@/lib/types';
 
 const NO_CACHE_HEADERS = {
@@ -13,10 +14,14 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const cloudProducts = await fetchFromCloudKV<KithulProduct[]>('lankagama_kithul');
-    const products = cloudProducts && Array.isArray(cloudProducts) && cloudProducts.length > 0
-      ? cloudProducts
-      : getAllKithulProducts();
+    let products: KithulProduct[] = [];
+    if (isPostgresConfigured()) {
+      products = await dbGetAll<KithulProduct>('lankagama_kithul');
+    }
+
+    if (!products || products.length === 0) {
+      products = getAllKithulProducts();
+    }
 
     return NextResponse.json({ success: true, products }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
@@ -48,6 +53,10 @@ export async function POST(req: Request) {
       inStock: body.inStock ?? true,
       featured: body.featured ?? false
     });
+
+    if (isPostgresConfigured()) {
+      await dbSaveItem('lankagama_kithul', product);
+    }
 
     return NextResponse.json({
       success: true,
