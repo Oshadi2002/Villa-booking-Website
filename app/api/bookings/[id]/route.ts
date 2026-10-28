@@ -70,17 +70,37 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
-    const updated = updateBooking(id, body);
+    let updated: Booking | null = null;
+
+    if (isPostgresConfigured()) {
+      try {
+        const all = await dbGetAll<Booking>('lankagama_bookings');
+        const cleanId = id.trim().toUpperCase();
+        const existing = all.find(b => b.id.toUpperCase() === cleanId);
+        if (existing) {
+          const merged: Booking = {
+            ...existing,
+            ...body,
+            id: existing.id
+          };
+          await dbSaveItem('lankagama_bookings', merged);
+          updated = merged;
+        }
+      } catch (e) {
+        console.error('Failed to update booking in DB:', e);
+      }
+    }
+
+    const localUpdated = updateBooking(id, body);
+    if (!updated) {
+      updated = localUpdated;
+    }
 
     if (!updated) {
       return NextResponse.json(
         { success: false, message: 'Booking not found to update' },
         { status: 404, headers: NO_CACHE_HEADERS }
       );
-    }
-
-    if (isPostgresConfigured()) {
-      await dbSaveItem('lankagama_bookings', updated);
     }
 
     return NextResponse.json({
@@ -104,11 +124,19 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    const deleted = deleteBooking(id);
+    let deleted = false;
 
     if (isPostgresConfigured()) {
-      await dbDeleteItem('lankagama_bookings', id);
+      try {
+        await dbDeleteItem('lankagama_bookings', id);
+        deleted = true;
+      } catch (e) {
+        console.error('Failed to delete booking from DB:', e);
+      }
     }
+
+    const localDeleted = deleteBooking(id);
+    if (localDeleted) deleted = true;
 
     if (!deleted) {
       return NextResponse.json(

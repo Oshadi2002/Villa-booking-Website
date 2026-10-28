@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { deleteComment, updateComment } from '@/lib/storage';
-import { isPostgresConfigured, dbSaveItem, dbDeleteItem } from '@/lib/db';
+import { isPostgresConfigured, dbSaveItem, dbDeleteItem, dbGetAll } from '@/lib/db';
+import { CustomerComment } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -15,17 +16,27 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const body = await req.json();
 
-    const updated = updateComment(id, body);
-    if (!updated) {
-      return NextResponse.json({ success: false, message: 'Comment not found' }, { status: 404, headers: NO_CACHE_HEADERS });
-    }
+    let updated: CustomerComment | null = null;
 
     if (isPostgresConfigured()) {
       try {
-        await dbSaveItem('lankagama_comments', updated);
+        const all = await dbGetAll<CustomerComment>('lankagama_comments');
+        const existing = all.find(c => c.id === id);
+        if (existing) {
+          const merged: CustomerComment = { ...existing, ...body, id: existing.id };
+          await dbSaveItem('lankagama_comments', merged);
+          updated = merged;
+        }
       } catch (e) {
         console.error('Failed to update comment in DB:', e);
       }
+    }
+
+    const localUpdated = updateComment(id, body);
+    if (!updated) updated = localUpdated;
+
+    if (!updated) {
+      return NextResponse.json({ success: false, message: 'Comment not found' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
     return NextResponse.json({ success: true, message: 'Comment updated successfully', comment: updated }, { headers: NO_CACHE_HEADERS });
@@ -41,15 +52,19 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   try {
     const { id } = await params;
-    const deleted = deleteComment(id);
+    let deleted = false;
 
     if (isPostgresConfigured()) {
       try {
         await dbDeleteItem('lankagama_comments', id);
+        deleted = true;
       } catch (e) {
         console.error('Failed to delete comment from DB:', e);
       }
     }
+
+    const localDeleted = deleteComment(id);
+    if (localDeleted) deleted = true;
 
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Comment not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });

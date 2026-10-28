@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { deleteInquiry, updateInquiryStatus } from '@/lib/storage';
-import { isPostgresConfigured, dbSaveItem, dbDeleteItem } from '@/lib/db';
+import { isPostgresConfigured, dbSaveItem, dbDeleteItem, dbGetAll } from '@/lib/db';
+import { CustomerInquiry } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -13,15 +14,19 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   try {
     const { id } = await params;
-    const deleted = deleteInquiry(id);
+    let deleted = false;
 
     if (isPostgresConfigured()) {
       try {
         await dbDeleteItem('lankagama_inquiries', id);
+        deleted = true;
       } catch (e) {
         console.error('Failed to delete inquiry from DB:', e);
       }
     }
+
+    const localDeleted = deleteInquiry(id);
+    if (localDeleted) deleted = true;
 
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Inquiry not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });
@@ -46,17 +51,27 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ success: false, message: 'Valid status is required' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
-    const updated = updateInquiryStatus(id, body.status);
-    if (!updated) {
-      return NextResponse.json({ success: false, message: 'Inquiry not found' }, { status: 404, headers: NO_CACHE_HEADERS });
-    }
+    let updated: CustomerInquiry | null = null;
 
     if (isPostgresConfigured()) {
       try {
-        await dbSaveItem('lankagama_inquiries', updated);
+        const all = await dbGetAll<CustomerInquiry>('lankagama_inquiries');
+        const existing = all.find(i => i.id === id);
+        if (existing) {
+          const merged: CustomerInquiry = { ...existing, status: body.status };
+          await dbSaveItem('lankagama_inquiries', merged);
+          updated = merged;
+        }
       } catch (e) {
         console.error('Failed to update inquiry in DB:', e);
       }
+    }
+
+    const localUpdated = updateInquiryStatus(id, body.status);
+    if (!updated) updated = localUpdated;
+
+    if (!updated) {
+      return NextResponse.json({ success: false, message: 'Inquiry not found' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
     return NextResponse.json({ success: true, inquiry: updated }, { headers: NO_CACHE_HEADERS });

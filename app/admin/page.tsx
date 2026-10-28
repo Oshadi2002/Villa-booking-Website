@@ -442,20 +442,26 @@ export default function AdminPage() {
 
   // ---------------- BOOKINGS ACTIONS ---------------- //
   const handleUpdateBookingStatus = async (id: string, newStatus: 'pending' | 'approved' | 'rejected') => {
+    const currentNotes = editingNotes[id] || '';
+    // Optimistic update
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus, adminNotes: currentNotes } : b));
+
     try {
-      const currentNotes = editingNotes[id] || '';
-      const res = await fetch(`/api/bookings/${id}`, {
+      const res = await fetch(`/api/bookings/${encodeURIComponent(id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus, adminNotes: currentNotes })
       });
       const data = await res.json();
       if (data.success) {
-        setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus, adminNotes: currentNotes } : b));
-        showNotification(`Booking ${id} marked as: ${newStatus.toUpperCase()}`);
+        showNotification(`Booking #${id} marked as: ${newStatus.toUpperCase()}`);
+      } else {
+        alert(data.message || 'Failed to update booking status.');
+        fetchAllData();
       }
     } catch {
       alert('Failed to update booking status.');
+      fetchAllData();
     }
   };
 
@@ -1224,13 +1230,13 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
   // AUTHENTICATED DASHBOARD WITH SIDEBAR NAVIGATION
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col md:flex-row">
+    <div className="h-screen w-full bg-slate-50 text-slate-800 font-sans flex flex-col md:flex-row overflow-hidden">
       
       {/* ============================================================
-         SIDEBAR (Easy, clear navigation for all sections)
+         SIDEBAR (Fixed, clear navigation for all sections)
          ============================================================ */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-200 md:static md:translate-x-0
+        fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200 flex flex-col justify-between transition-transform duration-200 md:static md:translate-x-0 md:h-screen md:shrink-0 overflow-y-auto
         ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div>
@@ -1453,10 +1459,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       {/* ============================================================
          MAIN CONTENT AREA
          ============================================================ */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto overflow-x-hidden">
         
         {/* Top Navbar */}
-        <header className="bg-white border-b border-slate-200 h-16 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20">
+        <header className="bg-white border-b border-slate-200 h-16 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 shrink-0">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
@@ -1599,7 +1605,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                       }`}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
-                        <div className="space-y-3 flex-1">
+                        <div className="space-y-3 flex-1 min-w-0">
                           <div className="flex items-center gap-3 flex-wrap">
                             <span className="font-mono font-bold text-base text-slate-900">#{b.id}</span>
                             {b.status === 'pending' && (

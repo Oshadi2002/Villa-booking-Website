@@ -29,11 +29,7 @@ interface BookingModalProps {
 
 export default function BookingModal({ isOpen, onClose, bookingType, item }: BookingModalProps) {
   const { getWhatsAppLink } = useWhatsApp();
-  const [todayStr, setTodayStr] = useState('');
-
-  useEffect(() => {
-    setTodayStr(new Date().toISOString().split('T')[0]);
-  }, []);
+  const [todayStr] = useState(() => new Date().toISOString().split('T')[0]);
 
   const [formData, setFormData] = useState({
     customerName: '',

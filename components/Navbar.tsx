@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Compass, Search, MessageCircle, Menu, X } from 'lucide-react';
 import { useWhatsApp } from '@/lib/useWhatsApp';
 
@@ -11,7 +12,62 @@ interface NavbarProps {
 
 export default function Navbar({ onOpenTrackModal }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const [activeScrollSection, setActiveScrollSection] = useState<string>('');
   const { getWhatsAppLink } = useWhatsApp();
+
+  const activeSection = pathname === '/reviews'
+    ? 'reviews'
+    : pathname === '/blogs'
+    ? 'blogs'
+    : pathname === '/'
+    ? activeScrollSection
+    : '';
+
+  useEffect(() => {
+    if (pathname !== '/') return;
+
+    const sectionIds = ['why-us', 'villas', 'kithul', 'camping'];
+    const handleScroll = () => {
+      const scrollPos = window.scrollY + 220; // Natural viewport offset below header
+      let current = '';
+
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el) {
+          const top = el.offsetTop;
+          const height = el.offsetHeight;
+          if (scrollPos >= top && scrollPos < top + height) {
+            current = id;
+            break;
+          }
+        }
+      }
+      setActiveScrollSection(current);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [pathname]);
+
+  const getNavClass = (sectionKey: string) => {
+    const isActive = activeSection === sectionKey;
+    return `transition-all py-1 relative hover:after:w-full after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all ${
+      isActive
+        ? 'text-[#D4AF37] font-bold after:w-full'
+        : 'text-[#F5F2EB]/90 hover:text-[#D4AF37] after:w-0'
+    }`;
+  };
+
+  const getMobileNavClass = (sectionKey: string) => {
+    const isActive = activeSection === sectionKey;
+    return `p-2 rounded-lg transition-colors flex items-center justify-between ${
+      isActive
+        ? 'bg-[#2C3E33] text-[#D4AF37] font-bold'
+        : 'text-[#F5F2EB]/90 hover:bg-[#2C3E33] hover:text-[#D4AF37]'
+    }`;
+  };
 
   const whatsappUrl = getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I would like to inquire about stays, camping gear, and tour guides.');
 
@@ -38,24 +94,24 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
             </div>
           </Link>
 
-          {/* Clean Desktop Navigation Links with generous breathing room */}
-          <nav className="hidden lg:flex items-center gap-3.5 xl:gap-6 2xl:gap-8 text-[11px] xl:text-xs uppercase tracking-[0.08em] xl:tracking-[0.14em] font-semibold text-[#F5F2EB]/90 shrink-0">
-            <Link href="/#why-us" className="hover:text-[#D4AF37] transition-colors py-1 relative hover:after:w-full after:w-0 after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all">
+          {/* Clean Desktop Navigation Links with dynamic section scroll spy */}
+          <nav className="hidden lg:flex items-center gap-3.5 xl:gap-6 2xl:gap-8 text-[11px] xl:text-xs uppercase tracking-[0.08em] xl:tracking-[0.14em] font-semibold shrink-0">
+            <Link href="/#why-us" className={getNavClass('why-us')}>
               Why Us
             </Link>
-            <Link href="/#villas" className="hover:text-[#D4AF37] transition-colors py-1 relative hover:after:w-full after:w-0 after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all">
+            <Link href="/#villas" className={getNavClass('villas')}>
               Villas & Stays
             </Link>
-            <Link href="/#kithul" className="hover:text-[#D4AF37] transition-colors py-1 relative hover:after:w-full after:w-0 after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all text-[#D4AF37]">
+            <Link href="/#kithul" className={getNavClass('kithul')}>
               Kithul & Toddy
             </Link>
-            <Link href="/#camping" className="hover:text-[#D4AF37] transition-colors py-1 relative hover:after:w-full after:w-0 after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all">
+            <Link href="/#camping" className={getNavClass('camping')}>
               Camping Gear
             </Link>
-            <Link href="/blogs" className="hover:text-[#D4AF37] transition-colors py-1 relative hover:after:w-full after:w-0 after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all">
+            <Link href="/blogs" className={getNavClass('blogs')}>
               Blogs & Guides
             </Link>
-            <Link href="/reviews" className="hover:text-[#D4AF37] transition-colors py-1 relative hover:after:w-full after:w-0 after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all">
+            <Link href="/reviews" className={getNavClass('reviews')}>
               Reviews & FAQ
             </Link>
           </nav>
@@ -107,48 +163,48 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#14231B] border-b border-[#2C3E33] px-5 pt-4 pb-7 space-y-5 animate-in slide-in-from-top-3">
-          <nav className="flex flex-col gap-3.5 text-xs uppercase tracking-[0.14em] font-semibold text-[#F5F2EB]/90">
-            <a 
-              href="#why-us" 
+          <nav className="flex flex-col gap-2 text-xs uppercase tracking-[0.12em] font-semibold">
+            <Link 
+              href="/#why-us" 
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-lg hover:bg-[#2C3E33]"
+              className={getMobileNavClass('why-us')}
             >
-              Why Choose Us
-            </a>
+              <span>Why Choose Us</span>
+            </Link>
             <Link 
               href="/#villas" 
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-lg hover:bg-[#2C3E33]"
+              className={getMobileNavClass('villas')}
             >
-              Villas & Eco-Lodges
+              <span>Villas & Eco-Lodges</span>
             </Link>
             <Link 
               href="/#kithul" 
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-lg hover:bg-[#2C3E33] text-[#D4AF37]"
+              className={getMobileNavClass('kithul')}
             >
-              Artisanal Kithul & Toddy
+              <span>Artisanal Kithul & Toddy</span>
             </Link>
             <Link 
               href="/#camping" 
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-lg hover:bg-[#2C3E33]"
+              className={getMobileNavClass('camping')}
             >
-              Camping Gear Rentals
+              <span>Camping Gear Rentals</span>
             </Link>
             <Link 
               href="/blogs" 
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-lg hover:bg-[#2C3E33]"
+              className={getMobileNavClass('blogs')}
             >
-              Waterfalls & Travel Guides
+              <span>Waterfalls & Travel Guides</span>
             </Link>
             <Link 
               href="/reviews" 
               onClick={() => setMobileMenuOpen(false)}
-              className="p-2 rounded-lg hover:bg-[#2C3E33]"
+              className={getMobileNavClass('reviews')}
             >
-              Guest Reviews & FAQ
+              <span>Guest Reviews & FAQ</span>
             </Link>
           </nav>
 
