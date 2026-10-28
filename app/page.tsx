@@ -168,6 +168,7 @@ export default function HomePage() {
     name: string;
     sinhalaName?: string;
     price: number;
+    priceAc?: number;
     unitLabel?: string;
     imageUrl?: string;
     acType?: 'ac' | 'non-ac' | 'both';
@@ -188,6 +189,7 @@ export default function HomePage() {
       name: villa.name,
       sinhalaName: villa.sinhalaName,
       price: villa.pricePerNightLKR,
+      priceAc: villa.pricePerNightAcLKR,
       unitLabel: 'night',
       imageUrl: villa.imageUrl,
       acType: villa.acType,

@@ -24,7 +24,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-xs text-[#C2BCB0] leading-relaxed font-normal">
-              {AGENCY_CONFIG.sinhalaName}. Curated boutique collection dedicated to authentic river-edge homestays, expedition camping equipment rentals, and certified local naturalists in Lankagama.
+              <span className="text-[#D4AF37] font-semibold mr-1.5">ලංකාගම</span> • {AGENCY_CONFIG.sinhalaName}. Official agency for peaceful riverside stays, camping gear rentals, pure kithul, and trusted local guides in Lankagama.
             </p>
             <div className="flex items-center gap-2 text-xs text-[#D4AF37]">
               <ShieldCheck className="w-4 h-4 shrink-0" />

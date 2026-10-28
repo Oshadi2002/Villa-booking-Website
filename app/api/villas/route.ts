@@ -50,6 +50,7 @@ export async function POST(req: Request) {
       tagline: body.tagline || 'Peaceful riverside stay in Lankagama',
       description: body.description || '',
       pricePerNightLKR: Number(body.pricePerNightLKR) || 0,
+      pricePerNightAcLKR: body.pricePerNightAcLKR ? Number(body.pricePerNightAcLKR) : undefined,
       maxGuests: Number(body.maxGuests) || 2,
       bedrooms: Number(body.bedrooms) || 1,
       bathrooms: Number(body.bathrooms) || 1,

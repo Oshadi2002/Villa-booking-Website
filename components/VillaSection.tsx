@@ -131,11 +131,26 @@ function VillaCardItem({
               </h3>
             </div>
 
-            <div className="bg-[#14231B]/95 backdrop-blur-md px-3.5 py-2 rounded-xl text-right shrink-0 border border-[#3B5244] shadow">
-              <span className="text-[10px] text-[#C2BCB0] block uppercase tracking-wider">Per Night</span>
-              <span className="text-base font-bold text-[#D4AF37] font-mono">
-                Rs. {villa.pricePerNightLKR.toLocaleString()}
-              </span>
+            <div className="bg-[#14231B]/95 backdrop-blur-md px-3 py-1.5 rounded-xl text-right shrink-0 border border-[#3B5244] shadow">
+              {villa.pricePerNightAcLKR ? (
+                <div className="text-right space-y-0.5">
+                  <div className="flex items-center justify-end gap-1.5 text-[11px] font-medium text-[#C2BCB0]">
+                    <span>Non-A/C:</span>
+                    <span className="font-bold text-[#F5F2EB] font-mono">Rs. {villa.pricePerNightLKR.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-end gap-1.5 text-[11px] font-semibold text-[#D4AF37]">
+                    <span>A/C Room:</span>
+                    <span className="font-bold font-mono">Rs. {villa.pricePerNightAcLKR.toLocaleString()}</span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <span className="text-[10px] text-[#C2BCB0] block uppercase tracking-wider">Per Night</span>
+                  <span className="text-base font-bold text-[#D4AF37] font-mono">
+                    Rs. {villa.pricePerNightLKR.toLocaleString()}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>

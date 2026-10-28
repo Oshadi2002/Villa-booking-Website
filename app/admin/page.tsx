@@ -49,6 +49,7 @@ export default function AdminPage() {
     tagline: '',
     description: '',
     pricePerNightLKR: 12000,
+    pricePerNightAcLKR: 15000,
     maxGuests: 4,
     bedrooms: 2,
     bathrooms: 2,
@@ -491,6 +492,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           tagline: newVilla.tagline,
           description: newVilla.description,
           pricePerNightLKR: Number(newVilla.pricePerNightLKR),
+          pricePerNightAcLKR: newVilla.pricePerNightAcLKR ? Number(newVilla.pricePerNightAcLKR) : undefined,
           maxGuests: Number(newVilla.maxGuests),
           bedrooms: Number(newVilla.bedrooms),
           bathrooms: Number(newVilla.bathrooms),
@@ -535,6 +537,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           tagline: '',
           description: '',
           pricePerNightLKR: 12000,
+          pricePerNightAcLKR: 15000,
           maxGuests: 4,
           bedrooms: 2,
           bathrooms: 2,
@@ -1737,8 +1740,11 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     <div>
                       <div className="relative h-48 bg-slate-100 overflow-hidden">
                         <img src={villa.imageUrl} alt={villa.name} className="w-full h-full object-cover" />
-                        <div className="absolute bottom-2 right-2 bg-slate-900/90 text-white px-3 py-1 rounded-lg text-xs font-mono font-bold shadow">
-                          Rs. {villa.pricePerNightLKR.toLocaleString()} / night
+                        <div className="absolute bottom-2 right-2 bg-slate-900/90 text-white px-2.5 py-1 rounded-lg text-xs font-mono font-bold shadow text-right">
+                          <div>Non-A/C: Rs. {villa.pricePerNightLKR.toLocaleString()}</div>
+                          {villa.pricePerNightAcLKR ? (
+                            <div className="text-amber-300">A/C: Rs. {villa.pricePerNightAcLKR.toLocaleString()}</div>
+                          ) : null}
                         </div>
                         <div className="absolute top-2 left-2 flex items-center gap-1.5 flex-wrap">
                           <span className="bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded text-[11px] font-bold text-slate-800 shadow-xs">
@@ -2443,9 +2449,9 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 <span className="text-xs font-bold text-slate-800 uppercase block tracking-wider">
                   Room Configuration & Rates
                 </span>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Price / Night (LKR) *</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Non-A/C Rate (LKR) *</label>
                     <input
                       type="number"
                       required
@@ -2453,6 +2459,17 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                       value={newVilla.pricePerNightLKR}
                       onChange={e => setNewVilla({ ...newVilla, pricePerNightLKR: Number(e.target.value) })}
                       className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono font-bold bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">A/C Rate (LKR)</label>
+                    <input
+                      type="number"
+                      min="1000"
+                      placeholder="e.g. 15000"
+                      value={newVilla.pricePerNightAcLKR || ''}
+                      onChange={e => setNewVilla({ ...newVilla, pricePerNightAcLKR: Number(e.target.value) || 0 })}
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono font-bold bg-white text-emerald-700"
                     />
                   </div>
                   <div>
@@ -3308,7 +3325,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Tagline</label>
                   <input
@@ -3319,13 +3336,23 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Price Per Night (Rs.) *</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Non-A/C Rate (Rs.) *</label>
                   <input
                     type="number"
                     required
                     value={editingVilla.pricePerNightLKR}
                     onChange={e => setEditingVilla({ ...editingVilla, pricePerNightLKR: Number(e.target.value) || 0 })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">A/C Room Rate (Rs.)</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 15000"
+                    value={editingVilla.pricePerNightAcLKR || ''}
+                    onChange={e => setEditingVilla({ ...editingVilla, pricePerNightAcLKR: Number(e.target.value) || 0 })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono text-emerald-700 font-bold"
                   />
                 </div>
               </div>

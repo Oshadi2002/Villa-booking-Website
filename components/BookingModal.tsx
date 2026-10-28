@@ -18,6 +18,7 @@ interface BookingModalProps {
     name: string;
     sinhalaName?: string;
     price: number;
+    priceAc?: number;
     unitLabel?: string;
     imageUrl?: string;
     acType?: 'ac' | 'non-ac' | 'both';
@@ -71,7 +72,17 @@ export default function BookingModal({ isOpen, onClose, bookingType, item }: Boo
   };
 
   const days = calculateDays();
-  const basePrice = item.price * days;
+  const getDailyRate = () => {
+    if (bookingType === 'villa') {
+      if (acPreference === 'ac' && item.priceAc) {
+        return item.priceAc;
+      }
+      return item.price;
+    }
+    return item.price;
+  };
+  const currentDailyRate = getDailyRate();
+  const basePrice = currentDailyRate * days;
   const guideFee = needGuide ? (GUIDE_DAILY_RATE * days) : 0;
   const estimatedTotal = basePrice + guideFee;
 
@@ -204,10 +215,19 @@ Please verify live availability with the host and confirm my booking. Thank you!
             {/* Price Preview Card */}
             <div className="bg-[#2C3E33] rounded-2xl p-4 border border-[#3B5244] flex items-center justify-between shadow-xs">
               <div>
-                <span className="text-[10px] uppercase tracking-wider text-[#C2BCB0] font-medium">Standard Rate</span>
+                <span className="text-[10px] uppercase tracking-wider text-[#C2BCB0] font-medium">
+                  {bookingType === 'villa' 
+                    ? (acPreference === 'ac' ? '❄️ A/C Room Rate' : '🍃 Non-A/C Room Rate')
+                    : 'Standard Rate'}
+                </span>
                 <div className="text-lg font-bold text-[#F5F2EB] font-mono">
-                  Rs. {item.price.toLocaleString()} <span className="text-xs font-normal text-[#C2BCB0] font-sans">/{item.unitLabel || 'day'}</span>
+                  Rs. {currentDailyRate.toLocaleString()} <span className="text-xs font-normal text-[#C2BCB0] font-sans">/{item.unitLabel || 'night'}</span>
                 </div>
+                {bookingType === 'villa' && item.priceAc && (
+                  <span className="text-[11px] text-[#C2BCB0] block">
+                    {acPreference === 'ac' ? `Non-A/C: Rs. ${item.price.toLocaleString()}/night` : `A/C Room: Rs. ${item.priceAc.toLocaleString()}/night`}
+                  </span>
+                )}
                 {needGuide && (
                   <span className="text-[11px] text-[#D4AF37] block mt-0.5 font-medium">
                     + Guide: Rs. {(GUIDE_DAILY_RATE * days).toLocaleString()} ({days} {days === 1 ? 'day' : 'days'})
@@ -215,7 +235,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                 )}
               </div>
               <div className="text-right">
-                <span className="text-[10px] uppercase tracking-wider text-[#C2BCB0] font-medium">Estimated Total ({days} {days === 1 ? 'day' : 'days'})</span>
+                <span className="text-[10px] uppercase tracking-wider text-[#C2BCB0] font-medium">Total ({days} {days === 1 ? (bookingType === 'villa' ? 'night' : 'day') : (bookingType === 'villa' ? 'nights' : 'days')})</span>
                 <div className="text-lg font-bold text-[#D4AF37] font-mono">
                   Rs. {estimatedTotal.toLocaleString()}
                 </div>
@@ -351,26 +371,38 @@ Please verify live availability with the host and confirm my booking. Thank you!
                       <button
                         type="button"
                         onClick={() => setAcPreference('ac')}
-                        className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                        className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer border ${
                           acPreference === 'ac'
                             ? 'bg-[#D4AF37] text-[#14231B] border-[#D4AF37] font-bold shadow-xs'
                             : 'bg-[#1E2A22] text-[#F5F2EB] border-[#3B5244] hover:border-[#D4AF37]'
                         }`}
                       >
-                        <Snowflake className={`w-3.5 h-3.5 ${acPreference === 'ac' ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
-                        <span>❄️ Air Conditioned (A/C)</span>
+                        <div className="flex items-center gap-1.5">
+                          <Snowflake className={`w-3.5 h-3.5 ${acPreference === 'ac' ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
+                          <span>❄️ A/C Room</span>
+                        </div>
+                        {item?.priceAc ? (
+                          <span className={`text-[10px] font-mono ${acPreference === 'ac' ? 'text-[#14231B]/90' : 'text-[#D4AF37]'}`}>
+                            Rs. {item.priceAc.toLocaleString()} / night
+                          </span>
+                        ) : null}
                       </button>
                       <button
                         type="button"
                         onClick={() => setAcPreference('non-ac')}
-                        className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+                        className={`py-2.5 px-3 rounded-xl text-xs font-semibold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer border ${
                           acPreference === 'non-ac'
                             ? 'bg-[#D4AF37] text-[#14231B] border-[#D4AF37] font-bold shadow-xs'
                             : 'bg-[#1E2A22] text-[#F5F2EB] border-[#3B5244] hover:border-[#D4AF37]'
                         }`}
                       >
-                        <Wind className={`w-3.5 h-3.5 ${acPreference === 'non-ac' ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
-                        <span>🍃 Non-A/C Natural Breeze</span>
+                        <div className="flex items-center gap-1.5">
+                          <Wind className={`w-3.5 h-3.5 ${acPreference === 'non-ac' ? 'text-[#14231B]' : 'text-[#D4AF37]'}`} />
+                          <span>🍃 Non-A/C Room</span>
+                        </div>
+                        <span className={`text-[10px] font-mono ${acPreference === 'non-ac' ? 'text-[#14231B]/90' : 'text-[#C2BCB0]'}`}>
+                          Rs. {item?.price.toLocaleString()} / night
+                        </span>
                       </button>
                     </div>
                   )}

@@ -19,6 +19,7 @@ export const VILLAS: Villa[] = [
     tagline: 'Natural river bath, bird calls & authentic village cuisine',
     description: 'Located directly by the crystal-clear waters of Gin Ganga in Lankagama. Step straight from your wooden balcony into cool natural stream pools. Perfect for peaceful nature retreats with traditional Sri Lankan meals prepared on woodfire hearths.',
     pricePerNightLKR: 12500,
+    pricePerNightAcLKR: 15500,
     maxGuests: 5,
     bedrooms: 2,
     bathrooms: 2,
@@ -118,6 +119,7 @@ export const VILLAS: Villa[] = [
     tagline: 'Wake up to the roaring sound of Brahmana Ella waterfall',
     description: 'Perched on the upper slope with panoramic views of the famous 35m Brahmana Ella waterfall and surrounding tea estates. Cozy private chalets surrounded by endemic Sinharaja flora and mist in the early mornings.',
     pricePerNightLKR: 16000,
+    pricePerNightAcLKR: 19500,
     maxGuests: 6,
     bedrooms: 3,
     bathrooms: 2,
@@ -134,7 +136,7 @@ export const VILLAS: Villa[] = [
     ],
     locationDetails: 'Brahmana Ella access road, Lankagama',
     ownerContact: '+94 77 334 9871 (Saman Weerasinghe)',
-    acType: 'non-ac',
+    acType: 'both',
     hasKitchen: false,
     highlights: [
       {
@@ -216,6 +218,7 @@ export const VILLAS: Villa[] = [
     tagline: 'Rustic luxury at the buffer border of Sinharaja Rainforest',
     description: 'Crafted from sustainable local timber, this secluded chalet blends right into the rainforest canopy. Unplug from the busy city, breathe the cleanest air in Sri Lanka, and fall asleep to the symphony of cicadas and nocturnal jungle sounds.',
     pricePerNightLKR: 18500,
+    pricePerNightAcLKR: 22000,
     maxGuests: 4,
     bedrooms: 2,
     bathrooms: 2,
@@ -232,7 +235,7 @@ export const VILLAS: Villa[] = [
     ],
     locationDetails: 'Upper Lankagama, bordering Sinharaja reserve boundary',
     ownerContact: '+94 70 219 8834 (Bandara)',
-    acType: 'non-ac',
+    acType: 'both',
     hasKitchen: false,
     highlights: [
       {
@@ -313,6 +316,7 @@ export const VILLAS: Villa[] = [
     tagline: 'Spacious cottage ideal for families and trekking groups',
     description: 'A cozy, family-friendly estate bungalow nestled amidst cardamom and tea gardens with a gentle natural stream running through the front garden. Safe for children with large verandas and delicious home-cooked village spreads.',
     pricePerNightLKR: 14000,
+    pricePerNightAcLKR: 17500,
     maxGuests: 8,
     bedrooms: 3,
     bathrooms: 2,

@@ -123,22 +123,22 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
         {/* Master Editorial Headline */}
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.2] text-[#F5F2EB] font-medium drop-shadow-md">
-            Where the Virgin Rainforest <br className="hidden sm:inline" />
-            Meets the Living Waters of <br />
+            Where the Rainforest Meets <br className="hidden sm:inline" />
+            the Living Waters of <br />
             <span className="italic font-normal text-[#D4AF37]">
-              Lankagama Valley
+              <span className="font-sans font-semibold not-italic mr-2">ලංකාගම</span>• Lankagama Valley
             </span>
           </h1>
 
           <p className="mt-5 text-sm sm:text-base lg:text-lg text-[#C2BCB0] max-w-2xl mx-auto leading-relaxed font-normal drop-shadow">
-            Your official agency for vetted private river-edge villas, expedition camping equipment rentals, and native Sinharaja naturalists.
+            Book comfortable riverside villas, rent camping gear, and explore waterfalls with friendly local guides in Lankagama.
           </p>
 
-          {/* Clean Light Process Badge */}
+          {/* Simple Process Badge */}
           <div className="mt-7 inline-flex items-center gap-2.5 bg-[#2C3E33]/90 backdrop-blur-md border border-[#3B5244] rounded-full px-5 py-2 text-xs text-[#F5F2EB] shadow-md">
-            <span className="text-[#D4AF37] font-serif italic text-sm font-semibold">Direct Review Protocol:</span>
+            <span className="text-[#D4AF37] font-serif italic text-sm font-semibold">How It Works:</span>
             <span className="text-[#C2BCB0] font-medium">
-              Customer submits request → Agency verifies vacancy with local host → Immediate WhatsApp confirmation.
+              Choose your stay → We confirm with local host → Instant WhatsApp booking approval.
             </span>
           </div>
         </div>
@@ -161,7 +161,7 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
               Private Villas & Eco-Lodges
             </h3>
             <p className="text-xs text-[#C2BCB0] mt-2.5 leading-relaxed font-normal">
-              River-edge sanctuaries with crystal-clear natural bathing pools, fresh mountain air, and woodfire village dining in Lankagama.
+              Peaceful riverside rooms with natural swimming spots, fresh mountain air, and authentic village meals cooked on woodfire.
             </p>
             <div className="mt-3.5 pt-3 border-t border-[#3B5244] text-[11px] text-[#D4AF37] font-medium flex items-center gap-1.5">
               <span>✓ Certified native Sinharaja guide available on booking</span>
@@ -183,7 +183,7 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
               Expedition Camping Sets
             </h3>
             <p className="text-xs text-[#C2BCB0] mt-2.5 leading-relaxed font-normal">
-              3000mm rainproof double-layer tents, butane cookers, lanterns, and anti-leech protection delivered right in Lankagama.
+              High-quality rainproof tents, portable stoves, lanterns, and leech socks delivered directly to you in Lankagama.
             </p>
             <div className="mt-3.5 pt-3 border-t border-[#3B5244] text-[11px] text-[#D4AF37] font-medium flex items-center gap-1.5">
               <span>✓ Certified native Sinharaja guide available on booking</span>

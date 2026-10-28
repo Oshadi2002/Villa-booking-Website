@@ -45,7 +45,8 @@ export interface Villa {
   sinhalaName: string;
   tagline: string;
   description: string;
-  pricePerNightLKR: number;
+  pricePerNightLKR: number; // Non-A/C or standard rate
+  pricePerNightAcLKR?: number; // A/C rate
   maxGuests: number;
   bedrooms: number;
   bathrooms: number;

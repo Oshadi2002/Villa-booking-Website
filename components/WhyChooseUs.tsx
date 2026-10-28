@@ -95,8 +95,8 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
           </h2>
 
           <p className="text-sm sm:text-base text-[#C2BCB0] leading-relaxed max-w-2xl mx-auto">
-            From vetted riverfront eco-lodges and authentic woodfire cooking to organic rainforest Kithul treacle, 
-            expedition camping gear, and native certified naturalists — we coordinate every aspect of your journey with seamless concierge care.
+            From peaceful riverfront stays and delicious home-cooked meals to pure village kithul, 
+            camping gear rentals, and trusted local guides — we make your entire trip to Lankagama easy and memorable.
           </p>
         </div>
 
