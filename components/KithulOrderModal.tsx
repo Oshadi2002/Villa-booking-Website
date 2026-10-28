@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { KithulProduct, Villa } from '@/lib/types';
 import { AGENCY_CONFIG } from '@/lib/data';
+import { useWhatsApp } from '@/lib/useWhatsApp';
 
 interface KithulOrderModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface KithulOrderModalProps {
 }
 
 export default function KithulOrderModal({ isOpen, onClose, product, villas }: KithulOrderModalProps) {
+  const { getWhatsAppLink } = useWhatsApp();
   const [quantity, setQuantity] = useState(1);
   const [deliveryLocationType, setDeliveryLocationType] = useState<'villa' | 'campsite' | 'takeaway'>('villa');
   const [selectedVillaName, setSelectedVillaName] = useState(villas[0]?.name || 'Sinharaja Gin Ganga River Edge Villa');
@@ -143,7 +145,7 @@ I just placed an order for Pure Kithul / Fresh Toddy on your website.
 Please confirm delivery to my location in Lankagama. Thank you!`;
   };
 
-  const whatsappShareUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent(whatsappOrderText())}`;
+  const whatsappShareUrl = getWhatsAppLink(whatsappOrderText());
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -483,10 +485,10 @@ Please confirm delivery to my location in Lankagama. Thank you!`;
                 className="w-full py-3.5 px-4 rounded-xl font-bold text-xs text-[#14231B] bg-[#D4AF37] hover:bg-[#C5A880] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
               >
                 <MessageCircle className="w-4 h-4 fill-[#14231B]" />
-                <span>Send Order Voucher to WhatsApp</span>
+                <span>Open Pre-filled WhatsApp Order</span>
               </a>
-              <p className="text-[11px] text-[#C2BCB0]">
-                Directly sends delivery details to our Lankagama desk for instant coordination.
+              <p className="text-[11px] text-[#C2BCB0] font-normal leading-relaxed">
+                Clicking opens WhatsApp with your pre-filled order voucher. Please tap <strong className="text-[#D4AF37]">Send</strong> in WhatsApp to confirm delivery with our desk.
               </p>
             </div>
 

@@ -26,6 +26,12 @@ export interface Booking {
   acPreference?: 'ac' | 'non-ac';
   orderMeals?: boolean;
   mealsNotes?: string;
+  trackingToken?: string;
+}
+
+export interface AgencySettings {
+  activeWhatsAppNumber: string;
+  updatedAt?: string;
 }
 
 export interface AmenityHighlight {

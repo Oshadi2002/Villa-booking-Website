@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Compass, Search, MessageCircle, Menu, X } from 'lucide-react';
-import { AGENCY_CONFIG } from '@/lib/data';
+import { useWhatsApp } from '@/lib/useWhatsApp';
 
 interface NavbarProps {
   onOpenTrackModal: () => void;
@@ -11,8 +11,9 @@ interface NavbarProps {
 
 export default function Navbar({ onOpenTrackModal }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { getWhatsAppLink } = useWhatsApp();
 
-  const whatsappUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent('Hello The Sinharaja Collection Lankagama! I would like to inquire about stays, camping gear, and tour guides.')}`;
+  const whatsappUrl = getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I would like to inquire about stays, camping gear, and tour guides.');
 
   return (
     <header className="sticky top-0 z-40 bg-[#14231B]/95 backdrop-blur-md text-[#F5F2EB] border-b border-[#2C3E33] shadow-md transition-all">

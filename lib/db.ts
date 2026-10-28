@@ -1,12 +1,9 @@
 import { Pool } from 'pg';
 import { 
   VILLAS, TOUR_GUIDES, CAMPING_GEAR, ATTRACTIONS, 
-  KITHUL_PRODUCTS, CUSTOMER_COMMENTS, CUSTOMER_INQUIRIES 
+  KITHUL_PRODUCTS 
 } from './data';
-import { 
-  Villa, TourGuide, CampingGear, Attraction, 
-  KithulProduct, HeroSlide, CustomerComment, CustomerInquiry, Booking 
-} from './types';
+import { HeroSlide, AgencySettings, Attraction } from './types';
 
 function getConnectionString(): string | null {
   // 1. Direct standard keys
@@ -49,7 +46,7 @@ function getPool(): Pool | null {
 }
 
 // Universal query runner supporting all PostgreSQL providers (Vercel Postgres, Neon, Supabase, AWS, etc.)
-export async function query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+export async function query<T = unknown>(sql: string, params: unknown[] = []): Promise<T[]> {
   const p = getPool();
   if (!p) return [];
 
@@ -132,13 +129,21 @@ export async function ensurePostgresTables(): Promise<boolean> {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS lankagama_settings (
+        id VARCHAR(255) PRIMARY KEY,
+        data JSONB NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     // Ensure columns exist even if tables were created previously
     const tables = [
       'lankagama_villas', 'lankagama_camping', 'lankagama_kithul',
       'lankagama_slides', 'lankagama_attractions', 'lankagama_guides',
-      'lankagama_bookings', 'lankagama_comments', 'lankagama_inquiries'
+      'lankagama_bookings', 'lankagama_comments', 'lankagama_inquiries',
+      'lankagama_settings'
     ];
     for (const tbl of tables) {
       await query(`ALTER TABLE ${tbl} ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
@@ -258,6 +263,15 @@ export async function ensurePostgresTables(): Promise<boolean> {
       }
     }
 
+    // Auto-seed agency settings if empty
+    const existingSettings = await query<{ id: string }>('SELECT id FROM lankagama_settings LIMIT 1');
+    if (existingSettings.length === 0) {
+      await query(
+        'INSERT INTO lankagama_settings (id, data) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
+        ['general', JSON.stringify({ activeWhatsAppNumber: '94767976081', updatedAt: new Date().toISOString() })]
+      );
+    }
+
     tablesInitialized = true;
     return true;
   } catch (err) {
@@ -290,4 +304,22 @@ export async function dbDeleteItem(table: string, id: string): Promise<boolean> 
   await ensurePostgresTables();
   const rows = await query(`DELETE FROM ${table} WHERE id = $1 RETURNING id`, [id]);
   return rows.length > 0;
+}
+
+export async function dbGetSettings(): Promise<AgencySettings> {
+  await ensurePostgresTables();
+  const rows = await query<{ data: AgencySettings }>('SELECT data FROM lankagama_settings WHERE id = $1', ['general']);
+  if (rows.length > 0 && rows[0].data) {
+    return rows[0].data;
+  }
+  return { activeWhatsAppNumber: '94767976081', updatedAt: new Date().toISOString() };
+}
+
+export async function dbSaveSettings(settings: AgencySettings): Promise<void> {
+  await ensurePostgresTables();
+  await query(
+    `INSERT INTO lankagama_settings (id, data) VALUES ($1, $2)
+     ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP`,
+    ['general', JSON.stringify(settings)]
+  );
 }

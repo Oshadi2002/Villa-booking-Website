@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { Booking, Villa, TourGuide, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry } from './types';
+import crypto from 'crypto';
+import { Booking, Villa, TourGuide, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry, AgencySettings } from './types';
 import { VILLAS, TOUR_GUIDES, CAMPING_GEAR, ATTRACTIONS, KITHUL_PRODUCTS, CUSTOMER_COMMENTS, CUSTOMER_INQUIRIES } from './data';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -118,6 +119,10 @@ let inMemoryAttractions: Attraction[] = [...INITIAL_ATTRACTIONS];
 let inMemoryKithul: KithulProduct[] = [...KITHUL_PRODUCTS];
 let inMemoryComments: CustomerComment[] = [...CUSTOMER_COMMENTS];
 let inMemoryInquiries: CustomerInquiry[] = [...CUSTOMER_INQUIRIES];
+let inMemorySettings: AgencySettings = {
+  activeWhatsAppNumber: '94767976081',
+  updatedAt: new Date().toISOString()
+};
 
 // Ensure writable directories exist
 function ensureDirectories() {
@@ -134,7 +139,7 @@ function ensureDirectories() {
 }
 
 // Cloud KV Sync (Upstash Redis or Vercel KV)
-export async function syncToCloudKV(key: string, data: any): Promise<void> {
+export async function syncToCloudKV(key: string, data: unknown): Promise<void> {
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) return;
@@ -241,20 +246,42 @@ export function getAllBookings(): Booking[] {
   return inMemoryBookings;
 }
 
-export function getBookingById(id: string): Booking | undefined {
+export function getBookingById(idOrQuery: string): Booking | undefined {
   const all = getAllBookings();
-  const cleanId = id.trim().toUpperCase();
-  return all.find(b => b.id.toUpperCase() === cleanId || b.customerPhone.replace(/[\s+-]/g, '') === cleanId.replace(/[\s+-]/g, ''));
+  const clean = idOrQuery.trim().toUpperCase();
+  const cleanPhone = idOrQuery.replace(/[\s+-]/g, '');
+  return all.find(b => 
+    b.id.toUpperCase() === clean || 
+    (b.trackingToken && b.trackingToken.toUpperCase() === clean) ||
+    b.customerPhone.replace(/[\s+-]/g, '') === cleanPhone
+  );
 }
 
 export function createBooking(newBooking: Omit<Booking, 'id' | 'createdAt' | 'status'>): Booking {
   const all = getAllBookings();
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  const id = `LET-${randomSuffix}`;
+  const existingIds = new Set(all.map(b => b.id.toUpperCase()));
+  
+  // Collision-safe reference generation
+  let id = '';
+  for (let attempt = 0; attempt < 25; attempt++) {
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    const candidate = `LET-${randomSuffix}`;
+    if (!existingIds.has(candidate)) {
+      id = candidate;
+      break;
+    }
+  }
+  if (!id) {
+    id = `LET-${Date.now().toString().slice(-4)}`;
+  }
+
+  // Cryptographically random tracking token for secure public lookup
+  const trackingToken = crypto.randomBytes(8).toString('hex');
 
   const booking: Booking = {
     ...newBooking,
     id,
+    trackingToken,
     status: 'pending',
     createdAt: new Date().toISOString(),
     adminNotes: ''
@@ -653,7 +680,7 @@ export function createComment(newComment: Omit<CustomerComment, 'id' | 'createdA
     ...newComment,
     id,
     createdAt: new Date().toISOString().split('T')[0],
-    isVerified: newComment.isVerified ?? true
+    isVerified: newComment.isVerified ?? false // Safe default: false so admin must approve
   };
 
   all.unshift(comment);
@@ -733,4 +760,25 @@ export function deleteInquiry(id: string): boolean {
   inMemoryInquiries = filtered;
   writeDataFile('inquiries.json', filtered, 'lankagama_inquiries');
   return true;
+}
+
+/* ============================================================
+   10. AGENCY SETTINGS MANAGEMENT (CENTRAL WHATSAPP ETC)
+   ============================================================ */
+export function getAgencySettings(): AgencySettings {
+  inMemorySettings = readDataFile<AgencySettings>('settings.json', inMemorySettings);
+  return inMemorySettings;
+}
+
+export function updateAgencySettings(newSettings: Partial<AgencySettings>): AgencySettings {
+  const current = getAgencySettings();
+  const updated: AgencySettings = {
+    ...current,
+    ...newSettings,
+    updatedAt: new Date().toISOString()
+  };
+
+  inMemorySettings = updated;
+  writeDataFile('settings.json', updated, 'lankagama_settings');
+  return updated;
 }

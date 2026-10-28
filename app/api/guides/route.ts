@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getAllGuides, createGuide, fetchFromCloudKV } from '@/lib/storage';
+import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
 import { TourGuide } from '@/lib/types';
+import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -13,10 +15,21 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const cloudGuides = await fetchFromCloudKV<TourGuide[]>('lankagama_guides');
-    const guides = cloudGuides && Array.isArray(cloudGuides) && cloudGuides.length > 0
-      ? cloudGuides
-      : getAllGuides();
+    let guides: TourGuide[] = [];
+    if (isPostgresConfigured()) {
+      try {
+        guides = await dbGetAll<TourGuide>('lankagama_guides');
+      } catch (e) {
+        console.error('Failed to get guides from DB:', e);
+      }
+    }
+
+    if (!guides || guides.length === 0) {
+      const cloudGuides = await fetchFromCloudKV<TourGuide[]>('lankagama_guides');
+      guides = cloudGuides && Array.isArray(cloudGuides) && cloudGuides.length > 0
+        ? cloudGuides
+        : getAllGuides();
+    }
 
     return NextResponse.json({ success: true, guides }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
@@ -26,6 +39,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   try {
     const body = await req.json();
 
@@ -49,6 +65,14 @@ export async function POST(req: Request) {
       rating: Number(body.rating) || 5.0,
       verifiedLocal: true
     });
+
+    if (isPostgresConfigured()) {
+      try {
+        await dbSaveItem('lankagama_guides', guide);
+      } catch (e) {
+        console.error('Failed to save guide to DB:', e);
+      }
+    }
 
     return NextResponse.json({
       success: true,

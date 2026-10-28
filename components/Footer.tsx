@@ -4,9 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import { Compass, Phone, Mail, MapPin, MessageCircle, Lock, ShieldCheck } from 'lucide-react';
 import { AGENCY_CONFIG } from '@/lib/data';
+import { useWhatsApp } from '@/lib/useWhatsApp';
 
 export default function Footer() {
-  const whatsappUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent('Hello The Sinharaja Collection Lankagama! I would like to make an inquiry.')}`;
+  const { formattedNumber, getWhatsAppLink } = useWhatsApp();
+  const whatsappUrl = getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I would like to make an inquiry.');
 
   return (
     <footer className="bg-[#14231B] text-[#F5F2EB] border-t border-[#2C3E33] pt-16 pb-12">

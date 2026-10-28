@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { deleteAttraction, updateAttraction } from '@/lib/storage';
 import { isPostgresConfigured, dbSaveItem, dbDeleteItem } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -9,6 +10,9 @@ const NO_CACHE_HEADERS = {
 };
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const body = await req.json();
@@ -30,6 +34,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   try {
     const { id } = await params;
     const deleted = deleteAttraction(id);

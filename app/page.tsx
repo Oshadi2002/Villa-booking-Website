@@ -22,6 +22,7 @@ import {
   KITHUL_PRODUCTS 
 } from '@/lib/data';
 import { MessageCircle, Search, ShoppingBag, BookOpen, MessageSquare, ArrowRight } from 'lucide-react';
+import { useWhatsApp } from '@/lib/useWhatsApp';
 
 export default function HomePage() {
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
@@ -66,7 +67,9 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    loadLocalSyncedData();
+    queueMicrotask(() => {
+      loadLocalSyncedData();
+    });
 
     // Listen for storage events across tabs
     const handleStorage = () => {
@@ -217,7 +220,8 @@ export default function HomePage() {
     setIsKithulModalOpen(true);
   };
 
-  const whatsappFloatingUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent('Hello The Sinharaja Collection Lankagama! I want to inquire about stays, pure kithul orders, and activities.')}`;
+  const { getWhatsAppLink } = useWhatsApp();
+  const whatsappFloatingUrl = getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I want to inquire about stays, pure kithul orders, and activities.');
 
   return (
     <div className="min-h-screen flex flex-col bg-[#14231B] text-[#F5F2EB]">

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAllCampingGear, createCampingGear } from '@/lib/storage';
 import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
 import { CampingGear } from '@/lib/types';
+import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -31,6 +32,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const authError = requireAdmin(req);
+  if (authError) return authError;
+
   try {
     const body = await req.json();
 

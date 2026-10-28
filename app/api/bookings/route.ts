@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getAllBookings, createBooking } from '@/lib/storage';
 import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
 import { Booking } from '@/lib/types';
+import { requireAdmin } from '@/lib/auth';
+import { bookingCreateSchema } from '@/lib/validations';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -10,13 +12,18 @@ const NO_CACHE_HEADERS = {
 };
 
 export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    void searchParams;
+  // Security Hardening: Only authorized admins can retrieve the entire booking roster
+  const authError = requireAdmin(req);
+  if (authError) return authError;
 
+  try {
     let bookings: Booking[] = [];
     if (isPostgresConfigured()) {
-      bookings = await dbGetAll<Booking>('lankagama_bookings');
+      try {
+        bookings = await dbGetAll<Booking>('lankagama_bookings');
+      } catch (dbErr) {
+        console.error('Failed to load bookings from Postgres:', dbErr);
+      }
     }
 
     if (!bookings || bookings.length === 0) {
@@ -32,37 +39,72 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-
-    // Validation
-    if (!body.customerName || !body.customerPhone || !body.itemName || !body.checkInDate) {
+    const rawBody = await req.json().catch(() => null);
+    if (!rawBody) {
       return NextResponse.json(
-        { success: false, message: 'Missing required booking fields (Name, Phone, Item, Date)' },
+        { success: false, message: 'Invalid or empty request payload.' },
         { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
 
+    // Strict Schema Validation using Zod
+    const parseResult = bookingCreateSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      const issue = parseResult.error.issues[0];
+      return NextResponse.json(
+        { success: false, message: `${issue?.path.join('.')}: ${issue?.message}` },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    const data = parseResult.data;
+
+    // Date sanity check: Check-in cannot be in the past (using Sri Lanka time / UTC)
+    const today = new Date().toISOString().split('T')[0];
+    if (data.checkInDate < today) {
+      return NextResponse.json(
+        { success: false, message: `Check-in date cannot be in the past. (Today is ${today})` },
+        { status: 400, headers: NO_CACHE_HEADERS }
+      );
+    }
+
+    // Create booking in local runtime storage with safe collision check and tracking token
     const booking = createBooking({
-      type: body.type || 'villa',
-      itemId: body.itemId || 'custom',
-      itemName: body.itemName,
-      customerName: body.customerName,
-      customerPhone: body.customerPhone,
-      customerEmail: body.customerEmail || '',
-      checkInDate: body.checkInDate,
-      checkOutDate: body.checkOutDate,
-      guestsCount: Number(body.guestsCount) || 1,
-      needGuide: Boolean(body.needGuide),
-      guideFee: Number(body.guideFee) || 0,
-      totalLKR: Number(body.totalLKR) || 0,
-      specialNotes: body.specialNotes || '',
-      acPreference: body.acPreference || undefined,
-      orderMeals: body.orderMeals !== undefined ? Boolean(body.orderMeals) : undefined,
-      mealsNotes: body.mealsNotes || undefined
+      type: data.type,
+      itemId: data.itemId,
+      itemName: data.itemName,
+      customerName: data.customerName,
+      customerPhone: data.customerPhone,
+      customerEmail: data.customerEmail || '',
+      checkInDate: data.checkInDate,
+      checkOutDate: data.checkOutDate,
+      guestsCount: data.guestsCount,
+      needGuide: Boolean(data.needGuide),
+      guideFee: data.guideFee || 0,
+      totalLKR: data.totalLKR,
+      specialNotes: data.specialNotes || '',
+      acPreference: data.acPreference,
+      orderMeals: data.orderMeals,
+      mealsNotes: data.mealsNotes,
+      deliveryLocation: data.deliveryLocation,
+      quantity: data.quantity,
+      itemsSummary: data.itemsSummary
     });
 
+    // Explicit Database Persistence handling
     if (isPostgresConfigured()) {
-      await dbSaveItem('lankagama_bookings', booking);
+      try {
+        await dbSaveItem('lankagama_bookings', booking);
+      } catch (dbError) {
+        console.error('CRITICAL: Failed to persist booking to PostgreSQL database:', dbError);
+        // If in production with configured Postgres, fail explicitly rather than silently losing booking
+        if (process.env.NODE_ENV === 'production') {
+          return NextResponse.json(
+            { success: false, message: 'Database connection failed. Please contact us via WhatsApp.' },
+            { status: 500, headers: NO_CACHE_HEADERS }
+          );
+        }
+      }
     }
 
     return NextResponse.json({

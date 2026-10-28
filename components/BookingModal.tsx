@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, Calendar, User, Phone, Users, FileText, Clock, 
   MessageCircle, AlertCircle, ArrowRight, Compass,
@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { AGENCY_CONFIG } from '@/lib/data';
 import { BookingType } from '@/lib/types';
+import { useWhatsApp } from '@/lib/useWhatsApp';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -27,6 +28,13 @@ interface BookingModalProps {
 }
 
 export default function BookingModal({ isOpen, onClose, bookingType, item }: BookingModalProps) {
+  const { getWhatsAppLink } = useWhatsApp();
+  const [todayStr, setTodayStr] = useState('');
+
+  useEffect(() => {
+    setTodayStr(new Date().toISOString().split('T')[0]);
+  }, []);
+
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
@@ -184,7 +192,7 @@ ${acLine}${mealLine}📅 Date: ${submittedBooking.checkInDate} ${submittedBookin
 Please verify live availability with the host and confirm my booking. Thank you!`;
   };
 
-  const whatsappShareUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent(getWhatsAppBookingText())}`;
+  const whatsappShareUrl = getWhatsAppLink(getWhatsAppBookingText());
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -300,6 +308,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                   <input
                     type="date"
                     required
+                    min={todayStr}
                     value={formData.checkInDate}
                     onChange={e => setFormData({ ...formData, checkInDate: e.target.value })}
                     className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-[#3B5244] focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] bg-[#14231B] text-[#F5F2EB]"
@@ -315,6 +324,7 @@ Please verify live availability with the host and confirm my booking. Thank you!
                   <Calendar className="w-4 h-4 text-[#D4AF37] absolute left-3.5 top-3" />
                   <input
                     type="date"
+                    min={formData.checkInDate || todayStr}
                     value={formData.checkOutDate}
                     onChange={e => setFormData({ ...formData, checkOutDate: e.target.value })}
                     className="w-full pl-10 pr-3 py-2.5 text-sm rounded-xl border border-[#3B5244] focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] bg-[#14231B] text-[#F5F2EB]"
@@ -610,10 +620,10 @@ Please verify live availability with the host and confirm my booking. Thank you!
                 className="w-full py-3.5 px-4 rounded-xl font-semibold text-xs text-[#14231B] bg-[#D4AF37] hover:bg-[#C5A880] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
               >
                 <MessageCircle className="w-4 h-4 fill-[#14231B]" />
-                <span>Notify Agency on WhatsApp</span>
+                <span>Open Pre-filled WhatsApp Voucher</span>
               </a>
-              <p className="text-[11px] text-[#C2BCB0] font-normal">
-                Transfers your booking details straight to our Lankagama desk.
+              <p className="text-[11px] text-[#C2BCB0] font-normal leading-relaxed">
+                Clicking opens WhatsApp with your pre-filled details. Please tap <strong className="text-[#D4AF37]">Send</strong> in WhatsApp to confirm directly with our lodge desk.
               </p>
             </div>
 

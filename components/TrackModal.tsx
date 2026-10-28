@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { X, Clock, CheckCircle2, XCircle, MessageCircle } from 'lucide-react';
 import { Booking } from '@/lib/types';
-import { AGENCY_CONFIG } from '@/lib/data';
+import { useWhatsApp } from '@/lib/useWhatsApp';
 
 interface TrackModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface TrackModalProps {
 }
 
 export default function TrackModal({ isOpen, onClose }: TrackModalProps) {
+  const { getWhatsAppLink, waLink } = useWhatsApp();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -72,8 +73,8 @@ export default function TrackModal({ isOpen, onClose }: TrackModalProps) {
   };
 
   const whatsappInquiryUrl = booking
-    ? `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent(`Hello The Sinharaja Collection Lankagama! Inquiring about my reservation ${booking.id} (${booking.itemName}). Status is ${booking.status.toUpperCase()}.`)}`
-    : `https://wa.me/${AGENCY_CONFIG.whatsappNumber}`;
+    ? getWhatsAppLink(`Hello The Sinharaja Collection Lankagama! Inquiring about my reservation ${booking.id} (${booking.itemName}). Status is ${booking.status.toUpperCase()}.`)
+    : waLink;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">

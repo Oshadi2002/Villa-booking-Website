@@ -24,7 +24,7 @@ export default function AdminPage() {
   const [pinError, setPinError] = useState('');
 
   // Sidebar navigation tab
-  const [activeTab, setActiveTab] = useState<'bookings' | 'slides' | 'villas' | 'kithul' | 'camping' | 'attractions' | 'comments' | 'inquiries'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'slides' | 'villas' | 'kithul' | 'camping' | 'attractions' | 'comments' | 'inquiries' | 'whatsapp'>('bookings');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Data states
@@ -109,6 +109,32 @@ export default function AdminPage() {
 
   const [comments, setComments] = useState<CustomerComment[]>([]);
   const [inquiries, setInquiries] = useState<CustomerInquiry[]>([]);
+  const [inquiryFilter, setInquiryFilter] = useState<'all' | 'new' | 'contacted' | 'resolved'>('all');
+
+  // Centralized WhatsApp management state
+  const [whatsappSettings, setWhatsappSettings] = useState<{
+    whatsappNumber: string;
+    formattedNumber: string;
+    waLink: string;
+    updatedAt?: string;
+  }>({
+    whatsappNumber: AGENCY_CONFIG.whatsappNumber,
+    formattedNumber: AGENCY_CONFIG.phone,
+    waLink: `https://wa.me/${AGENCY_CONFIG.whatsappNumber}`
+  });
+  const [editingWhatsAppNumber, setEditingWhatsAppNumber] = useState(AGENCY_CONFIG.whatsappNumber);
+  const [isSavingWhatsApp, setIsSavingWhatsApp] = useState(false);
+  const [whatsappSaveMessage, setWhatsappSaveMessage] = useState('');
+
+  // Interactive WhatsApp Reply Modal state
+  const [activeReplyModal, setActiveReplyModal] = useState<{
+    isOpen: boolean;
+    type: 'booking' | 'inquiry';
+    recipientName: string;
+    phone: string;
+    message: string;
+    bookingRef?: string;
+  } | null>(null);
 
   // Editing state variables for full CRUD (Edit / Update modals)
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
@@ -132,30 +158,34 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
 
-  // Check session storage on mount
-  useEffect(() => {
-    const authSession = sessionStorage.getItem('let_admin_auth');
-    if (authSession === 'true') {
-      setIsAuthenticated(true);
-      fetchAllData();
-    }
-  }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === AGENCY_CONFIG.adminPin || pin === 'admin123' || pin === '1234') {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('let_admin_auth', 'true');
-      setPinError('');
-      fetchAllData();
-    } else {
-      setPinError('Invalid PIN code. (Demo PIN: 1234)');
+    setPinError('');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pin })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAuthenticated(true);
+        setPinError('');
+        fetchAllData();
+      } else {
+        setPinError(data.message || 'Invalid admin password.');
+      }
+    } catch {
+      setPinError('Connection error during authentication. Please retry.');
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
     setIsAuthenticated(false);
-    sessionStorage.removeItem('let_admin_auth');
     setPin('');
   };
 
@@ -303,11 +333,111 @@ export default function AdminPage() {
       fetch(`/api/inquiries?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
         if (d.success && Array.isArray(d.inquiries)) setInquiries(d.inquiries);
       }).catch(() => {});
+
+      // 9. Centralized WhatsApp Settings
+      fetch(`/api/settings/whatsapp?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
+        if (d.success && d.whatsappNumber) {
+          const fresh = {
+            whatsappNumber: d.whatsappNumber,
+            formattedNumber: d.formattedNumber || d.whatsappNumber,
+            waLink: d.waLink,
+            updatedAt: d.updatedAt
+          };
+          setWhatsappSettings(fresh);
+          setEditingWhatsAppNumber(d.whatsappNumber);
+        }
+      }).catch(() => {});
     } catch {
       showNotification('Error loading data from server.');
     } finally {
       setLoading(false);
     }
+  };
+ 
+  // Check server session on mount
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then(r => r.json())
+      .then(d => {
+        if (d.authenticated) {
+          setIsAuthenticated(true);
+          fetchAllData();
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // ---------------- WHATSAPP SETTINGS ACTIONS ---------------- //
+  const handleSaveWhatsAppNumber = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingWhatsApp(true);
+    setWhatsappSaveMessage('');
+    try {
+      const res = await fetch('/api/settings/whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsappNumber: editingWhatsAppNumber })
+      });
+      const data = await res.json();
+      if (data.success) {
+        const updated = {
+          whatsappNumber: data.whatsappNumber,
+          formattedNumber: data.formattedNumber,
+          waLink: data.waLink,
+          updatedAt: data.updatedAt
+        };
+        setWhatsappSettings(updated);
+        setEditingWhatsAppNumber(data.whatsappNumber);
+        setWhatsappSaveMessage(`Success! Active agency WhatsApp is now ${data.formattedNumber}`);
+        showNotification(`WhatsApp number updated to ${data.formattedNumber}`);
+        broadcastSync('SYNC_WHATSAPP', updated);
+      } else {
+        setWhatsappSaveMessage(data.message || 'Failed to update WhatsApp number');
+      }
+    } catch {
+      setWhatsappSaveMessage('Error saving WhatsApp number to server.');
+    } finally {
+      setIsSavingWhatsApp(false);
+    }
+  };
+
+  // ---------------- WHATSAPP REPLY MODAL WORKFLOW ---------------- //
+  const openBookingReplyModal = (b: Booking, templateType: 'received' | 'approved' | 'rejected') => {
+    let msg = '';
+    const cleanPhone = b.customerPhone.replace(/[^0-9]/g, '');
+    const intlPhone = cleanPhone.startsWith('0') ? '94' + cleanPhone.substring(1) : cleanPhone;
+
+    if (templateType === 'received') {
+      msg = `Hello ${b.customerName}! 🌿\nWe have received your booking request (${b.id}) for ${b.itemName} on ${b.checkInDate}. Our host family is checking real-time vacancy and we will send your confirmation shortly.\n- The Sinharaja Collection Lankagama`;
+    } else if (templateType === 'approved') {
+      const acLine = b.acPreference ? `Room: ${b.acPreference === 'ac' ? 'A/C' : 'Non-A/C'}\n` : '';
+      msg = `Hello ${b.customerName}! 🌿\nGreat news! Your reservation (${b.id}) for ${b.itemName} is APPROVED & CONFIRMED!\n📅 Check-in: ${b.checkInDate}${b.checkOutDate ? ' to ' + b.checkOutDate : ''}\n👥 Guests: ${b.guestsCount}\n${acLine}💰 Total: Rs. ${b.totalLKR.toLocaleString()}\n\nLooking forward to welcoming you to Lankagama! Please let us know if you need road directions or transport.\n- The Sinharaja Collection Lankagama`;
+    } else {
+      msg = `Hello ${b.customerName},\nThank you for choosing The Sinharaja Collection Lankagama. Unfortunately, ${b.itemName} is fully occupied on ${b.checkInDate}. Would you like us to suggest alternative dates or another nearby villa in our collection?\n- The Sinharaja Collection Lankagama`;
+    }
+
+    setActiveReplyModal({
+      isOpen: true,
+      type: 'booking',
+      recipientName: b.customerName,
+      phone: intlPhone,
+      message: msg,
+      bookingRef: b.id
+    });
+  };
+
+  const openInquiryReplyModal = (inq: CustomerInquiry) => {
+    const cleanPhone = inq.phone.replace(/[^0-9]/g, '');
+    const intlPhone = cleanPhone.startsWith('0') ? '94' + cleanPhone.substring(1) : cleanPhone;
+    const msg = `Hello ${inq.name}! 🌿\nThank you for reaching out to The Sinharaja Collection Lankagama regarding "${inq.subject}".\n\n[Your message here]\n\nPlease let us know if you have any questions!\n- The Sinharaja Collection Lankagama`;
+
+    setActiveReplyModal({
+      isOpen: true,
+      type: 'inquiry',
+      recipientName: inq.name,
+      phone: intlPhone,
+      message: msg
+    });
   };
 
   // ---------------- BOOKINGS ACTIONS ---------------- //
@@ -1054,16 +1184,16 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-                PIN Code:
+                Admin Password:
               </label>
               <input
                 type="password"
                 required
                 autoFocus
-                placeholder="Enter PIN (Demo: 1234)"
+                placeholder="Enter admin password"
                 value={pin}
                 onChange={e => setPin(e.target.value)}
-                className="w-full px-4 py-2.5 text-center text-lg tracking-widest font-mono rounded-lg bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2.5 text-center text-sm font-mono rounded-lg bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -1273,6 +1403,22 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
               </div>
               <span className="text-[11px] opacity-75">{comments.length}</span>
             </button>
+
+            {/* 9. Centralized WhatsApp Settings */}
+            <button
+              onClick={() => { setActiveTab('whatsapp'); setIsMobileSidebarOpen(false); }}
+              className={`w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                activeTab === 'whatsapp'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <MessageCircle className="w-4 h-4 text-emerald-500" />
+                <span>WhatsApp Settings</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">Active</span>
+            </button>
           </div>
         </div>
 
@@ -1327,6 +1473,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 activeTab === 'camping' ? 'Expedition Camping Sets' : 
                 activeTab === 'inquiries' ? 'Customer Questions & Inquiries' : 
                 activeTab === 'comments' ? 'Customer Reviews Wall' : 
+                activeTab === 'whatsapp' ? 'Centralized WhatsApp Management' : 
                 'Waterfalls & Sanctuaries'
               }</span>
             </h1>
@@ -1585,15 +1732,14 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                             <span>{b.status === 'approved' ? 'Approved (Confirmed)' : 'Approve Booking'}</span>
                           </button>
 
-                          <a
-                            href={getApprovalWhatsAppUrl(b)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full py-2 px-3 rounded-lg font-semibold text-xs text-white bg-emerald-700 hover:bg-emerald-800 flex items-center justify-center gap-1.5"
+                          <button
+                            type="button"
+                            onClick={() => openBookingReplyModal(b, b.status === 'approved' ? 'approved' : 'received')}
+                            className="w-full py-2 px-3 rounded-lg font-semibold text-xs text-white bg-emerald-700 hover:bg-emerald-800 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                           >
                             <MessageCircle className="w-3.5 h-3.5 fill-white" />
-                            <span>WhatsApp Confirmation</span>
-                          </a>
+                            <span>Reply via WhatsApp</span>
+                          </button>
 
                           {b.status !== 'pending' && (
                             <button
@@ -2114,18 +2260,33 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              {inquiries.length === 0 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-slate-500 mr-1">Filter Inquiries:</span>
+                {(['all', 'new', 'contacted', 'resolved'] as const).map(f => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setInquiryFilter(f)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize border cursor-pointer ${
+                      inquiryFilter === f
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {f} {f === 'new' && inquiries.filter(i => i.status === 'new').length > 0 && `(${inquiries.filter(i => i.status === 'new').length})`}
+                  </button>
+                ))}
+              </div>
+
+              {inquiries.filter(i => inquiryFilter === 'all' || i.status === inquiryFilter).length === 0 ? (
                 <div className="bg-white p-12 text-center rounded-2xl border border-slate-200 text-slate-500 text-sm">
-                  No inquiries received yet.
+                  No inquiries found matching &ldquo;{inquiryFilter}&rdquo;.
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {inquiries.map((inq) => {
-                    const cleanPhone = inq.phone.replace(/[^0-9]/g, '');
-                    const intlPhone = cleanPhone.startsWith('0') ? '94' + cleanPhone.substring(1) : cleanPhone;
-                    const replyText = `Hello ${inq.name}! 🌿 Thank you for reaching out to The Sinharaja Collection Lankagama regarding "${inq.subject}". How can we assist you with your trip?`;
-                    const waReplyUrl = `https://wa.me/${intlPhone}?text=${encodeURIComponent(replyText)}`;
-
+                  {inquiries
+                    .filter(i => inquiryFilter === 'all' || i.status === inquiryFilter)
+                    .map((inq) => {
                     return (
                       <div
                         key={inq.id}
@@ -2200,15 +2361,14 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <a
-                              href={waReplyUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs"
+                            <button
+                              type="button"
+                              onClick={() => openInquiryReplyModal(inq)}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs cursor-pointer"
                             >
                               <MessageCircle className="w-3.5 h-3.5" />
-                              <span>Reply on WhatsApp</span>
-                            </a>
+                              <span>Reply via WhatsApp</span>
+                            </button>
 
                             <button
                               onClick={() => handleDeleteInquiry(inq.id, inq.name)}
@@ -2305,6 +2465,109 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================
+             9. TAB: CENTRALIZED WHATSAPP SETTINGS
+             ============================================================ */}
+          {activeTab === 'whatsapp' && (
+            <div className="space-y-6 max-w-3xl">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <MessageCircle className="w-6 h-6 fill-emerald-600 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900">
+                      Centralized WhatsApp Configuration
+                    </h2>
+                    <p className="text-xs text-slate-500">
+                      Update the primary contact WhatsApp number used across the entire website (Navbar, Footer, Booking Vouchers, and Modals).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+                  <div>
+                    <span className="text-slate-500 block mb-1">Current Active Number:</span>
+                    <span className="text-base font-bold text-slate-800 font-mono block">
+                      {whatsappSettings.formattedNumber || `+${whatsappSettings.whatsappNumber}`}
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Raw digits: {whatsappSettings.whatsappNumber}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block mb-1">Direct Click-to-Chat Link:</span>
+                    <a
+                      href={whatsappSettings.waLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-mono text-emerald-700 hover:underline flex items-center gap-1.5 break-all"
+                    >
+                      <span>{whatsappSettings.waLink}</span>
+                      <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                    </a>
+                    {whatsappSettings.updatedAt && (
+                      <span className="text-[10px] text-slate-400 mt-1 block">
+                        Last saved: {new Date(whatsappSettings.updatedAt).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <form onSubmit={handleSaveWhatsAppNumber} className="space-y-4 pt-2">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      New WhatsApp Number:
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. 0767976081 or 94767976081"
+                        value={editingWhatsAppNumber}
+                        onChange={e => setEditingWhatsAppNumber(e.target.value)}
+                        className="flex-1 px-4 py-2.5 text-sm font-mono rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      <button
+                        type="submit"
+                        disabled={isSavingWhatsApp}
+                        className="px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Save className="w-4 h-4" />
+                        <span>{isSavingWhatsApp ? 'Saving...' : 'Save & Publish Number'}</span>
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-1.5">
+                      Supports local format (e.g. <code>076 797 6081</code>) or international format (e.g. <code>+94 76 797 6081</code>). Automatically normalized to international digits for <code>wa.me/</code>.
+                    </p>
+                  </div>
+
+                  {whatsappSaveMessage && (
+                    <div className={`p-3 rounded-xl text-xs font-medium border ${
+                      whatsappSaveMessage.startsWith('Success') || whatsappSaveMessage.startsWith('Saved')
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-red-50 text-red-800 border-red-200'
+                    }`}>
+                      {whatsappSaveMessage}
+                    </div>
+                  )}
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center gap-3">
+                    <a
+                      href={`https://wa.me/${editingWhatsAppNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Test message from The Sinharaja Collection Admin Dashboard')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 flex items-center gap-1.5 border border-slate-200"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Test Active WhatsApp Link</span>
+                    </a>
+                  </div>
+                </form>
               </div>
             </div>
           )}
@@ -2734,7 +2997,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
                   <select
                     value={newCamping.category}
-                    onChange={e => setNewCamping({ ...newCamping, category: e.target.value as any })}
+                    onChange={e => setNewCamping({ ...newCamping, category: e.target.value as CampingGear['category'] })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   >
                     <option value="package">Full Package Set</option>
@@ -2927,7 +3190,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
                   <select
                     value={newKithul.category}
-                    onChange={e => setNewKithul({ ...newKithul, category: e.target.value as any })}
+                    onChange={e => setNewKithul({ ...newKithul, category: e.target.value as KithulProduct['category'] })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   >
                     <option value="treacle">Treacle (Pure)</option>
@@ -3113,7 +3376,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Booking Status</label>
                   <select
                     value={editingBooking.status}
-                    onChange={e => setEditingBooking({ ...editingBooking, status: e.target.value as any })}
+                    onChange={e => setEditingBooking({ ...editingBooking, status: e.target.value as Booking['status'] })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   >
                     <option value="pending">🟡 Pending Host Check</option>
@@ -3129,7 +3392,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Room A/C Preference</label>
                   <select
                     value={editingBooking.acPreference || ''}
-                    onChange={e => setEditingBooking({ ...editingBooking, acPreference: (e.target.value as any) || undefined })}
+                    onChange={e => setEditingBooking({ ...editingBooking, acPreference: (e.target.value as 'ac' | 'non-ac') || undefined })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   >
                     <option value="">Not Applicable / None</option>
@@ -3649,7 +3912,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
                   <select
                     value={editingCamping.category}
-                    onChange={e => setEditingCamping({ ...editingCamping, category: e.target.value as any })}
+                    onChange={e => setEditingCamping({ ...editingCamping, category: e.target.value as CampingGear['category'] })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   >
                     <option value="package">Package Deal</option>
@@ -3856,7 +4119,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
                   <select
                     value={editingKithul.category}
-                    onChange={e => setEditingKithul({ ...editingKithul, category: e.target.value as any })}
+                    onChange={e => setEditingKithul({ ...editingKithul, category: e.target.value as KithulProduct['category'] })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   >
                     <option value="treacle">Treacle (Pure)</option>
@@ -4029,7 +4292,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
                   <select
                     value={editingComment.category}
-                    onChange={e => setEditingComment({ ...editingComment, category: e.target.value as any })}
+                    onChange={e => setEditingComment({ ...editingComment, category: e.target.value as CustomerComment['category'] })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   >
                     <option value="villa">Villa Experience</option>
@@ -4079,6 +4342,151 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================
+         INTERACTIVE WHATSAPP REPLY & TEMPLATES MODAL
+         ============================================================ */}
+      {activeReplyModal && activeReplyModal.isOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <MessageCircle className="w-4 h-4 fill-emerald-600 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Reply to {activeReplyModal.recipientName}
+                  </h3>
+                  <span className="text-xs text-slate-500 font-mono">
+                    Phone: {activeReplyModal.phone}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveReplyModal(null)}
+                className="p-1 rounded-full text-slate-400 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Template Selector */}
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold text-slate-600 uppercase">
+                Choose Response Template:
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                {activeReplyModal.type === 'booking' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const msg = `Hello ${activeReplyModal.recipientName}! 🌿\nWe have received your booking request (${activeReplyModal.bookingRef || 'LET'}) and our host family is currently checking real-time availability. We will confirm with you shortly!\n- The Sinharaja Collection Lankagama`;
+                        setActiveReplyModal({ ...activeReplyModal, message: msg });
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-left cursor-pointer"
+                    >
+                      ⏳ Received / Reviewing
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const msg = `Hello ${activeReplyModal.recipientName}! 🌿\nGreat news! Your booking request (${activeReplyModal.bookingRef || 'LET'}) is APPROVED & CONFIRMED.\n\nYour sanctuary in Lankagama is reserved. Looking forward to welcoming you!\n- The Sinharaja Collection Lankagama`;
+                        setActiveReplyModal({ ...activeReplyModal, message: msg });
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-medium text-left cursor-pointer"
+                    >
+                      ✅ Approved & Confirmed
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const msg = `Hello ${activeReplyModal.recipientName},\nThank you for choosing The Sinharaja Collection Lankagama. Unfortunately, this stay is fully occupied for the requested dates. Would you like us to suggest alternative dates or another nearby villa in our collection?\n- The Sinharaja Collection Lankagama`;
+                        setActiveReplyModal({ ...activeReplyModal, message: msg });
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 font-medium text-left cursor-pointer"
+                    >
+                      ✕ Dates Full / Alternative
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const msg = `Hello ${activeReplyModal.recipientName}! 🌿\nThank you for contacting The Sinharaja Collection Lankagama. Regarding your inquiry, our road is accessible and villas are open. How can we help further?\n- The Sinharaja Collection Lankagama`;
+                        setActiveReplyModal({ ...activeReplyModal, message: msg });
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 font-medium text-left cursor-pointer"
+                    >
+                      💬 General Response
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const msg = `Hello ${activeReplyModal.recipientName}! 🌿\nRegarding pure Kithul treacle & jaggery: We deliver 100% forest-grade pure harvest directly to your villa in Lankagama or can arrange courier delivery. How many bottles would you like?\n- The Sinharaja Collection Lankagama`;
+                        setActiveReplyModal({ ...activeReplyModal, message: msg });
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 font-medium text-left cursor-pointer"
+                    >
+                      🍯 Kithul Delivery Info
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const msg = `Hello ${activeReplyModal.recipientName}! 🌿\nOur certified rainforest guides (Sunil Aiya, Kavinda, Nalin) are available for waterfall treks. Would you like full-day or half-day guidance?\n- The Sinharaja Collection Lankagama`;
+                        setActiveReplyModal({ ...activeReplyModal, message: msg });
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-left cursor-pointer"
+                    >
+                      🧭 Guide & Trek Info
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Editable Message Box */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Review & Edit Message:
+              </label>
+              <textarea
+                rows={6}
+                value={activeReplyModal.message}
+                onChange={e => setActiveReplyModal({ ...activeReplyModal, message: e.target.value })}
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                You can personalize the text before opening WhatsApp.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setActiveReplyModal(null)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <a
+                href={`https://wa.me/${activeReplyModal.phone}?text=${encodeURIComponent(activeReplyModal.message)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setActiveReplyModal(null)}
+                className="px-5 py-2 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 flex items-center gap-1.5 shadow-sm"
+              >
+                <MessageCircle className="w-4 h-4 fill-white" />
+                <span>Open in WhatsApp Chat</span>
+              </a>
+            </div>
           </div>
         </div>
       )}

@@ -5,10 +5,9 @@ export const AGENCY_CONFIG = {
   sinhalaName: 'ද සිංහරාජ කලෙක්ෂන් ලංකාගම',
   tagline: 'Your Curated Gateway to Sinharaja & Lankagama Rainforest Stays & Experiences',
   phone: '+94 76 797 6081',
-  whatsappNumber: '94767976081', // formatted for wa.me links
+  whatsappNumber: '94767976081', // Default formatted for wa.me links (synced via settings)
   email: 'info@sinharajacollection.com',
   address: 'Main Road, Lankagama, Southern Province, Sri Lanka',
-  adminPin: '1234', // Default Agency Admin PIN for demo
 };
 
 export const VILLAS: Villa[] = [
