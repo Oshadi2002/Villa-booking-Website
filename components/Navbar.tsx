@@ -29,15 +29,18 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
 
     const sectionIds = ['why-us', 'villas', 'kithul', 'camping'];
     const handleScroll = () => {
-      const scrollPos = window.scrollY + 220; // Natural viewport offset below header
-      let current = '';
+      if (window.scrollY < 160) {
+        setActiveScrollSection('');
+        return;
+      }
 
+      let current = '';
       for (const id of sectionIds) {
         const el = document.getElementById(id);
         if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
+          const rect = el.getBoundingClientRect();
+          // Active when the section occupies the upper reading area below the 80px navbar
+          if (rect.top <= 260 && rect.bottom >= 120) {
             current = id;
             break;
           }
