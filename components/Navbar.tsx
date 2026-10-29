@@ -76,20 +76,19 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-40 bg-[#14231B]/95 backdrop-blur-md text-[#F5F2EB] border-b border-[#2C3E33] shadow-md transition-all">
-      {/* Full width container with generous padding to push action buttons to the right corner */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
-        <div className="flex items-center justify-between h-20 gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20 gap-2 sm:gap-4">
           
           {/* Brand Logo & Editorial Typography */}
-          <Link href="/" className="flex items-center gap-3.5 group shrink-0 mr-4 lg:mr-6 xl:mr-10">
-            <div className="w-10 h-10 rounded-xl bg-[#2C3E33] border border-[#3B5244] flex items-center justify-center text-[#D4AF37] shadow-inner group-hover:scale-102 transition-transform">
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3.5 group shrink min-w-0 mr-1 sm:mr-3 lg:mr-4 xl:mr-6">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#2C3E33] border border-[#3B5244] flex items-center justify-center text-[#D4AF37] shadow-inner group-hover:scale-102 transition-transform shrink-0">
               <Compass className="w-5 h-5 text-[#D4AF37]" strokeWidth={1.75} />
             </div>
-            <div>
-              <span className="text-lg sm:text-2xl font-serif tracking-tight text-[#F5F2EB] font-medium block">
+            <div className="min-w-0">
+              <span className="text-base sm:text-xl xl:text-2xl font-serif tracking-tight text-[#F5F2EB] font-medium block whitespace-nowrap">
                 The Sinharaja <span className="italic font-normal text-[#D4AF37]">Collection</span>
               </span>
-              <p className="text-[11px] text-[#C2BCB0] font-normal tracking-wide hidden sm:block">
+              <p className="text-[11px] text-[#C2BCB0] font-normal tracking-wide hidden md:block whitespace-nowrap">
                 <span className="text-[#D4AF37] font-medium tracking-normal mr-1">ලංකාගම</span>
                 <span className="text-[#7A8A7F]">•</span>
                 <span className="ml-1">Rainforest Gateway • Sri Lanka</span>
@@ -98,7 +97,7 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
           </Link>
 
           {/* Clean Desktop Navigation Links with dynamic section scroll spy */}
-          <nav className="hidden lg:flex items-center gap-3.5 xl:gap-6 2xl:gap-8 text-[11px] xl:text-xs uppercase tracking-[0.08em] xl:tracking-[0.14em] font-semibold shrink-0">
+          <nav className="hidden lg:flex items-center gap-2 xl:gap-4 2xl:gap-6 text-[11px] xl:text-xs uppercase tracking-wide font-semibold shrink min-w-0">
             <Link href="/#why-us" className={getNavClass('why-us')}>
               Why Us
             </Link>
@@ -119,12 +118,12 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
             </Link>
           </nav>
 
-          {/* Action CTAs: Pushed to the right corner */}
-          <div className="hidden sm:flex items-center gap-2.5 xl:gap-3 shrink-0 ml-auto lg:ml-4">
+          {/* Action CTAs: Track Booking & WhatsApp */}
+          <div className="hidden sm:flex items-center gap-2 xl:gap-3 shrink-0 ml-auto lg:ml-2 xl:ml-4">
             {/* Status Tracking */}
             <button
               onClick={onOpenTrackModal}
-              className="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl text-[#F5F2EB] hover:text-white border border-[#3B5244] hover:border-[#D4AF37]/60 bg-[#2C3E33] hover:bg-[#354A3D] transition-all cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-2 text-xs font-semibold rounded-xl text-[#F5F2EB] hover:text-white border border-[#3B5244] hover:border-[#D4AF37]/60 bg-[#2C3E33] hover:bg-[#354A3D] transition-all cursor-pointer shadow-xs whitespace-nowrap"
             >
               <Search className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span className="hidden xl:inline">Track Booking</span>
@@ -136,25 +135,27 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3.5 xl:px-4 py-2 text-xs font-bold rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] transition-all shadow-sm cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-2 text-xs font-bold rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] transition-all shadow-sm cursor-pointer whitespace-nowrap"
             >
               <MessageCircle className="w-4 h-4 fill-[#14231B] text-[#D4AF37]" />
-              <span>WhatsApp Agency</span>
+              <span className="hidden xl:inline">WhatsApp Agency</span>
+              <span className="xl:hidden">WhatsApp</span>
             </a>
           </div>
 
-          {/* Mobile Menu Icon */}
-          <div className="flex sm:hidden items-center gap-2">
+          {/* Mobile & Tablet Menu Controls */}
+          <div className="flex lg:hidden items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={onOpenTrackModal}
-              className="p-2 rounded-xl bg-[#2C3E33] text-[#F5F2EB] border border-[#3B5244]"
+              className="sm:hidden p-2 rounded-xl bg-[#2C3E33] text-[#F5F2EB] border border-[#3B5244] hover:border-[#D4AF37]"
               title="Track Booking"
             >
               <Search className="w-4 h-4 text-[#D4AF37]" />
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-[#2C3E33] text-[#F5F2EB] border border-[#3B5244]"
+              className="p-2 rounded-xl bg-[#2C3E33] text-[#F5F2EB] border border-[#3B5244] hover:border-[#D4AF37] transition-colors"
+              aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>

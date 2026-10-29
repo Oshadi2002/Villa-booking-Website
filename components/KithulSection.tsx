@@ -22,7 +22,7 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
     : products.filter(p => p.category === activeCategory);
 
   return (
-    <section id="kithul" className="py-24 bg-[#14231B] text-[#F5F2EB] relative border-b border-[#2C3E33]">
+    <section id="kithul" className="py-24 bg-[#14231B] text-[#F5F2EB] relative border-b border-[#2C3E33] overflow-hidden">
       
       {/* Decorative ambient gradients */}
       <div className="absolute top-10 left-10 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-3xl pointer-events-none" />
