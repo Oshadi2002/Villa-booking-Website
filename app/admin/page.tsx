@@ -30,6 +30,7 @@ export default function AdminPage() {
   // Data states
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [bookingFilter, setBookingFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [bookingSort, setBookingSort] = useState<'newest' | 'pending_first' | 'oldest'>('pending_first');
   const [bookingSearch, setBookingSearch] = useState('');
   const [editingNotes, setEditingNotes] = useState<{ [id: string]: string }>({});
 
@@ -1167,22 +1168,43 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     }
   };
 
-  // Filtered Bookings
-  const filteredBookings = bookings.filter(b => {
-    if (bookingFilter === 'pending' && b.status !== 'pending') return false;
-    if (bookingFilter === 'approved' && b.status !== 'approved') return false;
-    if (bookingFilter === 'rejected' && b.status !== 'rejected') return false;
-    if (bookingSearch.trim()) {
-      const q = bookingSearch.toLowerCase();
-      return (
-        b.id.toLowerCase().includes(q) ||
-        b.customerName.toLowerCase().includes(q) ||
-        b.customerPhone.includes(q) ||
-        b.itemName.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+  // Filtered & Sorted Bookings (Ensuring newest / pending orders stay right at the top)
+  const filteredBookings = bookings
+    .filter(b => {
+      if (bookingFilter === 'pending' && b.status !== 'pending') return false;
+      if (bookingFilter === 'approved' && b.status !== 'approved') return false;
+      if (bookingFilter === 'rejected' && b.status !== 'rejected') return false;
+      if (bookingSearch.trim()) {
+        const q = bookingSearch.toLowerCase();
+        return (
+          b.id.toLowerCase().includes(q) ||
+          b.customerName.toLowerCase().includes(q) ||
+          b.customerPhone.includes(q) ||
+          b.itemName.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (bookingSort === 'pending_first') {
+        // Pending orders always placed at the very top so none are missed!
+        if (a.status === 'pending' && b.status !== 'pending') return -1;
+        if (a.status !== 'pending' && b.status === 'pending') return 1;
+        // Within the same group, sort newest first
+        const timeA = new Date(a.createdAt || 0).getTime();
+        const timeB = new Date(b.createdAt || 0).getTime();
+        return timeB - timeA;
+      }
+      if (bookingSort === 'oldest') {
+        const timeA = new Date(a.createdAt || 0).getTime();
+        const timeB = new Date(b.createdAt || 0).getTime();
+        return timeA - timeB;
+      }
+      // 'newest': Absolute latest first
+      const timeA = new Date(a.createdAt || 0).getTime();
+      const timeB = new Date(b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
 
   const pendingBookingsCount = bookings.filter(b => b.status === 'pending').length;
 
@@ -1556,54 +1578,97 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              {/* Filter and search bar */}
-              <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="flex items-center gap-1 overflow-x-auto w-full sm:w-auto">
+              {/* Filter, Sort and search bar */}
+              <div className="bg-white p-3 rounded-xl border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto">
                   <button
                     onClick={() => setBookingFilter('all')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
-                      bookingFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer whitespace-nowrap transition-all ${
+                      bookingFilter === 'all' ? 'bg-slate-800 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
                     All ({bookings.length})
                   </button>
                   <button
                     onClick={() => setBookingFilter('pending')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
-                      bookingFilter === 'pending' ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                      bookingFilter === 'pending' ? 'bg-amber-600 text-white shadow-xs' : 'bg-amber-100 text-amber-900 hover:bg-amber-200'
                     }`}
                   >
-                    Pending ({pendingBookingsCount})
+                    <span>🟡 Pending Unconfirmed</span>
+                    <span className="px-1.5 py-0.2 bg-white/20 rounded-full text-[11px] font-mono">{pendingBookingsCount}</span>
                   </button>
                   <button
                     onClick={() => setBookingFilter('approved')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
-                      bookingFilter === 'approved' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer whitespace-nowrap transition-all ${
+                      bookingFilter === 'approved' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
                     }`}
                   >
                     Confirmed ({bookings.filter(b => b.status === 'approved').length})
                   </button>
                   <button
                     onClick={() => setBookingFilter('rejected')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
-                      bookingFilter === 'rejected' ? 'bg-slate-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer whitespace-nowrap transition-all ${
+                      bookingFilter === 'rejected' ? 'bg-slate-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
                     Cancelled
                   </button>
                 </div>
 
-                <div className="relative w-full sm:w-64">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                  <input
-                    type="text"
-                    placeholder="Search code, name, phone..."
-                    value={bookingSearch}
-                    onChange={e => setBookingSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-50"
-                  />
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                  {/* Sorting dropdown */}
+                  <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg text-xs text-slate-700">
+                    <span className="text-slate-400 font-medium">Sort:</span>
+                    <select
+                      value={bookingSort}
+                      onChange={e => setBookingSort(e.target.value as 'newest' | 'pending_first' | 'oldest')}
+                      className="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer"
+                    >
+                      <option value="pending_first">🔥 Pending First (Review first)</option>
+                      <option value="newest">🕒 Newest Orders First</option>
+                      <option value="oldest">📅 Oldest First</option>
+                    </select>
+                  </div>
+
+                  <div className="relative flex-1 md:w-56">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      placeholder="Search code, name, phone..."
+                      value={bookingSearch}
+                      onChange={e => setBookingSearch(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-slate-50"
+                    />
+                  </div>
                 </div>
               </div>
+
+              {/* Top Urgent Alert Banner if pending bookings exist */}
+              {pendingBookingsCount > 0 && bookingFilter !== 'pending' && (
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm animate-in fade-in">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-xs animate-pulse">
+                      ⚡
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <span>{pendingBookingsCount} New Order{pendingBookingsCount > 1 ? 's' : ''} Awaiting Confirmation!</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 uppercase">Attention Required</span>
+                      </h4>
+                      <p className="text-xs text-slate-600">
+                        Pending bookings are placed right at the top so you won't miss any new inquiries. Contact host and confirm promptly.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setBookingFilter('pending')}
+                    className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs whitespace-nowrap shadow-xs cursor-pointer transition-all shrink-0"
+                  >
+                    View Only Pending ({pendingBookingsCount}) →
+                  </button>
+                </div>
+              )}
 
               {/* Bookings list */}
               {filteredBookings.length === 0 ? (
@@ -1617,7 +1682,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     <div
                       key={b.id}
                       className={`bg-white rounded-2xl p-5 border shadow-xs transition-all ${
-                        b.status === 'pending' ? 'border-amber-300 ring-2 ring-amber-100' : 'border-slate-200'
+                        b.status === 'pending' ? 'border-amber-400 ring-2 ring-amber-200/80 bg-amber-50/20' : 'border-slate-200'
                       }`}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
@@ -1625,8 +1690,9 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                           <div className="flex items-center gap-3 flex-wrap">
                             <span className="font-mono font-bold text-base text-slate-900">#{b.id}</span>
                             {b.status === 'pending' && (
-                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                                🟡 Pending Host Check
+                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-400 shadow-xs flex items-center gap-1.5 animate-pulse">
+                                <span>🟡</span>
+                                <span>NEW / Pending Host Check</span>
                               </span>
                             )}
                             {b.status === 'approved' && (
