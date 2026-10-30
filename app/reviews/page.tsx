@@ -8,6 +8,7 @@ import TrackModal from '@/components/TrackModal';
 import { useModalHistory } from '@/lib/useModalHistory';
 import { CustomerComment } from '@/lib/types';
 import { CUSTOMER_COMMENTS, AGENCY_CONFIG } from '@/lib/data';
+import { useWhatsApp } from '@/lib/useWhatsApp';
 import { 
   Star, ShieldCheck, MessageSquare, Send, Sparkles, 
   HelpCircle, ChevronDown, ChevronUp, MessageCircle, 
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function ReviewsPage() {
+  const { formattedNumber, phone, getWhatsAppLink } = useWhatsApp();
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [comments, setComments] = useState<CustomerComment[]>(CUSTOMER_COMMENTS);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -320,13 +322,13 @@ export default function ReviewsPage() {
 
               <div className="space-y-3 pt-2">
                 <a
-                  href={`https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent('Hello The Sinharaja Collection Lankagama! I would like to make an inquiry about visiting.')}`}
+                  href={getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I would like to make an inquiry about visiting.')}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] font-bold text-xs shadow-md transition-all cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 fill-[#14231B]" />
-                  <span>Instant WhatsApp Chat: {AGENCY_CONFIG.phone}</span>
+                  <span>Instant WhatsApp Chat: {phone || formattedNumber || AGENCY_CONFIG.phone}</span>
                 </a>
               </div>
             </div>

@@ -8,6 +8,7 @@ export const AGENCY_CONFIG = {
   whatsappNumber: '94767976081', // Default formatted for wa.me links (synced via settings)
   email: 'info@sinharajacollection.com',
   address: 'Main Road, Lankagama, Southern Province, Sri Lanka',
+  locationDetails: 'Near Gin Ganga Bridge & Sinharaja Rainforest Gateway, Lankagama',
 };
 
 export const VILLAS: Villa[] = [

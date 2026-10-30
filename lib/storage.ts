@@ -3,7 +3,7 @@ import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
 import { Booking, Villa, TourGuide, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry, AgencySettings } from './types';
-import { VILLAS, TOUR_GUIDES, CAMPING_GEAR, ATTRACTIONS, KITHUL_PRODUCTS, CUSTOMER_COMMENTS, CUSTOMER_INQUIRIES } from './data';
+import { VILLAS, TOUR_GUIDES, CAMPING_GEAR, ATTRACTIONS, KITHUL_PRODUCTS, CUSTOMER_COMMENTS, CUSTOMER_INQUIRIES, AGENCY_CONFIG } from './data';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const TMP_DATA_DIR = path.join(os.tmpdir(), 'lankagama_data');
@@ -121,6 +121,12 @@ let inMemoryComments: CustomerComment[] = [...CUSTOMER_COMMENTS];
 let inMemoryInquiries: CustomerInquiry[] = [...CUSTOMER_INQUIRIES];
 let inMemorySettings: AgencySettings = {
   activeWhatsAppNumber: '94767976081',
+  phone: AGENCY_CONFIG.phone,
+  email: AGENCY_CONFIG.email,
+  address: AGENCY_CONFIG.address,
+  locationDetails: AGENCY_CONFIG.locationDetails,
+  name: AGENCY_CONFIG.name,
+  sinhalaName: AGENCY_CONFIG.sinhalaName,
   updatedAt: new Date().toISOString()
 };
 

@@ -115,18 +115,30 @@ export default function AdminPage() {
   const [inquiries, setInquiries] = useState<CustomerInquiry[]>([]);
   const [inquiryFilter, setInquiryFilter] = useState<'all' | 'new' | 'contacted' | 'resolved'>('all');
 
-  // Centralized WhatsApp management state
+  // Centralized WhatsApp & Agency Contact management state
   const [whatsappSettings, setWhatsappSettings] = useState<{
     whatsappNumber: string;
     formattedNumber: string;
     waLink: string;
+    phone: string;
+    email: string;
+    address: string;
+    locationDetails: string;
     updatedAt?: string;
   }>({
     whatsappNumber: AGENCY_CONFIG.whatsappNumber,
     formattedNumber: AGENCY_CONFIG.phone,
-    waLink: `https://wa.me/${AGENCY_CONFIG.whatsappNumber}`
+    waLink: `https://wa.me/${AGENCY_CONFIG.whatsappNumber}`,
+    phone: AGENCY_CONFIG.phone,
+    email: AGENCY_CONFIG.email,
+    address: AGENCY_CONFIG.address,
+    locationDetails: AGENCY_CONFIG.locationDetails
   });
   const [editingWhatsAppNumber, setEditingWhatsAppNumber] = useState(AGENCY_CONFIG.whatsappNumber);
+  const [editingPhone, setEditingPhone] = useState(AGENCY_CONFIG.phone);
+  const [editingEmail, setEditingEmail] = useState(AGENCY_CONFIG.email);
+  const [editingAddress, setEditingAddress] = useState(AGENCY_CONFIG.address);
+  const [editingLocation, setEditingLocation] = useState(AGENCY_CONFIG.locationDetails);
   const [isSavingWhatsApp, setIsSavingWhatsApp] = useState(false);
   const [whatsappSaveMessage, setWhatsappSaveMessage] = useState('');
 
@@ -338,17 +350,25 @@ export default function AdminPage() {
         if (d.success && Array.isArray(d.inquiries)) setInquiries(d.inquiries);
       }).catch(() => {});
 
-      // 9. Centralized WhatsApp Settings
+      // 9. Centralized WhatsApp & Agency Settings
       fetch(`/api/settings/whatsapp?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
         if (d.success && d.whatsappNumber) {
           const fresh = {
             whatsappNumber: d.whatsappNumber,
             formattedNumber: d.formattedNumber || d.whatsappNumber,
             waLink: d.waLink,
+            phone: d.phone || d.formattedNumber || AGENCY_CONFIG.phone,
+            email: d.email || AGENCY_CONFIG.email,
+            address: d.address || AGENCY_CONFIG.address,
+            locationDetails: d.locationDetails || AGENCY_CONFIG.locationDetails,
             updatedAt: d.updatedAt
           };
           setWhatsappSettings(fresh);
           setEditingWhatsAppNumber(d.whatsappNumber);
+          setEditingPhone(fresh.phone);
+          setEditingEmail(fresh.email);
+          setEditingAddress(fresh.address);
+          setEditingLocation(fresh.locationDetails);
         }
       }).catch(() => {});
     } catch {
@@ -371,7 +391,7 @@ export default function AdminPage() {
       .catch(() => {});
   }, []);
 
-  // ---------------- WHATSAPP SETTINGS ACTIONS ---------------- //
+  // ---------------- WHATSAPP & AGENCY CONTACT SETTINGS ACTIONS ---------------- //
   const handleSaveWhatsAppNumber = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingWhatsApp(true);
@@ -380,7 +400,13 @@ export default function AdminPage() {
       const res = await fetch('/api/settings/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ whatsappNumber: editingWhatsAppNumber })
+        body: JSON.stringify({
+          whatsappNumber: editingWhatsAppNumber,
+          phone: editingPhone,
+          email: editingEmail,
+          address: editingAddress,
+          locationDetails: editingLocation
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -388,18 +414,26 @@ export default function AdminPage() {
           whatsappNumber: data.whatsappNumber,
           formattedNumber: data.formattedNumber,
           waLink: data.waLink,
+          phone: data.phone || data.formattedNumber,
+          email: data.email || editingEmail,
+          address: data.address || editingAddress,
+          locationDetails: data.locationDetails || editingLocation,
           updatedAt: data.updatedAt
         };
         setWhatsappSettings(updated);
         setEditingWhatsAppNumber(data.whatsappNumber);
-        setWhatsappSaveMessage(`Success! Active agency WhatsApp is now ${data.formattedNumber}`);
-        showNotification(`WhatsApp number updated to ${data.formattedNumber}`);
+        setEditingPhone(updated.phone);
+        setEditingEmail(updated.email);
+        setEditingAddress(updated.address);
+        setEditingLocation(updated.locationDetails);
+        setWhatsappSaveMessage(`Success! Agency contact details & WhatsApp settings have been updated across the website.`);
+        showNotification(`Agency contact details updated successfully!`);
         broadcastSync('SYNC_WHATSAPP', updated);
       } else {
-        setWhatsappSaveMessage(data.message || 'Failed to update WhatsApp number');
+        setWhatsappSaveMessage(data.message || 'Failed to update agency settings.');
       }
     } catch {
-      setWhatsappSaveMessage('Error saving WhatsApp number to server.');
+      setWhatsappSaveMessage('Error saving settings to server.');
     } finally {
       setIsSavingWhatsApp(false);
     }
@@ -1448,7 +1482,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
               <span className="text-[11px] opacity-75">{comments.length}</span>
             </button>
 
-            {/* 9. Centralized WhatsApp Settings */}
+            {/* 9. Centralized Agency & WhatsApp Settings */}
             <button
               onClick={() => { setActiveTab('whatsapp'); setIsMobileSidebarOpen(false); }}
               className={`w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
@@ -1459,7 +1493,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
             >
               <div className="flex items-center gap-2.5">
                 <MessageCircle className="w-4 h-4 text-emerald-500" />
-                <span>WhatsApp Settings</span>
+                <span>Agency & WhatsApp</span>
               </div>
               <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">Active</span>
             </button>
@@ -1517,7 +1551,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 activeTab === 'camping' ? 'Expedition Camping Sets' : 
                 activeTab === 'inquiries' ? 'Customer Questions & Inquiries' : 
                 activeTab === 'comments' ? 'Customer Reviews Wall' : 
-                activeTab === 'whatsapp' ? 'Centralized WhatsApp Management' : 
+                activeTab === 'whatsapp' ? 'Agency Contact, Location & WhatsApp Settings' : 
                 'Waterfalls & Sanctuaries'
               }</span>
             </h1>
@@ -2567,84 +2601,198 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           )}
 
           {/* ============================================================
-             9. TAB: CENTRALIZED WHATSAPP SETTINGS
+             9. TAB: CENTRALIZED AGENCY CONTACT & WHATSAPP SETTINGS
              ============================================================ */}
           {activeTab === 'whatsapp' && (
-            <div className="space-y-6 max-w-3xl">
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div className="space-y-6 max-w-4xl">
+              <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                
+                {/* Header */}
+                <div className="flex items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <MessageCircle className="w-6 h-6 fill-emerald-600 text-white" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-slate-900">
-                      Centralized WhatsApp Configuration
+                      Agency Contact, Address & WhatsApp Settings
                     </h2>
-                    <p className="text-xs text-slate-500">
-                      Update the primary contact WhatsApp number used across the entire website (Navbar, Footer, Booking Vouchers, and Modals).
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Change your agency&apos;s primary WhatsApp number, customer hotline, official email, physical address, and location details. Changes take effect immediately across the public website (Navbar, Footer, Contact Desk, and Booking Modals).
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
-                  <div>
-                    <span className="text-slate-500 block mb-1">Current Active Number:</span>
-                    <span className="text-base font-bold text-slate-800 font-mono block">
-                      {whatsappSettings.formattedNumber || `+${whatsappSettings.whatsappNumber}`}
+                {/* Current Active Details Preview Card */}
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                  <div className="flex items-center justify-between mb-3 border-b border-slate-200 pb-2">
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <span>Live Website Contact Info</span>
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-1 block">
-                      Raw digits: {whatsappSettings.whatsappNumber}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block mb-1">Direct Click-to-Chat Link:</span>
-                    <a
-                      href={whatsappSettings.waLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-mono text-emerald-700 hover:underline flex items-center gap-1.5 break-all"
-                    >
-                      <span>{whatsappSettings.waLink}</span>
-                      <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                    </a>
                     {whatsappSettings.updatedAt && (
-                      <span className="text-[10px] text-slate-400 mt-1 block">
-                        Last saved: {new Date(whatsappSettings.updatedAt).toLocaleString()}
+                      <span className="text-[11px] text-slate-500 font-mono">
+                        Last synced: {new Date(whatsappSettings.updatedAt).toLocaleString()}
                       </span>
                     )}
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    {/* WhatsApp */}
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+                      <span className="text-slate-400 block text-[11px] uppercase tracking-wider font-semibold">Active WhatsApp Number</span>
+                      <span className="text-base font-bold text-slate-900 font-mono block">
+                        {whatsappSettings.formattedNumber || `+${whatsappSettings.whatsappNumber}`}
+                      </span>
+                      <a
+                        href={whatsappSettings.waLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-mono text-emerald-600 hover:text-emerald-700 flex items-center gap-1 break-all pt-1"
+                      >
+                        <span>{whatsappSettings.waLink}</span>
+                        <ExternalLink className="w-3 h-3 shrink-0" />
+                      </a>
+                    </div>
+
+                    {/* Hotline Phone */}
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+                      <span className="text-slate-400 block text-[11px] uppercase tracking-wider font-semibold">Hotline / Phone</span>
+                      <span className="text-base font-bold text-slate-900 font-mono block">
+                        {whatsappSettings.phone || whatsappSettings.formattedNumber || AGENCY_CONFIG.phone}
+                      </span>
+                      <span className="text-[11px] text-slate-500 block pt-1">
+                        Displayed in header & inquiry desks
+                      </span>
+                    </div>
+
+                    {/* Official Email */}
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+                      <span className="text-slate-400 block text-[11px] uppercase tracking-wider font-semibold">Official Agency Email</span>
+                      <a 
+                        href={`mailto:${whatsappSettings.email || AGENCY_CONFIG.email}`}
+                        className="text-sm font-semibold text-blue-600 hover:underline block break-all"
+                      >
+                        {whatsappSettings.email || AGENCY_CONFIG.email}
+                      </a>
+                      <span className="text-[11px] text-slate-500 block pt-1">
+                        Used for bookings and customer questions
+                      </span>
+                    </div>
+
+                    {/* Physical Address & Location */}
+                    <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs space-y-1">
+                      <span className="text-slate-400 block text-[11px] uppercase tracking-wider font-semibold">Physical Address & Location</span>
+                      <p className="text-xs font-semibold text-slate-800 leading-snug">
+                        {whatsappSettings.address || AGENCY_CONFIG.address}
+                      </p>
+                      {whatsappSettings.locationDetails && (
+                        <p className="text-[11px] text-slate-500 italic pt-0.5">
+                          {whatsappSettings.locationDetails}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <form onSubmit={handleSaveWhatsAppNumber} className="space-y-4 pt-2">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      New WhatsApp Number:
-                    </label>
-                    <div className="flex flex-col sm:flex-row gap-3">
+                {/* Edit Form */}
+                <form onSubmit={handleSaveWhatsAppNumber} className="space-y-5 pt-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    {/* 1. WhatsApp Number */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>WhatsApp Number <span className="text-red-500">*</span></span>
+                      </label>
                       <input
                         type="text"
                         required
                         placeholder="e.g. 0767976081 or 94767976081"
                         value={editingWhatsAppNumber}
                         onChange={e => setEditingWhatsAppNumber(e.target.value)}
-                        className="flex-1 px-4 py-2.5 text-sm font-mono rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-4 py-2.5 text-sm font-mono rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
-                      <button
-                        type="submit"
-                        disabled={isSavingWhatsApp}
-                        className="px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <Save className="w-4 h-4" />
-                        <span>{isSavingWhatsApp ? 'Saving...' : 'Save & Publish Number'}</span>
-                      </button>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Local (<code>076...</code>) or international (<code>9476...</code>). Auto-normalized for WhatsApp.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-1.5">
-                      Supports local format (e.g. <code>076 797 6081</code>) or international format (e.g. <code>+94 76 797 6081</code>). Automatically normalized to international digits for <code>wa.me/</code>.
-                    </p>
+
+                    {/* 2. Display Phone Number */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Customer Hotline Phone</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. +94 76 797 6081"
+                        value={editingPhone}
+                        onChange={e => setEditingPhone(e.target.value)}
+                        className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Formatted hotline number displayed on the website.
+                      </p>
+                    </div>
+
+                    {/* 3. Agency Email */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Official Agency Email</span>
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="e.g. info@lankagamacollection.com"
+                        value={editingEmail}
+                        onChange={e => setEditingEmail(e.target.value)}
+                        className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Official contact email displayed in footer and review sections.
+                      </p>
+                    </div>
+
+                    {/* 4. Physical Address */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-red-500" />
+                        <span>Agency Physical Address</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Lankagama, Sinharaja Rainforest Gateway, Deniyaya, Sri Lanka"
+                        value={editingAddress}
+                        onChange={e => setEditingAddress(e.target.value)}
+                        className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Main office address displayed on the public website.
+                      </p>
+                    </div>
+
+                    {/* 5. Location Details / Landmarks */}
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Compass className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Location Landmarks & Visiting Notes</span>
+                      </label>
+                      <textarea
+                        rows={2}
+                        placeholder="e.g. Near Gin Ganga Wooden Suspension Bridge & Forest Reserve Entrance, Lankagama"
+                        value={editingLocation}
+                        onChange={e => setEditingLocation(e.target.value)}
+                        className="w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                      />
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Specific directions, landmarks, or buffer zone gateway details.
+                      </p>
+                    </div>
+
                   </div>
 
                   {whatsappSaveMessage && (
-                    <div className={`p-3 rounded-xl text-xs font-medium border ${
+                    <div className={`p-4 rounded-xl text-xs font-medium border ${
                       whatsappSaveMessage.startsWith('Success') || whatsappSaveMessage.startsWith('Saved')
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                         : 'bg-red-50 text-red-800 border-red-200'
@@ -2653,16 +2801,38 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     </div>
                   )}
 
-                  <div className="pt-3 border-t border-slate-100 flex items-center gap-3">
-                    <a
-                      href={`https://wa.me/${editingWhatsAppNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Test message from The Sinharaja Collection Admin Dashboard')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 flex items-center gap-1.5 border border-slate-200"
+                  {/* Form Submission and Direct Test Buttons */}
+                  <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <a
+                        href={`https://wa.me/${editingWhatsAppNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Test message from The Sinharaja Collection Admin Dashboard')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 flex items-center gap-1.5 border border-slate-200"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Test WhatsApp</span>
+                      </a>
+
+                      {editingEmail && (
+                        <a
+                          href={`mailto:${editingEmail}`}
+                          className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 flex items-center gap-1.5 border border-slate-200"
+                        >
+                          <Mail className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Test Email</span>
+                        </a>
+                      )}
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSavingWhatsApp}
+                      className="px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Test Active WhatsApp Link</span>
-                    </a>
+                      <Save className="w-4 h-4" />
+                      <span>{isSavingWhatsApp ? 'Saving Settings...' : 'Save Agency Settings'}</span>
+                    </button>
                   </div>
                 </form>
               </div>

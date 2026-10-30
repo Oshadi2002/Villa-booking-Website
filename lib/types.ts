@@ -33,6 +33,12 @@ export interface Booking {
 
 export interface AgencySettings {
   activeWhatsAppNumber: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  locationDetails?: string;
+  name?: string;
+  sinhalaName?: string;
   updatedAt?: string;
 }
 

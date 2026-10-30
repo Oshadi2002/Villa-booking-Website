@@ -185,5 +185,11 @@ export const commentCreateSchema = z.object({
 });
 
 export const whatsappSettingsSchema = z.object({
-  whatsappNumber: z.string().min(9, 'WhatsApp number is required')
+  whatsappNumber: z.string().min(9, 'WhatsApp number is required'),
+  phone: z.string().optional(),
+  email: z.union([z.string().email('Please enter a valid email address'), z.literal('')]).optional(),
+  address: z.string().optional(),
+  locationDetails: z.string().optional(),
+  name: z.string().optional(),
+  sinhalaName: z.string().optional()
 });

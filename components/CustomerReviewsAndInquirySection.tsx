@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { CustomerComment, CustomerInquiry } from '@/lib/types';
 import { CUSTOMER_COMMENTS, AGENCY_CONFIG } from '@/lib/data';
+import { useWhatsApp } from '@/lib/useWhatsApp';
 
 interface CustomerReviewsAndInquirySectionProps {
   comments?: CustomerComment[];
@@ -16,6 +17,7 @@ interface CustomerReviewsAndInquirySectionProps {
 export default function CustomerReviewsAndInquirySection({ 
   comments = CUSTOMER_COMMENTS 
 }: CustomerReviewsAndInquirySectionProps) {
+  const { phone: agencyPhone, email: agencyEmail, getWhatsAppLink } = useWhatsApp();
   const [commentList, setCommentList] = useState<CustomerComment[]>(comments);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
@@ -125,9 +127,9 @@ export default function CustomerReviewsAndInquirySection({
     }
   };
 
-  const directWhatsAppInquiryUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent(
+  const directWhatsAppInquiryUrl = getWhatsAppLink(
     `Hello The Sinharaja Collection Lankagama! 🌿\nI have an inquiry:\nName: ${inquiryForm.name || 'Guest'}\nTopic: ${inquiryForm.subject}\nMessage: ${inquiryForm.message || 'I would like more information.'}`
-  )}`;
+  );
 
   return (
     <section id="reviews" className="py-24 bg-[#16271E] text-[#F5F2EB] relative border-b border-[#2C3E33]">
@@ -246,7 +248,7 @@ export default function CustomerReviewsAndInquirySection({
                 </div>
                 <div>
                   <span className="text-[#C2BCB0] block text-[11px]">Phone & WhatsApp Desk</span>
-                  <span className="font-semibold">{AGENCY_CONFIG.phone}</span>
+                  <span className="font-semibold">{agencyPhone || AGENCY_CONFIG.phone}</span>
                 </div>
               </div>
 
@@ -256,7 +258,7 @@ export default function CustomerReviewsAndInquirySection({
                 </div>
                 <div>
                   <span className="text-[#C2BCB0] block text-[11px]">Email Desk</span>
-                  <span className="font-semibold">{AGENCY_CONFIG.email}</span>
+                  <span className="font-semibold">{agencyEmail || AGENCY_CONFIG.email}</span>
                 </div>
               </div>
             </div>

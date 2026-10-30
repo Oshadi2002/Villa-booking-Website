@@ -7,7 +7,7 @@ import { AGENCY_CONFIG } from '@/lib/data';
 import { useWhatsApp } from '@/lib/useWhatsApp';
 
 export default function Footer() {
-  const { formattedNumber, getWhatsAppLink } = useWhatsApp();
+  const { formattedNumber, phone, email, address, getWhatsAppLink } = useWhatsApp();
   const whatsappUrl = getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I would like to make an inquiry.');
 
   return (
@@ -52,7 +52,9 @@ export default function Footer() {
             <div className="space-y-2.5 text-xs text-[#C2BCB0]">
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-                <span>{AGENCY_CONFIG.phone}</span>
+                <a href={`tel:${phone || formattedNumber || AGENCY_CONFIG.phone}`} className="hover:text-[#D4AF37] transition-colors">
+                  {phone || formattedNumber || AGENCY_CONFIG.phone}
+                </a>
               </div>
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
@@ -62,11 +64,13 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-                <span>{AGENCY_CONFIG.email}</span>
+                <a href={`mailto:${email || AGENCY_CONFIG.email}`} className="hover:text-[#D4AF37] transition-colors">
+                  {email || AGENCY_CONFIG.email}
+                </a>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0 mt-0.5" />
-                <span>{AGENCY_CONFIG.address}</span>
+                <span>{address || AGENCY_CONFIG.address}</span>
               </div>
             </div>
           </div>

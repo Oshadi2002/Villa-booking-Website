@@ -4,6 +4,7 @@ import { isPostgresConfigured, dbGetSettings, dbSaveSettings } from '@/lib/db';
 import { getAgencySettings, updateAgencySettings } from '@/lib/storage';
 import { normalizeWhatsAppNumber, whatsappSettingsSchema } from '@/lib/validations';
 import { AGENCY_CONFIG } from '@/lib/data';
+import { AgencySettings } from '@/lib/types';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
@@ -31,6 +32,12 @@ export async function GET() {
       whatsappNumber: normalized.isValid ? normalized.cleanDigits : rawNumber,
       formattedNumber: normalized.formatted || rawNumber,
       waLink: normalized.waLink || `https://wa.me/${rawNumber}`,
+      phone: settings.phone || normalized.formatted || AGENCY_CONFIG.phone,
+      email: settings.email || AGENCY_CONFIG.email,
+      address: settings.address || AGENCY_CONFIG.address,
+      locationDetails: settings.locationDetails || AGENCY_CONFIG.locationDetails,
+      name: settings.name || AGENCY_CONFIG.name,
+      sinhalaName: settings.sinhalaName || AGENCY_CONFIG.sinhalaName,
       updatedAt: settings.updatedAt
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
@@ -63,26 +70,45 @@ export async function POST(req: Request) {
       }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
-    const updatedSettings = {
+    const current = getAgencySettings();
+    const cleanPayload: Partial<AgencySettings> = {
       activeWhatsAppNumber: normalized.cleanDigits,
       updatedAt: new Date().toISOString()
     };
+    if (parseResult.data.phone !== undefined && parseResult.data.phone !== '') {
+      cleanPayload.phone = parseResult.data.phone;
+    } else {
+      cleanPayload.phone = normalized.formatted;
+    }
+    if (parseResult.data.email !== undefined) cleanPayload.email = parseResult.data.email;
+    if (parseResult.data.address !== undefined) cleanPayload.address = parseResult.data.address;
+    if (parseResult.data.locationDetails !== undefined) cleanPayload.locationDetails = parseResult.data.locationDetails;
+    if (parseResult.data.name !== undefined) cleanPayload.name = parseResult.data.name;
+    if (parseResult.data.sinhalaName !== undefined) cleanPayload.sinhalaName = parseResult.data.sinhalaName;
+
+    const merged = { ...current, ...cleanPayload };
 
     // Save to storage
-    updateAgencySettings(updatedSettings);
+    updateAgencySettings(merged);
 
     // Save to PostgreSQL if configured
     if (isPostgresConfigured()) {
-      await dbSaveSettings(updatedSettings);
+      await dbSaveSettings(merged);
     }
 
     return NextResponse.json({
       success: true,
-      message: `WhatsApp number updated to ${normalized.formatted}`,
+      message: 'Agency contact and WhatsApp settings updated successfully.',
       whatsappNumber: normalized.cleanDigits,
       formattedNumber: normalized.formatted,
       waLink: normalized.waLink,
-      updatedAt: updatedSettings.updatedAt
+      phone: merged.phone || normalized.formatted,
+      email: merged.email || AGENCY_CONFIG.email,
+      address: merged.address || AGENCY_CONFIG.address,
+      locationDetails: merged.locationDetails || AGENCY_CONFIG.locationDetails,
+      name: merged.name || AGENCY_CONFIG.name,
+      sinhalaName: merged.sinhalaName || AGENCY_CONFIG.sinhalaName,
+      updatedAt: merged.updatedAt
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;

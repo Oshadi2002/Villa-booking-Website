@@ -7,13 +7,21 @@ export interface WhatsAppData {
   whatsappNumber: string;
   formattedNumber: string;
   waLink: string;
+  email?: string;
+  address?: string;
+  phone?: string;
+  locationDetails?: string;
 }
 
 export function useWhatsApp() {
   const [data, setData] = useState<WhatsAppData>({
     whatsappNumber: AGENCY_CONFIG.whatsappNumber,
     formattedNumber: AGENCY_CONFIG.phone,
-    waLink: `https://wa.me/${AGENCY_CONFIG.whatsappNumber}`
+    waLink: `https://wa.me/${AGENCY_CONFIG.whatsappNumber}`,
+    email: AGENCY_CONFIG.email,
+    address: AGENCY_CONFIG.address,
+    phone: AGENCY_CONFIG.phone,
+    locationDetails: AGENCY_CONFIG.locationDetails
   });
 
   useEffect(() => {
@@ -24,7 +32,7 @@ export function useWhatsApp() {
         const parsed = JSON.parse(cached);
         if (parsed.whatsappNumber) {
           queueMicrotask(() => {
-            setData(parsed);
+            setData(prev => ({ ...prev, ...parsed }));
           });
         }
       }
@@ -38,7 +46,11 @@ export function useWhatsApp() {
           const fresh: WhatsAppData = {
             whatsappNumber: json.whatsappNumber,
             formattedNumber: json.formattedNumber || `+${json.whatsappNumber}`,
-            waLink: json.waLink || `https://wa.me/${json.whatsappNumber}`
+            waLink: json.waLink || `https://wa.me/${json.whatsappNumber}`,
+            email: json.email || AGENCY_CONFIG.email,
+            address: json.address || AGENCY_CONFIG.address,
+            phone: json.phone || json.formattedNumber || AGENCY_CONFIG.phone,
+            locationDetails: json.locationDetails || AGENCY_CONFIG.locationDetails
           };
           setData(fresh);
           try {
@@ -52,7 +64,7 @@ export function useWhatsApp() {
     const handleCustom = (e: Event) => {
       const customEvent = e as CustomEvent;
       if (customEvent.detail?.type === 'SYNC_WHATSAPP' && customEvent.detail?.data) {
-        setData(customEvent.detail.data);
+        setData(prev => ({ ...prev, ...customEvent.detail.data }));
       }
     };
 
@@ -70,6 +82,10 @@ export function useWhatsApp() {
     whatsappNumber: data.whatsappNumber,
     formattedNumber: data.formattedNumber,
     waLink: data.waLink,
+    email: data.email || AGENCY_CONFIG.email,
+    address: data.address || AGENCY_CONFIG.address,
+    phone: data.phone || data.formattedNumber || AGENCY_CONFIG.phone,
+    locationDetails: data.locationDetails || AGENCY_CONFIG.locationDetails,
     getWhatsAppLink
   };
 }
