@@ -27,9 +27,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${serifFont.variable} ${sansFont.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-[#14231B] text-[#F5F2EB] selection:bg-[#D4AF37] selection:text-[#14231B]">
+      <body 
+        suppressHydrationWarning
+        className="min-h-full flex flex-col font-sans bg-[#14231B] text-[#F5F2EB] selection:bg-[#D4AF37] selection:text-[#14231B]"
+      >
         {children}
       </body>
     </html>
