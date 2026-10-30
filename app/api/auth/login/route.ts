@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const isValid = verifyAdminPassword(password);
+    const isValid = await verifyAdminPassword(password);
 
     if (!isValid) {
       const lockStatus = recordFailedLogin(ip);

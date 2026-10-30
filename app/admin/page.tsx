@@ -10,7 +10,7 @@ import {
   MapPin, X, Tent, Waves, Menu, ChevronRight,
   ShieldCheck, AlertCircle, FileText, ShoppingBag,
   Wine, Star, MessageSquare, HelpCircle, Mail, Pencil,
-  Snowflake, Wind, Utensils
+  Snowflake, Wind, Utensils, Key, Eye, EyeOff
 } from 'lucide-react';
 import { Booking, Villa, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry } from '@/lib/types';
 import { AGENCY_CONFIG } from '@/lib/data';
@@ -141,6 +141,14 @@ export default function AdminPage() {
   const [editingLocation, setEditingLocation] = useState(AGENCY_CONFIG.locationDetails);
   const [isSavingWhatsApp, setIsSavingWhatsApp] = useState(false);
   const [whatsappSaveMessage, setWhatsappSaveMessage] = useState('');
+
+  // Password change state
+  const [currentAdminPassword, setCurrentAdminPassword] = useState('');
+  const [newAdminPassword, setNewAdminPassword] = useState('');
+  const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordChangeMessage, setPasswordChangeMessage] = useState<{ text: string; isSuccess: boolean } | null>(null);
 
   // Interactive WhatsApp Reply Modal state
   const [activeReplyModal, setActiveReplyModal] = useState<{
@@ -436,6 +444,50 @@ export default function AdminPage() {
       setWhatsappSaveMessage('Error saving settings to server.');
     } finally {
       setIsSavingWhatsApp(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordChangeMessage(null);
+
+    if (!currentAdminPassword) {
+      setPasswordChangeMessage({ text: 'Please enter your current password.', isSuccess: false });
+      return;
+    }
+    if (newAdminPassword.length < 6) {
+      setPasswordChangeMessage({ text: 'New password must be at least 6 characters long.', isSuccess: false });
+      return;
+    }
+    if (newAdminPassword !== confirmAdminPassword) {
+      setPasswordChangeMessage({ text: 'New passwords do not match. Please re-enter.', isSuccess: false });
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: currentAdminPassword,
+          newPassword: newAdminPassword
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPasswordChangeMessage({ text: data.message || 'Password changed successfully!', isSuccess: true });
+        setCurrentAdminPassword('');
+        setNewAdminPassword('');
+        setConfirmAdminPassword('');
+        showNotification('Admin password updated successfully!');
+      } else {
+        setPasswordChangeMessage({ text: data.message || 'Failed to change password.', isSuccess: false });
+      }
+    } catch {
+      setPasswordChangeMessage({ text: 'Network connection error. Please try again.', isSuccess: false });
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -2836,6 +2888,126 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   </div>
                 </form>
               </div>
+
+              {/* Security & Admin Password Card */}
+              <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                <div className="flex items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <Key className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900">
+                      Admin Security & Access Password
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Change the master password used to log into this Website Control CMS. Once saved, use the new password on your next login.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
+                  <Lock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <span className="font-bold block">Current Default Password Notice:</span>
+                    <p className="text-[11px] leading-relaxed">
+                      If you have never changed the password, the default password is <code className="bg-white px-1.5 py-0.5 rounded border border-amber-300 font-mono font-bold text-amber-800">Lankagama@Admin2026!</code>. Once you set a custom password below, it will be securely encrypted and saved.
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleChangePassword} className="space-y-4 max-w-xl">
+                  {/* Current Password */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Current Admin Password <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPasswordFields ? 'text' : 'password'}
+                        required
+                        placeholder="Enter your current password"
+                        value={currentAdminPassword}
+                        onChange={e => setCurrentAdminPassword(e.target.value)}
+                        className="w-full px-4 py-2.5 pr-10 text-sm font-mono rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswordFields(!showPasswordFields)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        title={showPasswordFields ? 'Hide Password' : 'Show Password'}
+                      >
+                        {showPasswordFields ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* New Password */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        New Password <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type={showPasswordFields ? 'text' : 'password'}
+                        required
+                        placeholder="At least 6 characters"
+                        value={newAdminPassword}
+                        onChange={e => setNewAdminPassword(e.target.value)}
+                        className="w-full px-4 py-2.5 text-sm font-mono rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Confirm New Password <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type={showPasswordFields ? 'text' : 'password'}
+                        required
+                        placeholder="Re-type new password"
+                        value={confirmAdminPassword}
+                        onChange={e => setConfirmAdminPassword(e.target.value)}
+                        className="w-full px-4 py-2.5 text-sm font-mono rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    <input
+                      type="checkbox"
+                      id="togglePwdVisibility"
+                      checked={showPasswordFields}
+                      onChange={e => setShowPasswordFields(e.target.checked)}
+                      className="rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
+                    />
+                    <label htmlFor="togglePwdVisibility" className="text-xs text-slate-600 cursor-pointer select-none">
+                      Show passwords in plain text
+                    </label>
+                  </div>
+
+                  {passwordChangeMessage && (
+                    <div className={`p-4 rounded-xl text-xs font-medium border ${
+                      passwordChangeMessage.isSuccess
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-red-50 text-red-800 border-red-200'
+                    }`}>
+                      {passwordChangeMessage.text}
+                    </div>
+                  )}
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={isChangingPassword}
+                      className="px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Key className="w-4 h-4" />
+                      <span>{isChangingPassword ? 'Updating Password...' : 'Change Admin Password'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
             </div>
           )}
 

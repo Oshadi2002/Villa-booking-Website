@@ -1,5 +1,7 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
+import { isPostgresConfigured, dbGetSettings } from './db';
+import { getAgencySettings } from './storage';
 
 const COOKIE_NAME = 'lankagama_admin_session';
 const SESSION_DURATION_SECONDS = 7 * 24 * 60 * 60; // 7 days
@@ -89,21 +91,61 @@ function constantTimeCompare(a: string, b: string): boolean {
   }
 }
 
+// Password hashing using pbkdf2
+export function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+  return `${salt}$${hash}`;
+}
+
+export function verifyPasswordHash(password: string, storedHash: string): boolean {
+  try {
+    if (!storedHash || !storedHash.includes('$')) return false;
+    const [salt, expectedHash] = storedHash.split('$');
+    const derived = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+    return constantTimeCompare(derived, expectedHash);
+  } catch {
+    return false;
+  }
+}
+
 // Verify given password against configured passwords or hash
-export function verifyAdminPassword(password: string): boolean {
+export async function verifyAdminPassword(password: string): Promise<boolean> {
   if (!password || typeof password !== 'string') return false;
 
-  // 1. Check against ADMIN_PASSWORD_HASH if configured (format: salt$hash using pbkdf2)
+  // 1. Check if custom password hash is saved in database or storage
+  let savedHash: string | undefined;
+  if (isPostgresConfigured()) {
+    try {
+      const dbSettings = await dbGetSettings();
+      if (dbSettings.adminPasswordHash) {
+        savedHash = dbSettings.adminPasswordHash;
+      }
+    } catch {}
+  }
+
+  if (!savedHash) {
+    try {
+      const storageSettings = getAgencySettings();
+      if (storageSettings.adminPasswordHash) {
+        savedHash = storageSettings.adminPasswordHash;
+      }
+    } catch {}
+  }
+
+  if (savedHash) {
+    return verifyPasswordHash(password, savedHash);
+  }
+
+  // 2. Check against ADMIN_PASSWORD_HASH if configured in env
   const envHash = getAdminPasswordHash();
-  if (envHash && envHash.includes('$')) {
-    const [salt, expectedHash] = envHash.split('$');
-    const derived = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
-    if (constantTimeCompare(derived, expectedHash)) {
+  if (envHash) {
+    if (verifyPasswordHash(password, envHash)) {
       return true;
     }
   }
 
-  // 2. Check against plain text passwords in env (supports comma-separated list for two family members)
+  // 3. Check against plain text passwords in env (supports comma-separated list for two family members)
   const allowedPasswords = getAdminPasswords();
   for (const allowed of allowedPasswords) {
     if (constantTimeCompare(password, allowed)) {

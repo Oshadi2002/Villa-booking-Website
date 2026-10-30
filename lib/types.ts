@@ -39,6 +39,7 @@ export interface AgencySettings {
   locationDetails?: string;
   name?: string;
   sinhalaName?: string;
+  adminPasswordHash?: string;
   updatedAt?: string;
 }
 
