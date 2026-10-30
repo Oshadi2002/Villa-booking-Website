@@ -67,7 +67,10 @@
       "Respect rainforest silence after 10 PM",
       "Polythene prohibited in natural streams"
     ],
-    "id": "villa-1792498331997"
+    "id": "villa-1792498331997",
+    "pricePerRoomLKR": 6500,
+    "pricePerRoomAcLKR": 8000,
+    "bookingScopeAvailable": "both"
   },
   {
     "id": "villa-1",
@@ -172,7 +175,10 @@
       "No soap, shampoo, or chemicals in the natural river to protect aquatic species",
       "Please keep noise down after 10:00 PM to respect rainforest wildlife",
       "No single-use polythene bags or plastic bottles left near river banks"
-    ]
+    ],
+    "pricePerRoomLKR": 6500,
+    "pricePerRoomAcLKR": 8500,
+    "bookingScopeAvailable": "both"
   },
   {
     "id": "villa-2",
@@ -276,7 +282,10 @@
       "Please do not cross waterfall safety ropes when water level rises",
       "Smoking strictly permitted only in designated outdoor garden zones",
       "Quiet hours begin at 10:30 PM"
-    ]
+    ],
+    "pricePerRoomLKR": 6000,
+    "pricePerRoomAcLKR": 7500,
+    "bookingScopeAvailable": "both"
   },
   {
     "id": "villa-3",
@@ -380,7 +389,10 @@
       "Strictly non-smoking indoors to preserve timber structure",
       "No loud loudspeakers or disruptive music (nature sounds only)",
       "Do not feed wild animals visiting the canopy deck"
-    ]
+    ],
+    "pricePerRoomLKR": 9500,
+    "pricePerRoomAcLKR": 11500,
+    "bookingScopeAvailable": "both"
   },
   {
     "id": "villa-4",
@@ -482,6 +494,9 @@
       "Please supervise small children when playing in garden stream",
       "Kitchen must be left reasonably clean after self-cooking",
       "Pets allowed on prior notice"
-    ]
+    ],
+    "pricePerRoomLKR": 5500,
+    "pricePerRoomAcLKR": 7000,
+    "bookingScopeAvailable": "both"
   }
 ]

@@ -69,7 +69,7 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
       description: 'Born-and-raised local guides who know every hidden cascade, safe rock pool in Gin Ganga, and endemic bird trails while keeping you safe from flash floods.',
       benefit: 'Safety first + leech socks provided',
       ctaText: 'Explore Waterfalls',
-      href: '#attractions',
+      href: '/blogs',
       badge: 'Local Sinharaja Guides'
     }
   ];

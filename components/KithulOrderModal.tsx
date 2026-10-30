@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   X, ShoppingBag, MapPin, Calendar, Clock, 
   User, Phone, FileText, CheckCircle2, MessageCircle, 
@@ -9,6 +9,7 @@ import {
 import { KithulProduct, Villa } from '@/lib/types';
 import { AGENCY_CONFIG } from '@/lib/data';
 import { useWhatsApp } from '@/lib/useWhatsApp';
+import { useModalHistory } from '@/lib/useModalHistory';
 
 interface KithulOrderModalProps {
   isOpen: boolean;
@@ -40,6 +41,23 @@ export default function KithulOrderModal({ isOpen, onClose, product, villas }: K
     date: string;
     time: string;
   } | null>(null);
+
+  const resetAndClose = useCallback(() => {
+    setSubmittedOrder(null);
+    setQuantity(1);
+    setCustomerName('');
+    setCustomerPhone('');
+    setDeliveryDate('');
+    setSpecialNotes('');
+    setError('');
+    onClose();
+  }, [onClose]);
+
+  useModalHistory({
+    isOpen: Boolean(isOpen && product),
+    onClose: resetAndClose,
+    modalId: product ? `kithul-${product.id}` : 'kithul-order'
+  });
 
   if (!isOpen || !product) return null;
 
@@ -114,17 +132,6 @@ export default function KithulOrderModal({ isOpen, onClose, product, villas }: K
     } finally {
       setLoading(false);
     }
-  };
-
-  const resetAndClose = () => {
-    setSubmittedOrder(null);
-    setQuantity(1);
-    setCustomerName('');
-    setCustomerPhone('');
-    setDeliveryDate('');
-    setSpecialNotes('');
-    setError('');
-    onClose();
   };
 
   const whatsappOrderText = () => {

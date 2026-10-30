@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Clock, CheckCircle2, XCircle, MessageCircle } from 'lucide-react';
 import { Booking } from '@/lib/types';
 import { useWhatsApp } from '@/lib/useWhatsApp';
+import { useModalHistory } from '@/lib/useModalHistory';
 
 interface TrackModalProps {
   isOpen: boolean;
@@ -11,6 +12,12 @@ interface TrackModalProps {
 }
 
 export default function TrackModal({ isOpen, onClose }: TrackModalProps) {
+  useModalHistory({
+    isOpen,
+    onClose,
+    modalId: 'track-booking'
+  });
+
   const { getWhatsAppLink, waLink } = useWhatsApp();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -185,6 +192,16 @@ export default function TrackModal({ isOpen, onClose }: TrackModalProps) {
                   <span className="text-[#C2BCB0]">Trekkers:</span>
                   <span className="font-medium text-[#F5F2EB]">{booking.guestsCount} Guests</span>
                 </div>
+                {booking.bookingScope && (
+                  <div className="flex justify-between">
+                    <span className="text-[#C2BCB0]">Booking Scope:</span>
+                    <span className="font-medium text-[#D4AF37]">
+                      {booking.bookingScope === 'room_only' 
+                        ? `🛏️ Room Only (${booking.roomsCount || 1} Room${(booking.roomsCount || 1) > 1 ? 's' : ''})` 
+                        : '🏠 Full Villa'}
+                    </span>
+                  </div>
+                )}
                 {booking.acPreference && (
                   <div className="flex justify-between">
                     <span className="text-[#C2BCB0]">A/C Preference:</span>

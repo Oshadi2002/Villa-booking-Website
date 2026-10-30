@@ -54,6 +54,35 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [pathname]);
 
+  const handleSectionClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+    if (pathname === '/') {
+      e.preventDefault();
+      const id = hash.replace(/^#/, '');
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        try {
+          window.history.pushState(null, '', hash);
+        } catch {}
+      }
+    }
+  };
+
+  const handleMobileSectionClick = (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => {
+    setMobileMenuOpen(false);
+    if (pathname === '/') {
+      e.preventDefault();
+      const id = hash.replace(/^#/, '');
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        try {
+          window.history.pushState(null, '', hash);
+        } catch {}
+      }
+    }
+  };
+
   const getNavClass = (sectionKey: string) => {
     const isActive = activeSection === sectionKey;
     return `transition-all py-1 relative hover:after:w-full after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all ${
@@ -98,16 +127,32 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
 
           {/* Clean Desktop Navigation Links with dynamic section scroll spy */}
           <nav className="hidden lg:flex items-center gap-2 xl:gap-4 2xl:gap-6 text-[11px] xl:text-xs uppercase tracking-wide font-semibold shrink min-w-0">
-            <Link href="/#why-us" className={getNavClass('why-us')}>
+            <Link 
+              href="/#why-us" 
+              onClick={(e) => handleSectionClick(e, '#why-us')}
+              className={getNavClass('why-us')}
+            >
               Why Us
             </Link>
-            <Link href="/#villas" className={getNavClass('villas')}>
+            <Link 
+              href="/#villas" 
+              onClick={(e) => handleSectionClick(e, '#villas')}
+              className={getNavClass('villas')}
+            >
               Villas & Stays
             </Link>
-            <Link href="/#kithul" className={getNavClass('kithul')}>
+            <Link 
+              href="/#kithul" 
+              onClick={(e) => handleSectionClick(e, '#kithul')}
+              className={getNavClass('kithul')}
+            >
               Kithul & Toddy
             </Link>
-            <Link href="/#camping" className={getNavClass('camping')}>
+            <Link 
+              href="/#camping" 
+              onClick={(e) => handleSectionClick(e, '#camping')}
+              className={getNavClass('camping')}
+            >
               Camping Gear
             </Link>
             <Link href="/blogs" className={getNavClass('blogs')}>
@@ -170,28 +215,28 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
           <nav className="flex flex-col gap-2 text-xs uppercase tracking-[0.12em] font-semibold">
             <Link 
               href="/#why-us" 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => handleMobileSectionClick(e, '#why-us')}
               className={getMobileNavClass('why-us')}
             >
               <span>Why Choose Us</span>
             </Link>
             <Link 
               href="/#villas" 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => handleMobileSectionClick(e, '#villas')}
               className={getMobileNavClass('villas')}
             >
               <span>Villas & Eco-Lodges</span>
             </Link>
             <Link 
               href="/#kithul" 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => handleMobileSectionClick(e, '#kithul')}
               className={getMobileNavClass('kithul')}
             >
               <span>Artisanal Kithul & Toddy</span>
             </Link>
             <Link 
               href="/#camping" 
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => handleMobileSectionClick(e, '#camping')}
               className={getMobileNavClass('camping')}
             >
               <span>Camping Gear Rentals</span>

@@ -50,6 +50,9 @@ export default function AdminPage() {
     description: '',
     pricePerNightLKR: 12000,
     pricePerNightAcLKR: 15000,
+    pricePerRoomLKR: 6500,
+    pricePerRoomAcLKR: 8000,
+    bookingScopeAvailable: 'both' as 'both' | 'full_only' | 'room_only',
     maxGuests: 4,
     bedrooms: 2,
     bathrooms: 2,
@@ -410,8 +413,9 @@ export default function AdminPage() {
     if (templateType === 'received') {
       msg = `Hello ${b.customerName}! 🌿\nWe have received your booking request (${b.id}) for ${b.itemName} on ${b.checkInDate}. Our host family is checking real-time vacancy and we will send your confirmation shortly.\n- The Sinharaja Collection Lankagama`;
     } else if (templateType === 'approved') {
+      const scopeLine = b.bookingScope ? `Scope: ${b.bookingScope === 'room_only' ? `Room Only (${b.roomsCount || 1} Room(s))` : 'Full Villa'}\n` : '';
       const acLine = b.acPreference ? `Room: ${b.acPreference === 'ac' ? 'A/C' : 'Non-A/C'}\n` : '';
-      msg = `Hello ${b.customerName}! 🌿\nGreat news! Your reservation (${b.id}) for ${b.itemName} is APPROVED & CONFIRMED!\n📅 Check-in: ${b.checkInDate}${b.checkOutDate ? ' to ' + b.checkOutDate : ''}\n👥 Guests: ${b.guestsCount}\n${acLine}💰 Total: Rs. ${b.totalLKR.toLocaleString()}\n\nLooking forward to welcoming you to Lankagama! Please let us know if you need road directions or transport.\n- The Sinharaja Collection Lankagama`;
+      msg = `Hello ${b.customerName}! 🌿\nGreat news! Your reservation (${b.id}) for ${b.itemName} is APPROVED & CONFIRMED!\n📅 Check-in: ${b.checkInDate}${b.checkOutDate ? ' to ' + b.checkOutDate : ''}\n👥 Guests: ${b.guestsCount}\n${scopeLine}${acLine}💰 Total: Rs. ${b.totalLKR.toLocaleString()}\n\nLooking forward to welcoming you to Lankagama! Please let us know if you need road directions or transport.\n- The Sinharaja Collection Lankagama`;
     } else {
       msg = `Hello ${b.customerName},\nThank you for choosing The Sinharaja Collection Lankagama. Unfortunately, ${b.itemName} is fully occupied on ${b.checkInDate}. Would you like us to suggest alternative dates or another nearby villa in our collection?\n- The Sinharaja Collection Lankagama`;
     }
@@ -527,6 +531,9 @@ export default function AdminPage() {
     const guideLine = b.needGuide
       ? `🧭 Tour Guide: YES (Dedicated native guide assigned - +Rs. ${(b.guideFee || 4000).toLocaleString()})\n`
       : '🧭 Tour Guide: Not requested\n';
+    const scopeLine = b.bookingScope
+      ? `🏡 Scope: ${b.bookingScope === 'room_only' ? `Room Only (${b.roomsCount || 1} Room(s))` : 'Full Villa (Entire Property)'}\n`
+      : '';
     const acLine = b.acPreference
       ? `❄️ Room Type: ${b.acPreference === 'ac' ? 'A/C Room' : 'Non-A/C Room'}\n`
       : '';
@@ -541,7 +548,7 @@ Great news! We have contacted the host and your booking request has been APPROVE
 
 📌 Booking Ref: ${b.id}
 🏠 Item: ${b.itemName}
-${acLine}${mealLine}📅 Check-in Date: ${b.checkInDate} ${b.checkOutDate ? 'to ' + b.checkOutDate : ''}
+${scopeLine}${acLine}${mealLine}📅 Check-in Date: ${b.checkInDate} ${b.checkOutDate ? 'to ' + b.checkOutDate : ''}
 👥 Guests: ${b.guestsCount} Persons
 ${guideLine}💰 Total: Rs. ${b.totalLKR.toLocaleString()}
 
@@ -629,6 +636,9 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           description: newVilla.description,
           pricePerNightLKR: Number(newVilla.pricePerNightLKR),
           pricePerNightAcLKR: newVilla.pricePerNightAcLKR ? Number(newVilla.pricePerNightAcLKR) : undefined,
+          pricePerRoomLKR: newVilla.pricePerRoomLKR ? Number(newVilla.pricePerRoomLKR) : undefined,
+          pricePerRoomAcLKR: newVilla.pricePerRoomAcLKR ? Number(newVilla.pricePerRoomAcLKR) : undefined,
+          bookingScopeAvailable: newVilla.bookingScopeAvailable || 'both',
           maxGuests: Number(newVilla.maxGuests),
           bedrooms: Number(newVilla.bedrooms),
           bathrooms: Number(newVilla.bathrooms),
@@ -674,6 +684,9 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           description: '',
           pricePerNightLKR: 12000,
           pricePerNightAcLKR: 15000,
+          pricePerRoomLKR: 6500,
+          pricePerRoomAcLKR: 8000,
+          bookingScopeAvailable: 'both',
           maxGuests: 4,
           bedrooms: 2,
           bathrooms: 2,
@@ -941,6 +954,9 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
   const handleOpenEditVilla = (v: Villa) => {
     setEditingVilla({
       ...v,
+      pricePerRoomLKR: v.pricePerRoomLKR || Math.round(v.pricePerNightLKR * 0.55),
+      pricePerRoomAcLKR: v.pricePerRoomAcLKR || (v.pricePerNightAcLKR ? Math.round(v.pricePerNightAcLKR * 0.55) : undefined),
+      bookingScopeAvailable: v.bookingScopeAvailable || 'both',
       acType: v.acType || 'both',
       hasKitchen: v.hasKitchen !== undefined ? v.hasKitchen : true
     });
@@ -1634,6 +1650,13 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                               <span>{b.itemName}</span>
                             </div>
                             <div className="flex items-center gap-1.5 flex-wrap">
+                              {b.bookingScope && (
+                                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1 ${
+                                  b.bookingScope === 'room_only' ? 'bg-purple-50 text-purple-800 border-purple-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                }`}>
+                                  {b.bookingScope === 'room_only' ? `🛏️ Room Only (${b.roomsCount || 1} Room${(b.roomsCount || 1) > 1 ? 's' : ''})` : '🏠 Full Villa'}
+                                </span>
+                              )}
                               {b.acPreference && (
                                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 flex items-center gap-1">
                                   {b.acPreference === 'ac' ? '❄️ A/C Room' : '🍃 Non-A/C Room'}
@@ -1893,8 +1916,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                       <div className="relative h-48 bg-slate-100 overflow-hidden">
                         <img src={villa.imageUrl} alt={villa.name} className="w-full h-full object-cover" />
                         <div className="absolute bottom-2 right-2 bg-slate-900/90 text-white px-2.5 py-1 rounded-lg text-xs font-mono font-bold shadow text-right">
-                          <div>Non-A/C: Rs. {villa.pricePerNightLKR.toLocaleString()}</div>
-                          {villa.pricePerNightAcLKR ? (
+                          <div>🏠 Villa: Rs. {villa.pricePerNightLKR.toLocaleString()}</div>
+                          {villa.pricePerRoomLKR ? (
+                            <div className="text-amber-300">🛏️ Room: Rs. {villa.pricePerRoomLKR.toLocaleString()}</div>
+                          ) : villa.pricePerNightAcLKR ? (
                             <div className="text-amber-300">A/C: Rs. {villa.pricePerNightAcLKR.toLocaleString()}</div>
                           ) : null}
                         </div>
@@ -2718,9 +2743,9 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 <span className="text-xs font-bold text-slate-800 uppercase block tracking-wider">
                   Room Configuration & Rates
                 </span>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Non-A/C Rate (LKR) *</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">🏠 Full Villa Non-A/C (LKR) *</label>
                     <input
                       type="number"
                       required
@@ -2731,7 +2756,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">A/C Rate (LKR)</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">🏠 Full Villa A/C (LKR)</label>
                     <input
                       type="number"
                       min="1000"
@@ -2741,6 +2766,31 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                       className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono font-bold bg-white text-emerald-700"
                     />
                   </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">🛏️ Per Room Non-A/C (LKR)</label>
+                    <input
+                      type="number"
+                      min="500"
+                      placeholder="e.g. 6500"
+                      value={newVilla.pricePerRoomLKR || ''}
+                      onChange={e => setNewVilla({ ...newVilla, pricePerRoomLKR: Number(e.target.value) || 0 })}
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono font-bold bg-white text-blue-700"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">🛏️ Per Room A/C (LKR)</label>
+                    <input
+                      type="number"
+                      min="500"
+                      placeholder="e.g. 8000"
+                      value={newVilla.pricePerRoomAcLKR || ''}
+                      onChange={e => setNewVilla({ ...newVilla, pricePerRoomAcLKR: Number(e.target.value) || 0 })}
+                      className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono font-bold bg-white text-amber-700"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">Bedrooms Count *</label>
                     <input
@@ -3594,34 +3644,55 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Tagline</label>
+                <input
+                  type="text"
+                  value={editingVilla.tagline}
+                  onChange={e => setEditingVilla({ ...editingVilla, tagline: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Tagline</label>
-                  <input
-                    type="text"
-                    value={editingVilla.tagline}
-                    onChange={e => setEditingVilla({ ...editingVilla, tagline: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Non-A/C Rate (Rs.) *</label>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">🏠 Full Villa Non-A/C *</label>
                   <input
                     type="number"
                     required
                     value={editingVilla.pricePerNightLKR}
                     onChange={e => setEditingVilla({ ...editingVilla, pricePerNightLKR: Number(e.target.value) || 0 })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-mono font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">A/C Room Rate (Rs.)</label>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">🏠 Full Villa A/C</label>
                   <input
                     type="number"
                     placeholder="e.g. 15000"
                     value={editingVilla.pricePerNightAcLKR || ''}
                     onChange={e => setEditingVilla({ ...editingVilla, pricePerNightAcLKR: Number(e.target.value) || 0 })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono text-emerald-700 font-bold"
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-mono text-emerald-700 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">🛏️ Per Room Non-A/C</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 6500"
+                    value={editingVilla.pricePerRoomLKR || ''}
+                    onChange={e => setEditingVilla({ ...editingVilla, pricePerRoomLKR: Number(e.target.value) || 0 })}
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-mono text-blue-700 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">🛏️ Per Room A/C</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 8000"
+                    value={editingVilla.pricePerRoomAcLKR || ''}
+                    onChange={e => setEditingVilla({ ...editingVilla, pricePerRoomAcLKR: Number(e.target.value) || 0 })}
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white font-mono text-amber-700 font-bold"
                   />
                 </div>
               </div>

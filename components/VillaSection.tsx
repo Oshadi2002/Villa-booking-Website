@@ -132,7 +132,18 @@ function VillaCardItem({
             </div>
 
             <div className="bg-[#14231B]/95 backdrop-blur-md px-3 py-1.5 rounded-xl text-right shrink-0 border border-[#3B5244] shadow">
-              {villa.pricePerNightAcLKR ? (
+              {villa.pricePerRoomLKR ? (
+                <div className="text-right space-y-0.5">
+                  <div className="flex items-center justify-end gap-1.5 text-[11px] font-medium text-[#C2BCB0]">
+                    <span>🏠 Full Villa:</span>
+                    <span className="font-bold text-[#F5F2EB] font-mono">Rs. {villa.pricePerNightLKR.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-end gap-1.5 text-[11px] font-semibold text-[#D4AF37]">
+                    <span>🛏️ Per Room:</span>
+                    <span className="font-bold font-mono">Rs. {villa.pricePerRoomLKR.toLocaleString()}</span>
+                  </div>
+                </div>
+              ) : villa.pricePerNightAcLKR ? (
                 <div className="text-right space-y-0.5">
                   <div className="flex items-center justify-end gap-1.5 text-[11px] font-medium text-[#C2BCB0]">
                     <span>Non-A/C:</span>
@@ -197,7 +208,7 @@ function VillaCardItem({
             onClick={() => onSelectVilla(villa)}
             className="py-2.5 px-3 rounded-xl font-semibold text-xs text-[#14231B] bg-[#D4AF37] hover:bg-[#C5A880] active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
           >
-            <span>Reserve Room</span>
+            <span>Book Villa / Room</span>
             <ArrowRight className="w-3.5 h-3.5 text-[#14231B]" />
           </button>
         </div>

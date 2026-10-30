@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Villa } from '@/lib/types';
 import { AGENCY_CONFIG } from '@/lib/data';
+import { useModalHistory } from '@/lib/useModalHistory';
 
 interface VillaDetailModalProps {
   isOpen: boolean;
@@ -17,6 +18,12 @@ interface VillaDetailModalProps {
 }
 
 export default function VillaDetailModal({ isOpen, onClose, villa, onBookNow }: VillaDetailModalProps) {
+  useModalHistory({
+    isOpen: Boolean(isOpen && villa),
+    onClose,
+    modalId: villa ? `villa-${villa.id}` : 'villa-detail'
+  });
+
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -40,7 +47,7 @@ export default function VillaDetailModal({ isOpen, onClose, villa, onBookNow }: 
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const whatsappInquireUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent(`Hello The Sinharaja Collection Lankagama! I am inquiring about ${villa.name} (Non-A/C: Rs. ${villa.pricePerNightLKR.toLocaleString()}${villa.pricePerNightAcLKR ? ` / A/C: Rs. ${villa.pricePerNightAcLKR.toLocaleString()}` : ''}/night). Is it available?`)}`;
+  const whatsappInquireUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent(`Hello The Sinharaja Collection Lankagama! I am inquiring about ${villa.name} (Full Villa: Rs. ${villa.pricePerNightLKR.toLocaleString()}${villa.pricePerRoomLKR ? ` / Room: Rs. ${villa.pricePerRoomLKR.toLocaleString()}` : ''}/night). Is it available?`)}`;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -211,12 +218,12 @@ export default function VillaDetailModal({ isOpen, onClose, villa, onBookNow }: 
               )}
 
               <div className="p-3 bg-[#2C3E33] border border-[#3B5244] rounded-xl flex items-center gap-2 text-xs text-[#C2BCB0] font-normal">
-                <span className="text-base shrink-0">❄️</span>
-                <div>
-                  <strong className="font-semibold text-[#F5F2EB] block">Rates:</strong>
-                  <span>Non-A/C: Rs. {villa.pricePerNightLKR.toLocaleString()}</span>
-                  {villa.pricePerNightAcLKR ? (
-                    <span className="text-[#D4AF37] block font-medium">A/C Room: Rs. {villa.pricePerNightAcLKR.toLocaleString()}</span>
+                <span className="text-base shrink-0">💰</span>
+                <div className="space-y-0.5">
+                  <strong className="font-semibold text-[#F5F2EB] block">Pricing Rates:</strong>
+                  <div>🏠 Full Villa: <span className="font-mono text-[#F5F2EB] font-bold">Rs. {villa.pricePerNightLKR.toLocaleString()}</span>{villa.pricePerNightAcLKR ? ` (A/C: Rs. ${villa.pricePerNightAcLKR.toLocaleString()})` : ''}</div>
+                  {villa.pricePerRoomLKR ? (
+                    <div className="text-[#D4AF37]">🛏️ Per Room: <span className="font-mono font-bold">Rs. {villa.pricePerRoomLKR.toLocaleString()}</span>{villa.pricePerRoomAcLKR ? ` (A/C: Rs. ${villa.pricePerRoomAcLKR.toLocaleString()})` : ''}</div>
                   ) : null}
                 </div>
               </div>
@@ -367,7 +374,16 @@ export default function VillaDetailModal({ isOpen, onClose, villa, onBookNow }: 
         <div className="sticky bottom-0 z-30 bg-[#1E2A22]/95 backdrop-blur-md border-t border-[#3B5244] p-3 sm:p-4 px-4 sm:px-8 flex items-center justify-between gap-3 shadow-lg">
           <div>
             <span className="text-[10px] text-[#C2BCB0] block uppercase tracking-wider">Per Night</span>
-            {villa.pricePerNightAcLKR ? (
+            {villa.pricePerRoomLKR ? (
+              <div className="space-y-0.5">
+                <div className="text-xs sm:text-sm font-medium text-[#C2BCB0] font-mono">
+                  🏠 Full Villa: <span className="font-bold text-[#F5F2EB]">Rs. {villa.pricePerNightLKR.toLocaleString()}</span>
+                </div>
+                <div className="text-sm sm:text-base font-bold text-[#D4AF37] font-mono">
+                  🛏️ Per Room: <span>Rs. {villa.pricePerRoomLKR.toLocaleString()}</span>
+                </div>
+              </div>
+            ) : villa.pricePerNightAcLKR ? (
               <div className="space-y-0.5">
                 <div className="text-xs sm:text-sm font-medium text-[#C2BCB0] font-mono">
                   Non-A/C: <span className="font-bold text-[#F5F2EB]">Rs. {villa.pricePerNightLKR.toLocaleString()}</span>
@@ -402,7 +418,7 @@ export default function VillaDetailModal({ isOpen, onClose, villa, onBookNow }: 
               }}
               className="py-3 px-5 sm:px-7 rounded-xl font-semibold text-xs sm:text-sm text-[#14231B] bg-[#D4AF37] hover:bg-[#C5A880] active:scale-98 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
             >
-              <span>Reserve Room</span>
+              <span>Book Stay</span>
               <ArrowRight className="w-4 h-4 text-[#14231B]" />
             </button>
           </div>

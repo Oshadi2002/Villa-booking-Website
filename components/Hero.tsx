@@ -61,6 +61,9 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
+      try {
+        window.history.pushState(null, '', `#${id}`);
+      } catch {}
     }
   };
 

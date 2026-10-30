@@ -120,6 +120,8 @@ export function maskBookingForPublic(booking: Booking, isAuthorizedAdmin = false
     status: booking.status,
     createdAt: booking.createdAt,
     acPreference: booking.acPreference,
+    bookingScope: booking.bookingScope,
+    roomsCount: booking.roomsCount,
     orderMeals: booking.orderMeals,
     itemsSummary: booking.itemsSummary,
     deliveryLocation: booking.deliveryLocation
@@ -146,6 +148,8 @@ export const bookingCreateSchema = z.object({
   totalLKR: z.coerce.number().min(0, 'Total LKR cannot be negative'),
   specialNotes: z.string().max(1000).optional(),
   acPreference: z.enum(['ac', 'non-ac']).optional(),
+  bookingScope: z.enum(['full_villa', 'room_only']).optional(),
+  roomsCount: z.coerce.number().int().min(1).max(20).optional(),
   orderMeals: z.boolean().optional(),
   mealsNotes: z.string().max(500).optional(),
   deliveryLocation: z.string().max(300).optional(),

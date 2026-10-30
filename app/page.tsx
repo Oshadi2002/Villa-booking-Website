@@ -165,6 +165,30 @@ export default function HomePage() {
     };
   }, []);
 
+  // Handle hash scrolling on page load and browser back/forward (hashchange / popstate)
+  useEffect(() => {
+    const scrollToHash = () => {
+      const hash = window.location.hash;
+      if (hash) {
+        const id = hash.replace(/^#/, '');
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    };
+
+    const timer = setTimeout(scrollToHash, 100);
+
+    window.addEventListener('hashchange', scrollToHash);
+    window.addEventListener('popstate', scrollToHash);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('hashchange', scrollToHash);
+      window.removeEventListener('popstate', scrollToHash);
+    };
+  }, []);
+
   const [bookingType, setBookingType] = useState<BookingType>('villa');
   const [selectedItem, setSelectedItem] = useState<{
     id: string;
@@ -176,6 +200,11 @@ export default function HomePage() {
     imageUrl?: string;
     acType?: 'ac' | 'non-ac' | 'both';
     hasKitchen?: boolean;
+    pricePerRoom?: number;
+    pricePerRoomAc?: number;
+    bookingScopeAvailable?: 'both' | 'full_only' | 'room_only';
+    bedrooms?: number;
+    maxGuests?: number;
   } | null>(null);
 
   // View Details trigger (Opens interactive photo gallery & facilities modal)
@@ -193,6 +222,11 @@ export default function HomePage() {
       sinhalaName: villa.sinhalaName,
       price: villa.pricePerNightLKR,
       priceAc: villa.pricePerNightAcLKR,
+      pricePerRoom: villa.pricePerRoomLKR,
+      pricePerRoomAc: villa.pricePerRoomAcLKR,
+      bookingScopeAvailable: villa.bookingScopeAvailable,
+      bedrooms: villa.bedrooms,
+      maxGuests: villa.maxGuests,
       unitLabel: 'night',
       imageUrl: villa.imageUrl,
       acType: villa.acType,

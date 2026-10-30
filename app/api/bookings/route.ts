@@ -84,6 +84,8 @@ export async function POST(req: Request) {
       totalLKR: data.totalLKR,
       specialNotes: data.specialNotes || '',
       acPreference: data.acPreference,
+      bookingScope: data.bookingScope,
+      roomsCount: data.roomsCount,
       orderMeals: data.orderMeals,
       mealsNotes: data.mealsNotes,
       deliveryLocation: data.deliveryLocation,

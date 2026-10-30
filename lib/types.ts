@@ -24,6 +24,8 @@ export interface Booking {
   quantity?: number;
   itemsSummary?: string;
   acPreference?: 'ac' | 'non-ac';
+  bookingScope?: 'full_villa' | 'room_only';
+  roomsCount?: number;
   orderMeals?: boolean;
   mealsNotes?: string;
   trackingToken?: string;
@@ -51,8 +53,11 @@ export interface Villa {
   sinhalaName: string;
   tagline: string;
   description: string;
-  pricePerNightLKR: number; // Non-A/C or standard rate
-  pricePerNightAcLKR?: number; // A/C rate
+  pricePerNightLKR: number; // Non-A/C or standard rate (Full Villa)
+  pricePerNightAcLKR?: number; // A/C rate (Full Villa)
+  pricePerRoomLKR?: number; // Non-A/C Single Room rate
+  pricePerRoomAcLKR?: number; // A/C Single Room rate
+  bookingScopeAvailable?: 'both' | 'full_only' | 'room_only'; // Allowed booking scope (defaults to 'both')
   maxGuests: number;
   bedrooms: number;
   bathrooms: number;

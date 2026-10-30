@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TrackModal from '@/components/TrackModal';
+import { useModalHistory } from '@/lib/useModalHistory';
 import { CustomerComment } from '@/lib/types';
 import { CUSTOMER_COMMENTS, AGENCY_CONFIG } from '@/lib/data';
 import { 
@@ -20,6 +21,12 @@ export default function ReviewsPage() {
 
   // Review submission modal state
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+
+  useModalHistory({
+    isOpen: isCommentModalOpen,
+    onClose: () => setIsCommentModalOpen(false),
+    modalId: 'review-submission'
+  });
   const [commentForm, setCommentForm] = useState({
     author: '',
     cityOrCountry: '',
