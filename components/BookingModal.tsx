@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   X, Calendar, User, Phone, Users, FileText, Clock, 
   MessageCircle, AlertCircle, ArrowRight, Compass,
-  Snowflake, Wind, Utensils, Home, BedDouble
+  Snowflake, Wind, Utensils, Home, BedDouble, Receipt, ChevronDown, ChevronUp, CheckCircle
 } from 'lucide-react';
 import { AGENCY_CONFIG } from '@/lib/data';
 import { BookingType } from '@/lib/types';
@@ -75,6 +75,7 @@ export default function BookingModal({ isOpen, onClose, bookingType, item }: Boo
     setAcPreference(item?.acType === 'non-ac' ? 'non-ac' : 'ac');
   }, [item?.id, item?.bookingScopeAvailable, item?.acType]);
 
+  const [showBillDetails, setShowBillDetails] = useState<boolean>(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [submittedBooking, setSubmittedBooking] = useState<{
@@ -280,39 +281,117 @@ Please verify live availability with the host and confirm my booking. Thank you!
         {!submittedBooking ? (
           <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
             
-            {/* Price Preview Card */}
-            <div className="bg-[#2C3E33] rounded-2xl p-4 border border-[#3B5244] flex items-center justify-between shadow-xs">
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-[#C2BCB0] font-medium block">
-                  {bookingType === 'villa' 
-                    ? (bookingScope === 'room_only' ? '🛏️ Single Room Rate' : '🏠 Full Villa Rate')
-                    : 'Standard Rate'}
-                </span>
-                <div className="text-lg font-bold text-[#F5F2EB] font-mono">
-                  Rs. {currentDailyRate.toLocaleString()} <span className="text-xs font-normal text-[#C2BCB0] font-sans">/{item.unitLabel || 'night'}{bookingType === 'villa' && bookingScope === 'room_only' ? ' / room' : ''}</span>
+            {/* Price Preview & Live Bill Breakdown */}
+            <div className="bg-[#2C3E33] rounded-2xl p-4 border border-[#3B5244] shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-[#C2BCB0] font-medium block">
+                    {bookingType === 'villa' 
+                      ? (bookingScope === 'room_only' ? '🛏️ Single Room Rate' : '🏠 Full Villa Rate')
+                      : 'Standard Rate'}
+                  </span>
+                  <div className="text-lg font-bold text-[#F5F2EB] font-mono">
+                    Rs. {currentDailyRate.toLocaleString()} <span className="text-xs font-normal text-[#C2BCB0] font-sans">/{item.unitLabel || 'night'}{bookingType === 'villa' && bookingScope === 'room_only' ? ' / room' : ''}</span>
+                  </div>
                 </div>
-                {bookingType === 'villa' && (
-                  <span className="text-[11px] text-[#C2BCB0] block">
-                    {bookingScope === 'room_only'
-                      ? `${roomsCount} Room${roomsCount > 1 ? 's' : ''} • ${acPreference === 'ac' ? '❄️ A/C' : '🍃 Non-A/C'}`
-                      : `Entire Property • ${acPreference === 'ac' ? '❄️ A/C' : '🍃 Non-A/C'}`}
+                <div className="text-right">
+                  <span className="text-[10px] uppercase tracking-wider text-[#C2BCB0] font-medium block">
+                    Estimated Total ({days} {days === 1 ? (bookingType === 'villa' ? 'night' : 'day') : (bookingType === 'villa' ? 'nights' : 'days')})
                   </span>
-                )}
-                {needGuide && (
-                  <span className="text-[11px] text-[#D4AF37] block mt-0.5 font-medium">
-                    + Guide: Rs. {(GUIDE_DAILY_RATE * days).toLocaleString()} ({days} {days === 1 ? 'day' : 'days'})
-                  </span>
-                )}
+                  <div className="text-xl font-bold text-[#D4AF37] font-mono">
+                    Rs. {estimatedTotal.toLocaleString()}
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-[10px] uppercase tracking-wider text-[#C2BCB0] font-medium block">
-                  Total ({days} {days === 1 ? (bookingType === 'villa' ? 'night' : 'day') : (bookingType === 'villa' ? 'nights' : 'days')})
-                </span>
-                <div className="text-lg font-bold text-[#D4AF37] font-mono">
-                  Rs. {estimatedTotal.toLocaleString()}
-                </div>
-                {bookingType === 'villa' && bookingScope === 'room_only' && roomsCount > 1 && (
-                  <span className="text-[10px] text-[#C2BCB0] block">({roomsCount} rooms)</span>
+
+              {/* Itemized Bill / Fee Breakdown Toggle */}
+              <div className="pt-2.5 border-t border-[#3B5244]/80">
+                <button
+                  type="button"
+                  onClick={() => setShowBillDetails(!showBillDetails)}
+                  className="w-full flex items-center justify-between text-xs text-[#D4AF37] hover:text-[#F5F2EB] font-semibold transition-colors cursor-pointer py-0.5"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Receipt className="w-3.5 h-3.5" />
+                    <span>Price Breakdown & Bill Summary / ගාස්තු විස්තරය</span>
+                  </span>
+                  {showBillDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                {showBillDetails && (
+                  <div className="mt-2.5 p-3 rounded-xl bg-[#14231B] border border-[#3B5244] space-y-2 text-xs">
+                    {/* Stay Line */}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-[#F5F2EB] font-medium">
+                          {bookingType === 'villa' 
+                            ? (bookingScope === 'room_only' 
+                                ? `🛏️ Room Stay (${roomsCount} Room${roomsCount > 1 ? 's' : ''} × ${days} ${days === 1 ? 'night' : 'nights'})` 
+                                : `🏠 Full Villa Stay (Entire Property × ${days} ${days === 1 ? 'night' : 'nights'})`)
+                            : `${item.name} (${days} ${days === 1 ? 'day' : 'days'})`}
+                        </div>
+                        <div className="text-[11px] text-[#C2BCB0]">
+                          Rate: Rs. {currentDailyRate.toLocaleString()} × {bookingType === 'villa' && bookingScope === 'room_only' ? `${roomsCount} room(s) × ` : ''}{days} {days === 1 ? (bookingType === 'villa' ? 'night' : 'day') : (bookingType === 'villa' ? 'nights' : 'days')} ({acPreference === 'ac' ? '❄️ A/C' : '🍃 Non-A/C'})
+                        </div>
+                      </div>
+                      <span className="font-mono font-bold text-[#F5F2EB] shrink-0">
+                        Rs. {basePrice.toLocaleString()}
+                      </span>
+                    </div>
+
+                    {/* Guide Fee Line */}
+                    {needGuide && (
+                      <div className="flex items-start justify-between pt-1.5 border-t border-[#3B5244]/60">
+                        <div>
+                          <div className="text-[#D4AF37] font-medium flex items-center gap-1">
+                            <Compass className="w-3.5 h-3.5" />
+                            <span>Accredited Rainforest Guide</span>
+                          </div>
+                          <div className="text-[11px] text-[#C2BCB0]">
+                            Daily fee: Rs. {GUIDE_DAILY_RATE.toLocaleString()} × {days} {days === 1 ? 'day' : 'days'}
+                          </div>
+                        </div>
+                        <span className="font-mono font-bold text-[#D4AF37] shrink-0">
+                          + Rs. {guideFee.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Village Meals Line */}
+                    {bookingType === 'villa' && (
+                      <div className="flex items-start justify-between pt-1.5 border-t border-[#3B5244]/60">
+                        <div>
+                          <div className="text-[#F5F2EB] font-medium flex items-center gap-1">
+                            <Utensils className="w-3.5 h-3.5 text-[#D4AF37]" />
+                            <span>Authentic Village Meals</span>
+                          </div>
+                          <div className="text-[11px] text-[#C2BCB0]">
+                            {orderMeals 
+                              ? 'Requested (Woodfire clay-pot buffet - pay host upon serving)' 
+                              : 'Room Only (No pre-ordered meals)'}
+                          </div>
+                        </div>
+                        <span className={`text-[11px] font-medium shrink-0 ${orderMeals ? 'text-[#D4AF37]' : 'text-[#C2BCB0]'}`}>
+                          {orderMeals ? 'Included on request' : 'Optional'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Service & Verification fee */}
+                    <div className="flex items-center justify-between pt-1.5 border-t border-[#3B5244]/60 text-[11px] text-[#C2BCB0]">
+                      <span className="flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3 text-[#D4AF37]" />
+                        <span>Host Coordination & Leech Protection</span>
+                      </span>
+                      <span className="text-emerald-400 font-semibold font-mono">FREE</span>
+                    </div>
+
+                    {/* Bill Grand Total Line */}
+                    <div className="flex items-center justify-between pt-2 border-t border-[#3B5244] font-bold text-sm">
+                      <span className="text-[#F5F2EB]">Total Estimated Payable:</span>
+                      <span className="text-[#D4AF37] font-mono text-base">Rs. {estimatedTotal.toLocaleString()}</span>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -759,7 +838,29 @@ Please verify live availability with the host and confirm my booking. Thank you!
               </div>
               <div className="flex justify-between pt-2 border-t border-[#3B5244] font-bold">
                 <span className="text-[#C2BCB0]">Estimated Total:</span>
-                <span className="text-[#D4AF37] font-mono">Rs. {submittedBooking.totalLKR.toLocaleString()}</span>
+                <span className="text-[#D4AF37] font-mono text-base">Rs. {submittedBooking.totalLKR.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Bill Receipt Badge */}
+            <div className="p-3 bg-[#14231B] border border-[#3B5244] rounded-xl text-left text-xs space-y-1.5">
+              <div className="text-[11px] font-semibold text-[#D4AF37] uppercase tracking-wider flex items-center gap-1.5">
+                <Receipt className="w-3.5 h-3.5" />
+                <span>Invoice / Bill Summary</span>
+              </div>
+              <div className="flex justify-between text-[#C2BCB0]">
+                <span>Base Accommodation ({days} {days === 1 ? 'night' : 'nights'}):</span>
+                <span className="font-mono text-[#F5F2EB]">Rs. {basePrice.toLocaleString()}</span>
+              </div>
+              {submittedBooking.needGuide && (
+                <div className="flex justify-between text-[#C2BCB0]">
+                  <span>Accredited Guide ({days} {days === 1 ? 'day' : 'days'}):</span>
+                  <span className="font-mono text-[#D4AF37]">+ Rs. {(submittedBooking.guideFee || 4000).toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-[#C2BCB0]">
+                <span>Reservation & Support Fee:</span>
+                <span className="text-emerald-400 font-mono font-semibold">FREE (Rs. 0)</span>
               </div>
             </div>
 
