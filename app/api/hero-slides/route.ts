@@ -16,11 +16,18 @@ export async function GET(req: Request) {
     void searchParams;
 
     let slides: HeroSlide[] = [];
+    let postgresChecked = false;
+
     if (isPostgresConfigured()) {
-      slides = await dbGetAll<HeroSlide>('lankagama_slides');
+      try {
+        slides = await dbGetAll<HeroSlide>('lankagama_slides');
+        postgresChecked = true;
+      } catch (e) {
+        console.error('Failed to load slides from Postgres:', e);
+      }
     }
 
-    if (!slides || slides.length === 0) {
+    if (!postgresChecked) {
       slides = getAllHeroSlides();
     }
 

@@ -16,11 +16,18 @@ export async function GET(req: Request) {
     void searchParams;
 
     let gear: CampingGear[] = [];
+    let postgresChecked = false;
+
     if (isPostgresConfigured()) {
-      gear = await dbGetAll<CampingGear>('lankagama_camping');
+      try {
+        gear = await dbGetAll<CampingGear>('lankagama_camping');
+        postgresChecked = true;
+      } catch (e) {
+        console.error('Failed to load camping gear from Postgres:', e);
+      }
     }
 
-    if (!gear || gear.length === 0) {
+    if (!postgresChecked) {
       gear = getAllCampingGear();
     }
 

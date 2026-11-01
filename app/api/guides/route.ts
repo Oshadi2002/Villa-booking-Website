@@ -16,15 +16,17 @@ export async function GET(req: Request) {
     void searchParams;
 
     let guides: TourGuide[] = [];
+    let postgresChecked = false;
     if (isPostgresConfigured()) {
       try {
         guides = await dbGetAll<TourGuide>('lankagama_guides');
+        postgresChecked = true;
       } catch (e) {
         console.error('Failed to get guides from DB:', e);
       }
     }
 
-    if (!guides || guides.length === 0) {
+    if (!postgresChecked) {
       const cloudGuides = await fetchFromCloudKV<TourGuide[]>('lankagama_guides');
       guides = cloudGuides && Array.isArray(cloudGuides) && cloudGuides.length > 0
         ? cloudGuides

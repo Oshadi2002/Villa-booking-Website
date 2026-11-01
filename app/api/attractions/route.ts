@@ -16,11 +16,18 @@ export async function GET(req: Request) {
     void searchParams;
 
     let attractions: Attraction[] = [];
+    let postgresChecked = false;
+
     if (isPostgresConfigured()) {
-      attractions = await dbGetAll<Attraction>('lankagama_attractions');
+      try {
+        attractions = await dbGetAll<Attraction>('lankagama_attractions');
+        postgresChecked = true;
+      } catch (e) {
+        console.error('Failed to load attractions from Postgres:', e);
+      }
     }
 
-    if (!attractions || attractions.length === 0) {
+    if (!postgresChecked) {
       attractions = getAllAttractions();
     }
 

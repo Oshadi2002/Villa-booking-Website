@@ -18,16 +18,18 @@ export async function GET(req: Request) {
 
   try {
     let inquiries: CustomerInquiry[] = [];
+    let postgresChecked = false;
 
     if (isPostgresConfigured()) {
       try {
         inquiries = await dbGetAll<CustomerInquiry>('lankagama_inquiries');
+        postgresChecked = true;
       } catch (e) {
         console.error('Failed to get inquiries from DB:', e);
       }
     }
 
-    if (!inquiries || inquiries.length === 0) {
+    if (!postgresChecked) {
       const cloudInquiries = await fetchFromCloudKV<CustomerInquiry[]>('lankagama_inquiries');
       inquiries = cloudInquiries && Array.isArray(cloudInquiries) && cloudInquiries.length > 0
         ? cloudInquiries

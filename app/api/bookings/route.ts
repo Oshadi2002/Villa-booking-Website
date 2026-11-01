@@ -18,15 +18,17 @@ export async function GET(req: Request) {
 
   try {
     let bookings: Booking[] = [];
+    let postgresChecked = false;
     if (isPostgresConfigured()) {
       try {
         bookings = await dbGetAll<Booking>('lankagama_bookings');
+        postgresChecked = true;
       } catch (dbErr) {
         console.error('Failed to load bookings from Postgres:', dbErr);
       }
     }
 
-    if (!bookings || bookings.length === 0) {
+    if (!postgresChecked) {
       bookings = getAllBookings();
     }
 

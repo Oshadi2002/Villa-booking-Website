@@ -16,15 +16,17 @@ export async function GET(req: Request) {
     const isAdmin = isAuthenticatedAdmin(req);
 
     let comments: CustomerComment[] = [];
+    let postgresChecked = false;
     if (isPostgresConfigured()) {
       try {
         comments = await dbGetAll<CustomerComment>('lankagama_comments');
+        postgresChecked = true;
       } catch (e) {
         console.error('Failed to get comments from DB:', e);
       }
     }
 
-    if (!comments || comments.length === 0) {
+    if (!postgresChecked) {
       const cloudComments = await fetchFromCloudKV<CustomerComment[]>('lankagama_comments');
       comments = cloudComments && Array.isArray(cloudComments) && cloudComments.length > 0
         ? cloudComments

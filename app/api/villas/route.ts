@@ -16,11 +16,18 @@ export async function GET(req: Request) {
     void searchParams;
 
     let villas: Villa[] = [];
+    let postgresChecked = false;
+
     if (isPostgresConfigured()) {
-      villas = await dbGetAll<Villa>('lankagama_villas');
+      try {
+        villas = await dbGetAll<Villa>('lankagama_villas');
+        postgresChecked = true;
+      } catch (e) {
+        console.error('Failed to query villas from Postgres:', e);
+      }
     }
 
-    if (!villas || villas.length === 0) {
+    if (!postgresChecked) {
       villas = getAllVillas();
     }
 
