@@ -150,6 +150,11 @@ export async function ensurePostgresTables(): Promise<boolean> {
       await query(`ALTER TABLE ${tbl} ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
     }
 
+    // Clean up unwanted test villas from PostgreSQL if present
+    try {
+      await query("DELETE FROM lankagama_villas WHERE id IN ('villa-3', 'villa-4');");
+    } catch {}
+
     // Check if initial seeding has already been completed once
     const seedCheck = await query<{ id: string }>('SELECT id FROM lankagama_settings WHERE id = $1', ['initial_seed_completed']);
     if (seedCheck.length === 0) {

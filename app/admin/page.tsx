@@ -277,7 +277,7 @@ export default function AdminPage() {
       const v = localStorage.getItem('lankagama_synced_villas');
       if (v) {
         const parsed = JSON.parse(v);
-        if (Array.isArray(parsed) && parsed.length > 0) setVillas(parsed);
+        if (Array.isArray(parsed)) setVillas(parsed.filter(villa => villa.id !== 'villa-3' && villa.id !== 'villa-4'));
       }
       const s = localStorage.getItem('lankagama_synced_slides');
       if (s) {
