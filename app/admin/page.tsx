@@ -691,8 +691,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
   // ---------------- VILLAS ACTIONS ---------------- //
   const handleCreateVilla = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newVilla.name.trim() || !newVilla.pricePerNightLKR) {
-      alert('Please enter villa name and price.');
+    if (!newVilla.name.trim()) {
+      alert('Please enter villa name.');
       return;
     }
 
@@ -710,35 +710,35 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       const compressedCover = await compressDataUrl(coverUrl);
       const compressedImages = await Promise.all(finalImages.map(img => compressDataUrl(img)));
 
-      const featuresList = newVilla.featuresText.split(',').map(f => f.trim()).filter(f => f.length > 0);
-      const foodList = newVilla.foodText.split(',').map(f => f.trim()).filter(f => f.length > 0);
-      const rulesList = newVilla.rulesText.split(',').map(f => f.trim()).filter(f => f.length > 0);
+      const featuresList = newVilla.featuresText ? newVilla.featuresText.split(',').map(f => f.trim()).filter(f => f.length > 0) : [];
+      const foodList = newVilla.foodText ? newVilla.foodText.split(',').map(f => f.trim()).filter(f => f.length > 0) : [];
+      const rulesList = newVilla.rulesText ? newVilla.rulesText.split(',').map(f => f.trim()).filter(f => f.length > 0) : [];
 
       const res = await fetch('/api/villas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: newVilla.name,
-          sinhalaName: newVilla.sinhalaName || newVilla.name,
-          tagline: newVilla.tagline,
-          description: newVilla.description,
-          pricePerNightLKR: Number(newVilla.pricePerNightLKR),
+          name: newVilla.name.trim(),
+          sinhalaName: newVilla.sinhalaName?.trim() || newVilla.name.trim(),
+          tagline: newVilla.tagline || '',
+          description: newVilla.description || '',
+          pricePerNightLKR: Number(newVilla.pricePerNightLKR) || 0,
           pricePerNightAcLKR: newVilla.pricePerNightAcLKR ? Number(newVilla.pricePerNightAcLKR) : undefined,
           pricePerRoomLKR: newVilla.pricePerRoomLKR ? Number(newVilla.pricePerRoomLKR) : undefined,
           pricePerRoomAcLKR: newVilla.pricePerRoomAcLKR ? Number(newVilla.pricePerRoomAcLKR) : undefined,
           bookingScopeAvailable: newVilla.bookingScopeAvailable || 'both',
-          maxGuests: Number(newVilla.maxGuests),
-          bedrooms: Number(newVilla.bedrooms),
-          bathrooms: Number(newVilla.bathrooms),
-          bedConfig: newVilla.bedConfig,
-          checkInTime: newVilla.checkInTime,
-          checkOutTime: newVilla.checkOutTime,
-          locationDetails: newVilla.locationDetails,
-          ownerContact: newVilla.ownerContact,
+          maxGuests: Number(newVilla.maxGuests) || 2,
+          bedrooms: Number(newVilla.bedrooms) || 1,
+          bathrooms: Number(newVilla.bathrooms) || 1,
+          bedConfig: newVilla.bedConfig || '',
+          checkInTime: newVilla.checkInTime || '02:00 PM',
+          checkOutTime: newVilla.checkOutTime || '11:00 AM',
+          locationDetails: newVilla.locationDetails || '',
+          ownerContact: newVilla.ownerContact || '',
           imageUrl: compressedCover,
           images: compressedImages,
-          acType: newVilla.acType,
-          hasKitchen: newVilla.hasKitchen,
+          acType: newVilla.acType || 'both',
+          hasKitchen: newVilla.hasKitchen !== undefined ? newVilla.hasKitchen : true,
           features: featuresList,
           foodOptions: foodList,
           houseRules: rulesList,
@@ -746,15 +746,15 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
             {
               category: 'Room Comfort & Setup',
               items: [
-                `${newVilla.bedrooms} Separate Bedrooms with fresh linens`,
-                `${newVilla.bathrooms} Bathrooms with hot showers`,
-                `Bed configuration: ${newVilla.bedConfig}`,
+                `${Number(newVilla.bedrooms) || 1} Separate Bedrooms with fresh linens`,
+                `${Number(newVilla.bathrooms) || 1} Bathrooms with hot showers`,
+                ...(newVilla.bedConfig ? [`Bed configuration: ${newVilla.bedConfig}`] : []),
                 'Private river viewing balcony'
               ]
             },
             {
               category: 'Included Amenities',
-              items: featuresList.slice(0, 4)
+              items: featuresList.length > 0 ? featuresList.slice(0, 4) : ['River proximity', 'Peaceful nature setting']
             }
           ]
         })
@@ -3154,13 +3154,12 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </span>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">🏠 Full Villa Non-A/C (LKR) *</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">🏠 Full Villa Non-A/C (LKR)</label>
                     <input
                       type="number"
-                      required
-                      min="1000"
-                      value={newVilla.pricePerNightLKR}
-                      onChange={e => setNewVilla({ ...newVilla, pricePerNightLKR: Number(e.target.value) })}
+                      placeholder="e.g. 10000"
+                      value={newVilla.pricePerNightLKR || ''}
+                      onChange={e => setNewVilla({ ...newVilla, pricePerNightLKR: Number(e.target.value) || 0 })}
                       className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono font-bold bg-white"
                     />
                   </div>
@@ -3168,7 +3167,6 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">🏠 Full Villa A/C (LKR)</label>
                     <input
                       type="number"
-                      min="1000"
                       placeholder="e.g. 15000"
                       value={newVilla.pricePerNightAcLKR || ''}
                       onChange={e => setNewVilla({ ...newVilla, pricePerNightAcLKR: Number(e.target.value) || 0 })}
@@ -3179,7 +3177,6 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">🛏️ Per Room Non-A/C (LKR)</label>
                     <input
                       type="number"
-                      min="500"
                       placeholder="e.g. 6500"
                       value={newVilla.pricePerRoomLKR || ''}
                       onChange={e => setNewVilla({ ...newVilla, pricePerRoomLKR: Number(e.target.value) || 0 })}
@@ -3190,7 +3187,6 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     <label className="block text-[11px] font-semibold text-slate-600 mb-1">🛏️ Per Room A/C (LKR)</label>
                     <input
                       type="number"
-                      min="500"
                       placeholder="e.g. 8000"
                       value={newVilla.pricePerRoomAcLKR || ''}
                       onChange={e => setNewVilla({ ...newVilla, pricePerRoomAcLKR: Number(e.target.value) || 0 })}
@@ -3201,35 +3197,32 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Bedrooms Count *</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Bedrooms Count</label>
                     <input
                       type="number"
-                      required
-                      min="1"
-                      value={newVilla.bedrooms}
-                      onChange={e => setNewVilla({ ...newVilla, bedrooms: Number(e.target.value) })}
+                      placeholder="e.g. 2"
+                      value={newVilla.bedrooms || ''}
+                      onChange={e => setNewVilla({ ...newVilla, bedrooms: Number(e.target.value) || 0 })}
                       className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono font-bold bg-white"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Bathrooms *</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Bathrooms</label>
                     <input
                       type="number"
-                      required
-                      min="1"
-                      value={newVilla.bathrooms}
-                      onChange={e => setNewVilla({ ...newVilla, bathrooms: Number(e.target.value) })}
+                      placeholder="e.g. 2"
+                      value={newVilla.bathrooms || ''}
+                      onChange={e => setNewVilla({ ...newVilla, bathrooms: Number(e.target.value) || 0 })}
                       className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono font-bold bg-white"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Max Guests *</label>
+                    <label className="block text-[11px] font-semibold text-slate-600 mb-1">Max Guests</label>
                     <input
                       type="number"
-                      required
-                      min="1"
-                      value={newVilla.maxGuests}
-                      onChange={e => setNewVilla({ ...newVilla, maxGuests: Number(e.target.value) })}
+                      placeholder="e.g. 4"
+                      value={newVilla.maxGuests || ''}
+                      onChange={e => setNewVilla({ ...newVilla, maxGuests: Number(e.target.value) || 0 })}
                       className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 font-mono font-bold bg-white"
                     />
                   </div>
@@ -3262,7 +3255,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                       <Snowflake className="w-3.5 h-3.5 text-blue-600" />
-                      <span>A/C Availability *</span>
+                      <span>A/C Availability</span>
                     </label>
                     <div className="grid grid-cols-3 gap-1.5">
                       <button
@@ -3305,7 +3298,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                       <Utensils className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Kitchen Facility *</span>
+                      <span>Kitchen Facility</span>
                     </label>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
@@ -3342,8 +3335,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   onChange={url => {
                     setNewVilla({ ...newVilla, imageUrl: url });
                   }}
-                  label="Primary Cover Photo (Drag & Drop or Select File) *"
-                  hint="Main display image for the villa card"
+                  label="Primary Cover Photo (Drag & Drop or Select File)"
+                  hint="Main display image for the villa card (Optional - default image will be used if empty)"
                 />
 
                 <MultiImageUpload
@@ -4111,9 +4104,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Bedrooms</label>
                   <input
                     type="number"
-                    min={1}
-                    value={editingVilla.bedrooms}
-                    onChange={e => setEditingVilla({ ...editingVilla, bedrooms: Number(e.target.value) || 1 })}
+                    value={editingVilla.bedrooms || ''}
+                    onChange={e => setEditingVilla({ ...editingVilla, bedrooms: Number(e.target.value) || 0 })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
                   />
                 </div>
@@ -4121,9 +4113,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Bathrooms</label>
                   <input
                     type="number"
-                    min={1}
-                    value={editingVilla.bathrooms}
-                    onChange={e => setEditingVilla({ ...editingVilla, bathrooms: Number(e.target.value) || 1 })}
+                    value={editingVilla.bathrooms || ''}
+                    onChange={e => setEditingVilla({ ...editingVilla, bathrooms: Number(e.target.value) || 0 })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
                   />
                 </div>
@@ -4131,9 +4122,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Max Guests</label>
                   <input
                     type="number"
-                    min={1}
-                    value={editingVilla.maxGuests}
-                    onChange={e => setEditingVilla({ ...editingVilla, maxGuests: Number(e.target.value) || 1 })}
+                    value={editingVilla.maxGuests || ''}
+                    onChange={e => setEditingVilla({ ...editingVilla, maxGuests: Number(e.target.value) || 0 })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
                   />
                 </div>
@@ -4196,7 +4186,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                     <Snowflake className="w-3.5 h-3.5 text-blue-600" />
-                    <span>A/C Availability *</span>
+                    <span>A/C Availability</span>
                   </label>
                   <div className="grid grid-cols-3 gap-1.5">
                     <button
@@ -4239,7 +4229,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                     <Utensils className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Kitchen Facility *</span>
+                    <span>Kitchen Facility</span>
                   </label>
                   <div className="grid grid-cols-2 gap-1.5">
                     <button

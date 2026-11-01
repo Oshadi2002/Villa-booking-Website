@@ -50,9 +50,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    if (!body.name || !body.pricePerNightLKR) {
+    if (!body.name) {
       return NextResponse.json(
-        { success: false, message: 'Villa name and price per night are required.' },
+        { success: false, message: 'Villa name is required.' },
         { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
