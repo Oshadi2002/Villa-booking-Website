@@ -4,10 +4,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Users, Check, ArrowRight, MapPin, Eye, 
   Image as ImageIcon, ChevronLeft, ChevronRight, 
-  Bed, Bath, Compass, Sparkles
+  Bed, Bath, Compass, Sparkles, Home, MessageCircle
 } from 'lucide-react';
-import { VILLAS } from '@/lib/data';
 import { Villa } from '@/lib/types';
+import { useWhatsApp } from '@/lib/useWhatsApp';
 
 interface VillaSectionProps {
   onSelectVilla: (villa: Villa) => void;
@@ -221,15 +221,17 @@ function VillaCardItem({
   );
 }
 
-export default function VillaSection({ onSelectVilla, onViewDetails, villas = VILLAS }: VillaSectionProps) {
-  const displayVillas = villas && villas.length > 0 ? villas : VILLAS;
+export default function VillaSection({ onSelectVilla, onViewDetails, villas = [] }: VillaSectionProps) {
+  const displayVillas = villas || [];
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const { getWhatsAppLink } = useWhatsApp();
+  const whatsappUrl = getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I want to inquire about villa booking and current availability.');
 
   // Update scroll arrow state and current active slide index
   const updateScrollState = useCallback(() => {
-    if (!trackRef.current) return;
+    if (!trackRef.current || displayVillas.length === 0) return;
     const { scrollLeft, clientWidth } = trackRef.current;
     const cardWidth = trackRef.current.firstElementChild?.clientWidth || clientWidth;
     const index = Math.round(scrollLeft / (cardWidth + 24));
@@ -260,11 +262,13 @@ export default function VillaSection({ onSelectVilla, onViewDetails, villas = VI
   }, []);
 
   const handlePrev = useCallback(() => {
+    if (displayVillas.length === 0) return;
     const nextIdx = (activeIndex - 1 + displayVillas.length) % displayVillas.length;
     scrollToIndex(nextIdx);
   }, [activeIndex, displayVillas.length, scrollToIndex]);
 
   const handleNext = useCallback(() => {
+    if (displayVillas.length === 0) return;
     const nextIdx = (activeIndex + 1) % displayVillas.length;
     scrollToIndex(nextIdx);
   }, [activeIndex, displayVillas.length, scrollToIndex]);
@@ -285,7 +289,7 @@ export default function VillaSection({ onSelectVilla, onViewDetails, villas = VI
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Editorial Section Header & Carousel Navigation Bar */}
+        {/* Editorial Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div className="max-w-2xl">
             <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[#D4AF37] block mb-2">
@@ -295,118 +299,147 @@ export default function VillaSection({ onSelectVilla, onViewDetails, villas = VI
               Villas & Eco-Lodges in Lankagama
             </h2>
             <p className="mt-3 text-sm sm:text-base text-[#C2BCB0] leading-relaxed font-normal">
-              Every property is personally vetted by our agency. Swipe or use controls to browse our riverside villas and rainforest lodges.
+              Every property is personally vetted by our agency. Browse our riverside villas and rainforest lodges with direct host verification.
             </p>
           </div>
 
-          {/* Carousel Controls (Top Right) */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-            {/* Auto-Slide Play/Pause Switch */}
-            <button
-              onClick={() => setIsAutoPlay(!isAutoPlay)}
-              type="button"
-              className={`px-3 py-1.5 rounded-full border text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
-                isAutoPlay
-                  ? 'bg-[#14231B] border-[#D4AF37] text-[#D4AF37]'
-                  : 'bg-[#2C3E33] border-[#3B5244] text-[#C2BCB0] hover:text-[#F5F2EB]'
-              }`}
-              title={isAutoPlay ? 'Auto-Slide Active (Click to pause)' : 'Auto-Slide Paused (Click to play)'}
-            >
-              <span className={`w-2 h-2 rounded-full ${isAutoPlay ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}`} />
-              <span>{isAutoPlay ? 'Auto-Slide: ON' : 'Auto-Slide: OFF'}</span>
-            </button>
+          {displayVillas.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              {/* Auto-Slide Play/Pause Switch */}
+              <button
+                onClick={() => setIsAutoPlay(!isAutoPlay)}
+                type="button"
+                className={`px-3 py-1.5 rounded-full border text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isAutoPlay
+                    ? 'bg-[#14231B] border-[#D4AF37] text-[#D4AF37]'
+                    : 'bg-[#2C3E33] border-[#3B5244] text-[#C2BCB0] hover:text-[#F5F2EB]'
+                }`}
+                title={isAutoPlay ? 'Auto-Slide Active (Click to pause)' : 'Auto-Slide Paused (Click to play)'}
+              >
+                <span className={`w-2 h-2 rounded-full ${isAutoPlay ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}`} />
+                <span>{isAutoPlay ? 'Auto-Slide: ON' : 'Auto-Slide: OFF'}</span>
+              </button>
 
-            <div className="px-3.5 py-1.5 rounded-full bg-[#2C3E33] border border-[#3B5244] text-xs font-mono text-[#D4AF37] flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Villa {activeIndex + 1} of {displayVillas.length}</span>
+              <div className="px-3.5 py-1.5 rounded-full bg-[#2C3E33] border border-[#3B5244] text-xs font-mono text-[#D4AF37] flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>Villa {activeIndex + 1} of {displayVillas.length}</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-[#14231B] p-1 rounded-2xl border border-[#3B5244]">
+                <button
+                  onClick={handlePrev}
+                  type="button"
+                  aria-label="Previous Villa"
+                  className="w-10 h-10 rounded-xl bg-[#2C3E33] hover:bg-[#D4AF37] hover:text-[#14231B] text-[#F5F2EB] flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleNext}
+                  type="button"
+                  aria-label="Next Villa"
+                  className="w-10 h-10 rounded-xl bg-[#2C3E33] hover:bg-[#D4AF37] hover:text-[#14231B] text-[#F5F2EB] flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
             </div>
+          )}
+        </div>
 
-            <div className="flex items-center gap-1.5 bg-[#14231B] p-1 rounded-2xl border border-[#3B5244]">
+        {displayVillas.length === 0 ? (
+          <div className="bg-[#2C3E33]/70 rounded-3xl p-10 sm:p-14 border border-[#3B5244] text-center max-w-2xl mx-auto my-6 shadow-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-[#14231B] border border-[#3B5244] flex items-center justify-center text-[#D4AF37] mx-auto mb-5 shadow-inner">
+              <Home className="w-8 h-8" />
+            </div>
+            <span className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[#D4AF37] block mb-2">
+              Lankagama Stays & Experiences
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-serif font-semibold text-[#F5F2EB] mb-3">
+              New Rainforest Villas Updating Soon
+            </h3>
+            <p className="text-xs sm:text-sm text-[#C2BCB0] mb-8 leading-relaxed max-w-lg mx-auto">
+              Our curated collection of riverside villas and eco-lodges in Lankagama is currently being updated. You can inquire directly with our agency for live room bookings and availability.
+            </p>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-[#D4AF37] text-[#14231B] font-bold text-xs uppercase tracking-wider hover:bg-[#c49f2c] transition-all shadow-xl hover:scale-103 cursor-pointer"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Inquire Stays via WhatsApp</span>
+            </a>
+          </div>
+        ) : (
+          <div>
+            {/* Villa Carousel Slider Track */}
+            <div className="relative group/carousel">
+              {/* Edge Fade Gradients on Desktop */}
+              <div className="hidden lg:block absolute left-0 inset-y-0 w-8 bg-gradient-to-r from-[#1E2A22] to-transparent pointer-events-none z-10" />
+              <div className="hidden lg:block absolute right-0 inset-y-0 w-8 bg-gradient-to-l from-[#1E2A22] to-transparent pointer-events-none z-10" />
+
+              {/* Scrollable Track */}
+              <div
+                ref={trackRef}
+                className="flex gap-6 sm:gap-8 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-4 pt-1 px-1"
+              >
+                {displayVillas.map((villa) => (
+                  <div
+                    key={villa.id}
+                    className="w-[88vw] sm:w-[460px] lg:w-[calc(50%-16px)] shrink-0 snap-start"
+                  >
+                    <VillaCardItem
+                      villa={villa}
+                      onSelectVilla={onSelectVilla}
+                      onViewDetails={onViewDetails}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Floating Next/Prev Buttons on track sides for desktop */}
               <button
                 onClick={handlePrev}
                 type="button"
-                aria-label="Previous Villa"
-                className="w-10 h-10 rounded-xl bg-[#2C3E33] hover:bg-[#D4AF37] hover:text-[#14231B] text-[#F5F2EB] flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                aria-label="Previous slide"
+                className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-[#14231B]/95 text-[#F5F2EB] hover:bg-[#D4AF37] hover:text-[#14231B] border border-[#3B5244] shadow-xl items-center justify-center z-20 transition-all opacity-0 group-hover/carousel:opacity-100 hover:scale-105 cursor-pointer"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={handleNext}
                 type="button"
-                aria-label="Next Villa"
-                className="w-10 h-10 rounded-xl bg-[#2C3E33] hover:bg-[#D4AF37] hover:text-[#14231B] text-[#F5F2EB] flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+                aria-label="Next slide"
+                className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-[#14231B]/95 text-[#F5F2EB] hover:bg-[#D4AF37] hover:text-[#14231B] border border-[#3B5244] shadow-xl items-center justify-center z-20 transition-all opacity-0 group-hover/carousel:opacity-100 hover:scale-105 cursor-pointer"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
-          </div>
-        </div>
 
-        {/* Villa Carousel Slider Track */}
-        <div className="relative group/carousel">
-          {/* Edge Fade Gradients on Desktop */}
-          <div className="hidden lg:block absolute left-0 inset-y-0 w-8 bg-gradient-to-r from-[#1E2A22] to-transparent pointer-events-none z-10" />
-          <div className="hidden lg:block absolute right-0 inset-y-0 w-8 bg-gradient-to-l from-[#1E2A22] to-transparent pointer-events-none z-10" />
-
-          {/* Scrollable Track */}
-          <div
-            ref={trackRef}
-            className="flex gap-6 sm:gap-8 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-4 pt-1 px-1"
-          >
-            {displayVillas.map((villa) => (
-              <div
-                key={villa.id}
-                className="w-[88vw] sm:w-[460px] lg:w-[calc(50%-16px)] shrink-0 snap-start"
-              >
-                <VillaCardItem
-                  villa={villa}
-                  onSelectVilla={onSelectVilla}
-                  onViewDetails={onViewDetails}
+            {/* Carousel Pagination Dots */}
+            <div className="mt-8 flex items-center justify-center gap-2">
+              {displayVillas.map((villa, idx) => (
+                <button
+                  key={villa.id}
+                  onClick={() => scrollToIndex(idx)}
+                  type="button"
+                  aria-label={`Go to Villa ${idx + 1}`}
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    activeIndex === idx
+                      ? 'w-8 bg-[#D4AF37]'
+                      : 'w-2 bg-[#3B5244] hover:bg-[#C2BCB0]'
+                  }`}
                 />
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Swipe Guidance Cue for Mobile */}
+            <div className="mt-4 flex sm:hidden items-center justify-center gap-2 text-[11px] text-[#C2BCB0]">
+              <span>👈 Swipe sideways to view other villas 👉</span>
+            </div>
           </div>
-
-          {/* Floating Next/Prev Buttons on track sides for desktop */}
-          <button
-            onClick={handlePrev}
-            type="button"
-            aria-label="Previous slide"
-            className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-[#14231B]/95 text-[#F5F2EB] hover:bg-[#D4AF37] hover:text-[#14231B] border border-[#3B5244] shadow-xl items-center justify-center z-20 transition-all opacity-0 group-hover/carousel:opacity-100 hover:scale-105 cursor-pointer"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={handleNext}
-            type="button"
-            aria-label="Next slide"
-            className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-[#14231B]/95 text-[#F5F2EB] hover:bg-[#D4AF37] hover:text-[#14231B] border border-[#3B5244] shadow-xl items-center justify-center z-20 transition-all opacity-0 group-hover/carousel:opacity-100 hover:scale-105 cursor-pointer"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Carousel Pagination Dots */}
-        <div className="mt-8 flex items-center justify-center gap-2">
-          {displayVillas.map((villa, idx) => (
-            <button
-              key={villa.id}
-              onClick={() => scrollToIndex(idx)}
-              type="button"
-              aria-label={`Go to Villa ${idx + 1}`}
-              className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                activeIndex === idx
-                  ? 'w-8 bg-[#D4AF37]'
-                  : 'w-2 bg-[#3B5244] hover:bg-[#C2BCB0]'
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Swipe Guidance Cue for Mobile */}
-        <div className="mt-4 flex sm:hidden items-center justify-center gap-2 text-[11px] text-[#C2BCB0]">
-          <span>👈 Swipe sideways to view other villas 👉</span>
-        </div>
+        )}
 
       </div>
     </section>

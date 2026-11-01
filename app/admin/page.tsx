@@ -42,7 +42,7 @@ export default function AdminPage() {
     url: ''
   });
 
-  const [villas, setVillas] = useState<Villa[]>(VILLAS);
+  const [villas, setVillas] = useState<Villa[]>([]);
   const [isAddVillaModalOpen, setIsAddVillaModalOpen] = useState(false);
   const [newVilla, setNewVilla] = useState({
     name: '',
@@ -323,7 +323,8 @@ export default function AdminPage() {
       // 3. Villas
       fetch(`/api/villas?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
         if (d.success && Array.isArray(d.villas)) {
-          setVillas(d.villas.length > 0 ? d.villas : VILLAS);
+          const validVillas = d.villas.filter((v: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
+          setVillas(validVillas);
         }
       }).catch(() => {});
 

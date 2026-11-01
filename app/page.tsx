@@ -35,7 +35,7 @@ export default function HomePage() {
   const [selectedKithulProduct, setSelectedKithulProduct] = useState<KithulProduct | null>(null);
 
   // Data lists
-  const [villasList, setVillasList] = useState<Villa[]>(VILLAS);
+  const [villasList, setVillasList] = useState<Villa[]>([]);
   const [slidesList, setSlidesList] = useState<HeroSlide[]>([]);
   const [gearList, setGearList] = useState<CampingGear[]>(CAMPING_GEAR);
   const [kithulList, setKithulList] = useState<KithulProduct[]>(KITHUL_PRODUCTS);
@@ -47,12 +47,10 @@ export default function HomePage() {
       if (v) {
         const parsed = JSON.parse(v);
         if (Array.isArray(parsed)) {
-          const cleaned = parsed.filter((villa: Villa) => villa.id !== 'villa-3' && villa.id !== 'villa-4');
-          if (cleaned.length > 0) {
-            setVillasList(cleaned);
-          } else {
+          const cleaned = parsed.filter((villa: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(villa.id));
+          setVillasList(cleaned);
+          if (cleaned.length === 0) {
             localStorage.removeItem('lankagama_synced_villas');
-            setVillasList(VILLAS);
           }
         }
       }
@@ -106,11 +104,14 @@ export default function HomePage() {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.villas)) {
-          const validVillas = data.villas.filter((villa: Villa) => villa.id !== 'villa-3' && villa.id !== 'villa-4');
-          const finalVillas = validVillas.length > 0 ? validVillas : VILLAS;
-          setVillasList(finalVillas);
+          const validVillas = data.villas.filter((villa: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(villa.id));
+          setVillasList(validVillas);
           try {
-            localStorage.setItem('lankagama_synced_villas', JSON.stringify(finalVillas));
+            if (validVillas.length > 0) {
+              localStorage.setItem('lankagama_synced_villas', JSON.stringify(validVillas));
+            } else {
+              localStorage.removeItem('lankagama_synced_villas');
+            }
           } catch {}
         }
       })

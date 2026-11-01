@@ -150,25 +150,10 @@ export async function ensurePostgresTables(): Promise<boolean> {
       await query(`ALTER TABLE ${tbl} ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
     }
 
-    // Clean up unwanted test villas from PostgreSQL if present
+    // Clean up sample / test villas from PostgreSQL if present
     try {
-      await query("DELETE FROM lankagama_villas WHERE id IN ('villa-3', 'villa-4');");
+      await query("DELETE FROM lankagama_villas WHERE id IN ('villa-1', 'villa-2', 'villa-3', 'villa-4');");
     } catch {}
-
-    // Ensure active default villas exist in lankagama_villas if empty
-    try {
-      const activeVillas = await query<{ id: string }>('SELECT id FROM lankagama_villas LIMIT 1');
-      if (activeVillas.length === 0) {
-        for (const villa of VILLAS) {
-          await query(
-            'INSERT INTO lankagama_villas (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
-            [villa.id, JSON.stringify(villa)]
-          );
-        }
-      }
-    } catch (e) {
-      console.error('Failed to ensure active villas in Postgres:', e);
-    }
 
     // Check if initial seeding has already been completed once
     const seedCheck = await query<{ id: string }>('SELECT id FROM lankagama_settings WHERE id = $1', ['initial_seed_completed']);

@@ -21,13 +21,8 @@ export async function GET(req: Request) {
 
     if (isPostgresConfigured()) {
       try {
-        villas = await dbGetAll<Villa>('lankagama_villas');
-        if (villas.length === 0) {
-          for (const v of VILLAS) {
-            await dbSaveItem('lankagama_villas', v);
-          }
-          villas = VILLAS;
-        }
+        const rawVillas = await dbGetAll<Villa>('lankagama_villas');
+        villas = rawVillas.filter(v => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
         postgresChecked = true;
       } catch (e) {
         console.error('Failed to query villas from Postgres:', e);
@@ -35,7 +30,7 @@ export async function GET(req: Request) {
     }
 
     if (!postgresChecked) {
-      villas = getAllVillas();
+      villas = getAllVillas().filter(v => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
     }
 
     return NextResponse.json(
