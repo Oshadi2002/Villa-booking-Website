@@ -48,7 +48,12 @@ export default function HomePage() {
         const parsed = JSON.parse(v);
         if (Array.isArray(parsed)) {
           const cleaned = parsed.filter((villa: Villa) => villa.id !== 'villa-3' && villa.id !== 'villa-4');
-          setVillasList(cleaned);
+          if (cleaned.length > 0) {
+            setVillasList(cleaned);
+          } else {
+            localStorage.removeItem('lankagama_synced_villas');
+            setVillasList(VILLAS);
+          }
         }
       }
       const s = localStorage.getItem('lankagama_synced_slides');
@@ -101,9 +106,11 @@ export default function HomePage() {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.villas)) {
-          setVillasList(data.villas);
+          const validVillas = data.villas.filter((villa: Villa) => villa.id !== 'villa-3' && villa.id !== 'villa-4');
+          const finalVillas = validVillas.length > 0 ? validVillas : VILLAS;
+          setVillasList(finalVillas);
           try {
-            localStorage.setItem('lankagama_synced_villas', JSON.stringify(data.villas));
+            localStorage.setItem('lankagama_synced_villas', JSON.stringify(finalVillas));
           } catch {}
         }
       })

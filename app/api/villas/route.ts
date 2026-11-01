@@ -3,6 +3,7 @@ import { getAllVillas, createVilla } from '@/lib/storage';
 import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
 import { Villa } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
+import { VILLAS } from '@/lib/data';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -21,6 +22,12 @@ export async function GET(req: Request) {
     if (isPostgresConfigured()) {
       try {
         villas = await dbGetAll<Villa>('lankagama_villas');
+        if (villas.length === 0) {
+          for (const v of VILLAS) {
+            await dbSaveItem('lankagama_villas', v);
+          }
+          villas = VILLAS;
+        }
         postgresChecked = true;
       } catch (e) {
         console.error('Failed to query villas from Postgres:', e);

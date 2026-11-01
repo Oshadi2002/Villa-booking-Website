@@ -155,6 +155,21 @@ export async function ensurePostgresTables(): Promise<boolean> {
       await query("DELETE FROM lankagama_villas WHERE id IN ('villa-3', 'villa-4');");
     } catch {}
 
+    // Ensure active default villas exist in lankagama_villas if empty
+    try {
+      const activeVillas = await query<{ id: string }>('SELECT id FROM lankagama_villas LIMIT 1');
+      if (activeVillas.length === 0) {
+        for (const villa of VILLAS) {
+          await query(
+            'INSERT INTO lankagama_villas (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = $2',
+            [villa.id, JSON.stringify(villa)]
+          );
+        }
+      }
+    } catch (e) {
+      console.error('Failed to ensure active villas in Postgres:', e);
+    }
+
     // Check if initial seeding has already been completed once
     const seedCheck = await query<{ id: string }>('SELECT id FROM lankagama_settings WHERE id = $1', ['initial_seed_completed']);
     if (seedCheck.length === 0) {

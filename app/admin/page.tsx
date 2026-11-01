@@ -13,7 +13,7 @@ import {
   Snowflake, Wind, Utensils, Key, Eye, EyeOff
 } from 'lucide-react';
 import { Booking, Villa, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry } from '@/lib/types';
-import { AGENCY_CONFIG } from '@/lib/data';
+import { AGENCY_CONFIG, VILLAS } from '@/lib/data';
 import ImageUploadDropzone from '@/components/ImageUploadDropzone';
 import MultiImageUpload from '@/components/MultiImageUpload';
 import { compressDataUrl } from '@/lib/imageCompressor';
@@ -42,7 +42,7 @@ export default function AdminPage() {
     url: ''
   });
 
-  const [villas, setVillas] = useState<Villa[]>([]);
+  const [villas, setVillas] = useState<Villa[]>(VILLAS);
   const [isAddVillaModalOpen, setIsAddVillaModalOpen] = useState(false);
   const [newVilla, setNewVilla] = useState({
     name: '',
@@ -322,8 +322,8 @@ export default function AdminPage() {
 
       // 3. Villas
       fetch(`/api/villas?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.villas) && d.villas.length > 0) {
-          setVillas(d.villas);
+        if (d.success && Array.isArray(d.villas)) {
+          setVillas(d.villas.length > 0 ? d.villas : VILLAS);
         }
       }).catch(() => {});
 
