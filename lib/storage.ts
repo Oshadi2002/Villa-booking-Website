@@ -202,7 +202,7 @@ function readDataFile<T>(fileName: string, fallback: T): T {
     if (fs.existsSync(tmpFile)) {
       const data = fs.readFileSync(tmpFile, 'utf-8');
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) ? parsed.length > 0 : parsed) {
+      if (Array.isArray(parsed) || (parsed && typeof parsed === 'object')) {
         return parsed;
       }
     }
@@ -214,7 +214,7 @@ function readDataFile<T>(fileName: string, fallback: T): T {
     if (fs.existsSync(localFile)) {
       const data = fs.readFileSync(localFile, 'utf-8');
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) ? parsed.length > 0 : parsed) {
+      if (Array.isArray(parsed) || (parsed && typeof parsed === 'object')) {
         return parsed;
       }
     }

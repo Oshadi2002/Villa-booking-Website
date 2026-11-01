@@ -217,6 +217,11 @@ export default function KithulSection({ onSelectProduct, products = KITHUL_PRODU
             ref={trackRef}
             className="flex gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-4 pt-1 px-1"
           >
+            {filteredProducts.length === 0 && (
+              <div className="w-full py-16 text-center bg-[#1E2A22]/50 rounded-3xl border border-dashed border-[#3B5244] text-[#C2BCB0] text-sm">
+                No delicacies currently available in this category.
+              </div>
+            )}
             {filteredProducts.map((item) => (
               <div
                 key={item.id}

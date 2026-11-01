@@ -414,7 +414,9 @@ export default function VillaDetailModal({ isOpen, onClose, villa, onBookNow }: 
             <button
               onClick={() => {
                 onClose();
-                onBookNow(villa);
+                setTimeout(() => {
+                  onBookNow(villa);
+                }, 50);
               }}
               className="py-3 px-5 sm:px-7 rounded-xl font-semibold text-xs sm:text-sm text-[#14231B] bg-[#D4AF37] hover:bg-[#C5A880] active:scale-98 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
             >

@@ -16,6 +16,9 @@ interface UseModalHistoryOptions {
  *   the ephemeral history entry is safely reverted to keep the browser stack clean.
  * - Never traps the visitor or prevents exiting when the modal is closed.
  */
+// Global timestamp to ignore synthetic popstate events caused by previous modal unmounts
+let lastProgrammaticBackTime = 0;
+
 export function useModalHistory({ isOpen, onClose, modalId }: UseModalHistoryOptions) {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -34,6 +37,11 @@ export function useModalHistory({ isOpen, onClose, modalId }: UseModalHistoryOpt
     } catch {}
 
     const handlePopState = (_event: PopStateEvent) => {
+      // If a programmatic back occurred within 300ms (e.g. from another modal closing), ignore it
+      if (Date.now() - lastProgrammaticBackTime < 300) {
+        return;
+      }
+
       // Browser Back was pressed while modal was open
       if (isPushedRef.current) {
         isPushedRef.current = false;
@@ -50,6 +58,7 @@ export function useModalHistory({ isOpen, onClose, modalId }: UseModalHistoryOpt
         isPushedRef.current = false;
         try {
           if (window.history.state?.modalOpen === modalId) {
+            lastProgrammaticBackTime = Date.now();
             window.history.back();
           }
         } catch {}

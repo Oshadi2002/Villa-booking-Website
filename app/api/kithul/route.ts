@@ -16,11 +16,18 @@ export async function GET(req: Request) {
     void searchParams;
 
     let products: KithulProduct[] = [];
+    let postgresChecked = false;
+
     if (isPostgresConfigured()) {
-      products = await dbGetAll<KithulProduct>('lankagama_kithul');
+      try {
+        products = await dbGetAll<KithulProduct>('lankagama_kithul');
+        postgresChecked = true;
+      } catch (e) {
+        console.error('Failed to load kithul from database:', e);
+      }
     }
 
-    if (!products || products.length === 0) {
+    if (!postgresChecked) {
       products = getAllKithulProducts();
     }
 

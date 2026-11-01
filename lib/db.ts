@@ -150,42 +150,34 @@ export async function ensurePostgresTables(): Promise<boolean> {
       await query(`ALTER TABLE ${tbl} ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;`);
     }
 
-    // Auto-seed villas if empty
-    const existingVillas = await query<{ id: string }>('SELECT id FROM lankagama_villas LIMIT 1');
-    if (existingVillas.length === 0) {
+    // Check if initial seeding has already been completed once
+    const seedCheck = await query<{ id: string }>('SELECT id FROM lankagama_settings WHERE id = $1', ['initial_seed_completed']);
+    if (seedCheck.length === 0) {
+      // Auto-seed villas
       for (const villa of VILLAS) {
         await query(
           'INSERT INTO lankagama_villas (id, data) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
           [villa.id, JSON.stringify(villa)]
         );
       }
-    }
 
-    // Auto-seed camping if empty
-    const existingCamping = await query<{ id: string }>('SELECT id FROM lankagama_camping LIMIT 1');
-    if (existingCamping.length === 0) {
+      // Auto-seed camping
       for (const gear of CAMPING_GEAR) {
         await query(
           'INSERT INTO lankagama_camping (id, data) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
           [gear.id, JSON.stringify(gear)]
         );
       }
-    }
 
-    // Auto-seed kithul if empty
-    const existingKithul = await query<{ id: string }>('SELECT id FROM lankagama_kithul LIMIT 1');
-    if (existingKithul.length === 0) {
+      // Auto-seed kithul
       for (const prod of KITHUL_PRODUCTS) {
         await query(
           'INSERT INTO lankagama_kithul (id, data) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
           [prod.id, JSON.stringify(prod)]
         );
       }
-    }
 
-    // Auto-seed slides if empty
-    const existingSlides = await query<{ id: string }>('SELECT id FROM lankagama_slides LIMIT 1');
-    if (existingSlides.length === 0) {
+      // Auto-seed slides
       const defaultSlides: HeroSlide[] = [
         {
           id: 'slide-1',
@@ -224,11 +216,8 @@ export async function ensurePostgresTables(): Promise<boolean> {
           [s.id, JSON.stringify(s)]
         );
       }
-    }
 
-    // Auto-seed attractions if empty
-    const existingAttractions = await query<{ id: string }>('SELECT id FROM lankagama_attractions LIMIT 1');
-    if (existingAttractions.length === 0) {
+      // Auto-seed attractions
       for (let i = 0; i < ATTRACTIONS.length; i++) {
         const a = ATTRACTIONS[i];
         const item: Attraction = {
@@ -250,17 +239,20 @@ export async function ensurePostgresTables(): Promise<boolean> {
           [item.id, JSON.stringify(item)]
         );
       }
-    }
 
-    // Auto-seed tour guides if empty
-    const existingGuides = await query<{ id: string }>('SELECT id FROM lankagama_guides LIMIT 1');
-    if (existingGuides.length === 0) {
+      // Auto-seed tour guides
       for (const g of TOUR_GUIDES) {
         await query(
           'INSERT INTO lankagama_guides (id, data) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
           [g.id, JSON.stringify(g)]
         );
       }
+
+      // Mark initial seeding as permanently completed
+      await query(
+        'INSERT INTO lankagama_settings (id, data) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
+        ['initial_seed_completed', JSON.stringify({ seededAt: new Date().toISOString() })]
+      );
     }
 
     // Auto-seed agency settings if empty

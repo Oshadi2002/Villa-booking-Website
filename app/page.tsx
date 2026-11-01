@@ -46,22 +46,22 @@ export default function HomePage() {
       const v = localStorage.getItem('lankagama_synced_villas');
       if (v) {
         const parsed = JSON.parse(v);
-        if (Array.isArray(parsed) && parsed.length > 0) setVillasList(parsed);
+        if (Array.isArray(parsed)) setVillasList(parsed);
       }
       const s = localStorage.getItem('lankagama_synced_slides');
       if (s) {
         const parsed = JSON.parse(s);
-        if (Array.isArray(parsed) && parsed.length > 0) setSlidesList(parsed);
+        if (Array.isArray(parsed)) setSlidesList(parsed);
       }
       const g = localStorage.getItem('lankagama_synced_camping');
       if (g) {
         const parsed = JSON.parse(g);
-        if (Array.isArray(parsed) && parsed.length > 0) setGearList(parsed);
+        if (Array.isArray(parsed)) setGearList(parsed);
       }
       const k = localStorage.getItem('lankagama_synced_kithul');
       if (k) {
         const parsed = JSON.parse(k);
-        if (Array.isArray(parsed) && parsed.length > 0) setKithulList(parsed);
+        if (Array.isArray(parsed)) setKithulList(parsed);
       }
     } catch {}
   };
@@ -97,15 +97,11 @@ export default function HomePage() {
     fetch(`/api/villas?t=${timestamp}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.villas) && data.villas.length > 0) {
-          setVillasList(prev => {
-            const hasLocalChanges = typeof window !== 'undefined' && localStorage.getItem('lankagama_synced_villas');
-            if (hasLocalChanges) {
-              const localParsed = JSON.parse(localStorage.getItem('lankagama_synced_villas') || '[]');
-              if (localParsed.length >= data.villas.length) return localParsed;
-            }
-            return data.villas;
-          });
+        if (data.success && Array.isArray(data.villas)) {
+          setVillasList(data.villas);
+          try {
+            localStorage.setItem('lankagama_synced_villas', JSON.stringify(data.villas));
+          } catch {}
         }
       })
       .catch(() => {});
@@ -113,15 +109,11 @@ export default function HomePage() {
     fetch(`/api/hero-slides?t=${timestamp}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.slides) && data.slides.length > 0) {
-          setSlidesList(prev => {
-            const hasLocal = typeof window !== 'undefined' && localStorage.getItem('lankagama_synced_slides');
-            if (hasLocal) {
-              const localParsed = JSON.parse(localStorage.getItem('lankagama_synced_slides') || '[]');
-              if (localParsed.length >= data.slides.length) return localParsed;
-            }
-            return data.slides;
-          });
+        if (data.success && Array.isArray(data.slides)) {
+          setSlidesList(data.slides);
+          try {
+            localStorage.setItem('lankagama_synced_slides', JSON.stringify(data.slides));
+          } catch {}
         }
       })
       .catch(() => {});
@@ -129,15 +121,11 @@ export default function HomePage() {
     fetch(`/api/camping?t=${timestamp}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.gear) && data.gear.length > 0) {
-          setGearList(prev => {
-            const hasLocal = typeof window !== 'undefined' && localStorage.getItem('lankagama_synced_camping');
-            if (hasLocal) {
-              const localParsed = JSON.parse(localStorage.getItem('lankagama_synced_camping') || '[]');
-              if (localParsed.length >= data.gear.length) return localParsed;
-            }
-            return data.gear;
-          });
+        if (data.success && Array.isArray(data.gear)) {
+          setGearList(data.gear);
+          try {
+            localStorage.setItem('lankagama_synced_camping', JSON.stringify(data.gear));
+          } catch {}
         }
       })
       .catch(() => {});
@@ -145,15 +133,11 @@ export default function HomePage() {
     fetch(`/api/kithul?t=${timestamp}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.products) && data.products.length > 0) {
-          setKithulList(prev => {
-            const hasLocal = typeof window !== 'undefined' && localStorage.getItem('lankagama_synced_kithul');
-            if (hasLocal) {
-              const localParsed = JSON.parse(localStorage.getItem('lankagama_synced_kithul') || '[]');
-              if (localParsed.length >= data.products.length) return localParsed;
-            }
-            return data.products;
-          });
+        if (data.success && Array.isArray(data.products)) {
+          setKithulList(data.products);
+          try {
+            localStorage.setItem('lankagama_synced_kithul', JSON.stringify(data.products));
+          } catch {}
         }
       })
       .catch(() => {});
