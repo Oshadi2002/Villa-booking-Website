@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { isPostgresConfigured, dbGetSettings } from './db';
-import { getAgencySettings } from './storage';
 
 const COOKIE_NAME = 'lankagama_admin_session';
 const SESSION_DURATION_SECONDS = 7 * 24 * 60 * 60; // 7 days
@@ -120,15 +119,6 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
       const dbSettings = await dbGetSettings();
       if (dbSettings.adminPasswordHash) {
         savedHash = dbSettings.adminPasswordHash;
-      }
-    } catch {}
-  }
-
-  if (!savedHash) {
-    try {
-      const storageSettings = getAgencySettings();
-      if (storageSettings.adminPasswordHash) {
-        savedHash = storageSettings.adminPasswordHash;
       }
     } catch {}
   }

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllBookings, createBooking } from '@/lib/storage';
-import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
+import { dbGetAll, dbCreateBooking } from '@/lib/db';
 import { Booking } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 import { bookingCreateSchema } from '@/lib/validations';
@@ -17,24 +16,11 @@ export async function GET(req: Request) {
   if (authError) return authError;
 
   try {
-    let bookings: Booking[] = [];
-    let postgresChecked = false;
-    if (isPostgresConfigured()) {
-      try {
-        bookings = await dbGetAll<Booking>('lankagama_bookings');
-        postgresChecked = true;
-      } catch (dbErr) {
-        console.error('Failed to load bookings from Postgres:', dbErr);
-      }
-    }
-
-    if (!postgresChecked) {
-      bookings = getAllBookings();
-    }
-
+    const bookings = await dbGetAll<Booking>('lankagama_bookings');
     return NextResponse.json({ success: true, bookings }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/bookings GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -61,7 +47,7 @@ export async function POST(req: Request) {
 
     const data = parseResult.data;
 
-    // Date sanity check: Check-in cannot be in the past (using Sri Lanka time / UTC)
+    // Date sanity check: Check-in cannot be in the past
     const today = new Date().toISOString().split('T')[0];
     if (data.checkInDate < today) {
       return NextResponse.json(
@@ -70,8 +56,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create booking in local runtime storage with safe collision check and tracking token
-    const booking = createBooking({
+    // Create booking directly in Cloud PostgreSQL
+    const booking = await dbCreateBooking({
       type: data.type,
       itemId: data.itemId,
       itemName: data.itemName,
@@ -95,22 +81,6 @@ export async function POST(req: Request) {
       itemsSummary: data.itemsSummary
     });
 
-    // Explicit Database Persistence handling
-    if (isPostgresConfigured()) {
-      try {
-        await dbSaveItem('lankagama_bookings', booking);
-      } catch (dbError) {
-        console.error('CRITICAL: Failed to persist booking to PostgreSQL database:', dbError);
-        // If in production with configured Postgres, fail explicitly rather than silently losing booking
-        if (process.env.NODE_ENV === 'production') {
-          return NextResponse.json(
-            { success: false, message: 'Database connection failed. Please contact us via WhatsApp.' },
-            { status: 500, headers: NO_CACHE_HEADERS }
-          );
-        }
-      }
-    }
-
     return NextResponse.json({
       success: true,
       message: 'Booking request placed successfully with status: PENDING.',
@@ -118,6 +88,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/bookings POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

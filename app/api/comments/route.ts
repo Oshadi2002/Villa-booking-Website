@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllComments, createComment, fetchFromCloudKV } from '@/lib/storage';
-import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
+import { dbGetAll, dbCreateComment } from '@/lib/db';
 import { CustomerComment } from '@/lib/types';
 import { isAuthenticatedAdmin } from '@/lib/auth';
 import { commentCreateSchema } from '@/lib/validations';
@@ -14,24 +13,7 @@ const NO_CACHE_HEADERS = {
 export async function GET(req: Request) {
   try {
     const isAdmin = isAuthenticatedAdmin(req);
-
-    let comments: CustomerComment[] = [];
-    let postgresChecked = false;
-    if (isPostgresConfigured()) {
-      try {
-        comments = await dbGetAll<CustomerComment>('lankagama_comments');
-        postgresChecked = true;
-      } catch (e) {
-        console.error('Failed to get comments from DB:', e);
-      }
-    }
-
-    if (!postgresChecked) {
-      const cloudComments = await fetchFromCloudKV<CustomerComment[]>('lankagama_comments');
-      comments = cloudComments && Array.isArray(cloudComments) && cloudComments.length > 0
-        ? cloudComments
-        : getAllComments();
-    }
+    const comments = await dbGetAll<CustomerComment>('lankagama_comments');
 
     // Public visitors only see approved/verified comments; admins see all for moderation
     const visibleComments = isAdmin ? comments : comments.filter(c => c.isVerified);
@@ -39,6 +21,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ success: true, comments: visibleComments }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/comments GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -65,7 +48,7 @@ export async function POST(req: Request) {
     const data = parseResult.data;
 
     // Security Hardening: New public submissions are unverified by default and require admin review
-    const comment = createComment({
+    const comment = await dbCreateComment({
       author: data.author.trim(),
       cityOrCountry: data.cityOrCountry.trim(),
       rating: data.rating,
@@ -75,14 +58,6 @@ export async function POST(req: Request) {
       isVerified: false
     });
 
-    if (isPostgresConfigured()) {
-      try {
-        await dbSaveItem('lankagama_comments', comment);
-      } catch (e) {
-        console.error('Failed to persist comment to DB:', e);
-      }
-    }
-
     return NextResponse.json({
       success: true,
       message: 'Thank you! Your review has been submitted and is pending verification.',
@@ -90,6 +65,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/comments POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

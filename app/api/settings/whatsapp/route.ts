@@ -1,28 +1,19 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
-import { isPostgresConfigured, dbGetSettings, dbSaveSettings } from '@/lib/db';
-import { getAgencySettings, updateAgencySettings } from '@/lib/storage';
+import { dbGetSettings, dbSaveSettings } from '@/lib/db';
 import { normalizeWhatsAppNumber, whatsappSettingsSchema } from '@/lib/validations';
 import { AGENCY_CONFIG } from '@/lib/data';
 import { AgencySettings } from '@/lib/types';
 
 const NO_CACHE_HEADERS = {
-  'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
   'CDN-Cache-Control': 'no-store',
   'Vercel-CDN-Cache-Control': 'no-store'
 };
 
 export async function GET() {
   try {
-    let settings = getAgencySettings();
-
-    if (isPostgresConfigured()) {
-      try {
-        settings = await dbGetSettings();
-      } catch (e) {
-        console.error('Failed to load settings from DB, using fallback:', e);
-      }
-    }
+    const settings = await dbGetSettings();
 
     const rawNumber = settings.activeWhatsAppNumber || AGENCY_CONFIG.whatsappNumber;
     const normalized = normalizeWhatsAppNumber(rawNumber);
@@ -42,6 +33,7 @@ export async function GET() {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/settings/whatsapp GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -70,7 +62,7 @@ export async function POST(req: Request) {
       }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
-    const current = getAgencySettings();
+    const current = await dbGetSettings();
     const cleanPayload: Partial<AgencySettings> = {
       activeWhatsAppNumber: normalized.cleanDigits,
       updatedAt: new Date().toISOString()
@@ -88,13 +80,8 @@ export async function POST(req: Request) {
 
     const merged = { ...current, ...cleanPayload };
 
-    // Save to storage
-    updateAgencySettings(merged);
-
-    // Save to PostgreSQL if configured
-    if (isPostgresConfigured()) {
-      await dbSaveSettings(merged);
-    }
+    // Save directly to PostgreSQL
+    const saved = await dbSaveSettings(merged);
 
     return NextResponse.json({
       success: true,
@@ -102,16 +89,17 @@ export async function POST(req: Request) {
       whatsappNumber: normalized.cleanDigits,
       formattedNumber: normalized.formatted,
       waLink: normalized.waLink,
-      phone: merged.phone || normalized.formatted,
-      email: merged.email || AGENCY_CONFIG.email,
-      address: merged.address || AGENCY_CONFIG.address,
-      locationDetails: merged.locationDetails || AGENCY_CONFIG.locationDetails,
-      name: merged.name || AGENCY_CONFIG.name,
-      sinhalaName: merged.sinhalaName || AGENCY_CONFIG.sinhalaName,
-      updatedAt: merged.updatedAt
+      phone: saved.phone || normalized.formatted,
+      email: saved.email || AGENCY_CONFIG.email,
+      address: saved.address || AGENCY_CONFIG.address,
+      locationDetails: saved.locationDetails || AGENCY_CONFIG.locationDetails,
+      name: saved.name || AGENCY_CONFIG.name,
+      sinhalaName: saved.sinhalaName || AGENCY_CONFIG.sinhalaName,
+      updatedAt: saved.updatedAt
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/settings/whatsapp POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getAllVillas, createVilla } from '@/lib/storage';
-import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
+import { dbGetAll, dbCreateVilla } from '@/lib/db';
 import { Villa } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
-import { VILLAS } from '@/lib/data';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -16,22 +14,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    let villas: Villa[] = [];
-    let postgresChecked = false;
-
-    if (isPostgresConfigured()) {
-      try {
-        const rawVillas = await dbGetAll<Villa>('lankagama_villas');
-        villas = rawVillas.filter(v => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
-        postgresChecked = true;
-      } catch (e) {
-        console.error('Failed to query villas from Postgres:', e);
-      }
-    }
-
-    if (!postgresChecked) {
-      villas = getAllVillas().filter(v => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
-    }
+    const rawVillas = await dbGetAll<Villa>('lankagama_villas');
+    const villas = rawVillas.filter(v => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
 
     return NextResponse.json(
       { success: true, villas },
@@ -39,6 +23,7 @@ export async function GET(req: Request) {
     );
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/villas GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -57,7 +42,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const villa = createVilla({
+    const villa = await dbCreateVilla({
       name: body.name,
       sinhalaName: body.sinhalaName || body.name,
       tagline: body.tagline || 'Peaceful riverside stay in Lankagama',
@@ -99,10 +84,6 @@ export async function POST(req: Request) {
       hasKitchen: body.hasKitchen !== undefined ? Boolean(body.hasKitchen) : true
     });
 
-    if (isPostgresConfigured()) {
-      await dbSaveItem('lankagama_villas', villa);
-    }
-
     return NextResponse.json({
       success: true,
       message: 'Villa created successfully!',
@@ -110,6 +91,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/villas POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

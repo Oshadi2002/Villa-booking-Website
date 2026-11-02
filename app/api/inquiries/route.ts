@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllInquiries, createInquiry, fetchFromCloudKV } from '@/lib/storage';
-import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
+import { dbGetAll, dbCreateInquiry } from '@/lib/db';
 import { CustomerInquiry } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 import { inquiryCreateSchema } from '@/lib/validations';
@@ -17,28 +16,11 @@ export async function GET(req: Request) {
   if (authError) return authError;
 
   try {
-    let inquiries: CustomerInquiry[] = [];
-    let postgresChecked = false;
-
-    if (isPostgresConfigured()) {
-      try {
-        inquiries = await dbGetAll<CustomerInquiry>('lankagama_inquiries');
-        postgresChecked = true;
-      } catch (e) {
-        console.error('Failed to get inquiries from DB:', e);
-      }
-    }
-
-    if (!postgresChecked) {
-      const cloudInquiries = await fetchFromCloudKV<CustomerInquiry[]>('lankagama_inquiries');
-      inquiries = cloudInquiries && Array.isArray(cloudInquiries) && cloudInquiries.length > 0
-        ? cloudInquiries
-        : getAllInquiries();
-    }
-
+    const inquiries = await dbGetAll<CustomerInquiry>('lankagama_inquiries');
     return NextResponse.json({ success: true, inquiries }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/inquiries GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -64,7 +46,7 @@ export async function POST(req: Request) {
 
     const data = parseResult.data;
 
-    const inquiry = createInquiry({
+    const inquiry = await dbCreateInquiry({
       name: data.name.trim(),
       phone: data.phone.trim(),
       email: data.email ? data.email.trim() : undefined,
@@ -73,14 +55,6 @@ export async function POST(req: Request) {
       preferredVillaOrProduct: data.preferredVillaOrProduct ? data.preferredVillaOrProduct.trim() : undefined
     });
 
-    if (isPostgresConfigured()) {
-      try {
-        await dbSaveItem('lankagama_inquiries', inquiry);
-      } catch (e) {
-        console.error('Failed to persist inquiry to Postgres:', e);
-      }
-    }
-
     return NextResponse.json({
       success: true,
       message: 'Inquiry submitted successfully!',
@@ -88,6 +62,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/inquiries POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

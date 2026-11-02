@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllCampingGear, createCampingGear } from '@/lib/storage';
-import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
+import { dbGetAll, dbCreateCampingGear } from '@/lib/db';
 import { CampingGear } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
@@ -15,25 +14,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    let gear: CampingGear[] = [];
-    let postgresChecked = false;
-
-    if (isPostgresConfigured()) {
-      try {
-        gear = await dbGetAll<CampingGear>('lankagama_camping');
-        postgresChecked = true;
-      } catch (e) {
-        console.error('Failed to load camping gear from Postgres:', e);
-      }
-    }
-
-    if (!postgresChecked) {
-      gear = getAllCampingGear();
-    }
-
+    const gear = await dbGetAll<CampingGear>('lankagama_camping');
     return NextResponse.json({ success: true, gear }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/camping GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -49,7 +34,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Gear name and daily price are required' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
-    const gear = createCampingGear({
+    const gear = await dbCreateCampingGear({
       name: body.name,
       sinhalaName: body.sinhalaName || body.name,
       category: body.category || 'package',
@@ -60,10 +45,6 @@ export async function POST(req: Request) {
       imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
     });
 
-    if (isPostgresConfigured()) {
-      await dbSaveItem('lankagama_camping', gear);
-    }
-
     return NextResponse.json({
       success: true,
       message: 'Camping gear added successfully!',
@@ -71,6 +52,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/camping POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

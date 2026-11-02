@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllAttractions, createAttraction } from '@/lib/storage';
-import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
+import { dbGetAll, dbCreateAttraction } from '@/lib/db';
 import { Attraction } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
@@ -15,25 +14,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    let attractions: Attraction[] = [];
-    let postgresChecked = false;
-
-    if (isPostgresConfigured()) {
-      try {
-        attractions = await dbGetAll<Attraction>('lankagama_attractions');
-        postgresChecked = true;
-      } catch (e) {
-        console.error('Failed to load attractions from Postgres:', e);
-      }
-    }
-
-    if (!postgresChecked) {
-      attractions = getAllAttractions();
-    }
-
+    const attractions = await dbGetAll<Attraction>('lankagama_attractions');
     return NextResponse.json({ success: true, attractions }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/attractions GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -49,17 +34,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Attraction name and description are required' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
-    const attraction = createAttraction({
+    const attraction = await dbCreateAttraction({
       name: body.name,
       badge: body.badge || 'Waterfall / Sanctuary',
       description: body.description,
       caution: body.caution || 'Travel with care; respect nature and river currents.',
       imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80'
     });
-
-    if (isPostgresConfigured()) {
-      await dbSaveItem('lankagama_attractions', attraction);
-    }
 
     return NextResponse.json({
       success: true,
@@ -68,6 +49,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/attractions POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

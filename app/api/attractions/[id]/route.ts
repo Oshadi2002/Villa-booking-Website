@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { deleteAttraction, updateAttraction } from '@/lib/storage';
-import { isPostgresConfigured, dbSaveItem, dbDeleteItem } from '@/lib/db';
+import { dbUpdateAttraction, dbDeleteItem } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -17,18 +16,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const body = await req.json();
 
-    const updated = updateAttraction(id, body);
+    const updated = await dbUpdateAttraction(id, body);
     if (!updated) {
       return NextResponse.json({ success: false, message: 'Attraction not found' }, { status: 404, headers: NO_CACHE_HEADERS });
-    }
-
-    if (isPostgresConfigured()) {
-      await dbSaveItem('lankagama_attractions', updated);
     }
 
     return NextResponse.json({ success: true, message: 'Attraction updated successfully', attraction: updated }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/attractions/[id] PATCH error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -39,11 +35,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   try {
     const { id } = await params;
-    const deleted = deleteAttraction(id);
-
-    if (isPostgresConfigured()) {
-      await dbDeleteItem('lankagama_attractions', id);
-    }
+    const deleted = await dbDeleteItem('lankagama_attractions', id);
 
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Attraction not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });
@@ -52,6 +44,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     return NextResponse.json({ success: true, message: 'Attraction deleted' }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/attractions/[id] DELETE error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin, verifyAdminPassword, hashPassword } from '@/lib/auth';
-import { getAgencySettings, updateAgencySettings } from '@/lib/storage';
-import { isPostgresConfigured, dbGetSettings, dbSaveSettings } from '@/lib/db';
+import { dbGetSettings, dbSaveSettings } from '@/lib/db';
 
 const NO_CACHE_HEADERS = {
   'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
@@ -44,24 +43,13 @@ export async function POST(req: Request) {
     // Generate PBKDF2 hash of new password
     const newHash = hashPassword(newPassword);
 
-    // Save to settings
-    updateAgencySettings({
-      adminPasswordHash: newHash
+    // Save directly to Cloud PostgreSQL settings
+    const currentSettings = await dbGetSettings();
+    await dbSaveSettings({
+      ...currentSettings,
+      adminPasswordHash: newHash,
+      updatedAt: new Date().toISOString()
     });
-
-    // Save to PostgreSQL if configured
-    if (isPostgresConfigured()) {
-      try {
-        const dbSettings = await dbGetSettings();
-        await dbSaveSettings({
-          ...dbSettings,
-          adminPasswordHash: newHash,
-          updatedAt: new Date().toISOString()
-        });
-      } catch (dbErr) {
-        console.error('Failed to save updated password hash to DB:', dbErr);
-      }
-    }
 
     return NextResponse.json({
       success: true,
@@ -69,6 +57,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/auth/change-password error:', error);
     return NextResponse.json(
       { success: false, message: error.message || 'Internal server error' },
       { status: 500, headers: NO_CACHE_HEADERS }

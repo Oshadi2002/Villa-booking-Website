@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { deleteHeroSlide, updateHeroSlide } from '@/lib/storage';
-import { isPostgresConfigured, dbSaveItem, dbDeleteItem } from '@/lib/db';
+import { dbGetAll, dbUpdateHeroSlide, dbDeleteItem } from '@/lib/db';
+import { HeroSlide } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -17,18 +17,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { id } = await params;
     const body = await req.json();
 
-    const updated = updateHeroSlide(id, body);
+    const updated = await dbUpdateHeroSlide(id, body);
     if (!updated) {
       return NextResponse.json({ success: false, message: 'Slide not found' }, { status: 404, headers: NO_CACHE_HEADERS });
-    }
-
-    if (isPostgresConfigured()) {
-      await dbSaveItem('lankagama_slides', updated);
     }
 
     return NextResponse.json({ success: true, message: 'Slide updated successfully', slide: updated }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/hero-slides/[id] PATCH error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -39,19 +36,23 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   try {
     const { id } = await params;
-    const deleted = deleteHeroSlide(id);
 
-    if (isPostgresConfigured()) {
-      await dbDeleteItem('lankagama_slides', id);
+    // Safety rule: at least 1 hero slide must remain
+    const allSlides = await dbGetAll<HeroSlide>('lankagama_slides');
+    if (allSlides.length <= 1) {
+      return NextResponse.json({ success: false, message: 'Cannot delete: at least 1 hero slide must remain' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
+    const deleted = await dbDeleteItem('lankagama_slides', id);
+
     if (!deleted) {
-      return NextResponse.json({ success: false, message: 'Cannot delete: at least 1 slide must remain or slide not found' }, { status: 400, headers: NO_CACHE_HEADERS });
+      return NextResponse.json({ success: false, message: 'Slide not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
     return NextResponse.json({ success: true, message: 'Slide deleted' }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/hero-slides/[id] DELETE error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

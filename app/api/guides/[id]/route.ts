@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { deleteGuide } from '@/lib/storage';
-import { isPostgresConfigured, dbDeleteItem } from '@/lib/db';
+import { dbDeleteItem } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -9,15 +8,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
 
   try {
     const { id } = await params;
-    const deleted = deleteGuide(id);
-
-    if (isPostgresConfigured()) {
-      try {
-        await dbDeleteItem('lankagama_guides', id);
-      } catch (e) {
-        console.error('Failed to delete guide from DB:', e);
-      }
-    }
+    const deleted = await dbDeleteItem('lankagama_guides', id);
 
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Guide not found or already deleted' }, { status: 404 });
@@ -29,6 +20,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/guides/[id] DELETE error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }

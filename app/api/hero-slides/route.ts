@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllHeroSlides, createHeroSlide } from '@/lib/storage';
-import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
+import { dbGetAll, dbCreateHeroSlide } from '@/lib/db';
 import { HeroSlide } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
@@ -15,25 +14,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    let slides: HeroSlide[] = [];
-    let postgresChecked = false;
-
-    if (isPostgresConfigured()) {
-      try {
-        slides = await dbGetAll<HeroSlide>('lankagama_slides');
-        postgresChecked = true;
-      } catch (e) {
-        console.error('Failed to load slides from Postgres:', e);
-      }
-    }
-
-    if (!postgresChecked) {
-      slides = getAllHeroSlides();
-    }
-
+    const slides = await dbGetAll<HeroSlide>('lankagama_slides');
     return NextResponse.json({ success: true, slides }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/hero-slides GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -49,15 +34,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Image URL and Title are required' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
-    const slide = createHeroSlide({
+    const slide = await dbCreateHeroSlide({
       url: body.url,
       title: body.title,
       sinhala: body.sinhala || body.title
     });
-
-    if (isPostgresConfigured()) {
-      await dbSaveItem('lankagama_slides', slide);
-    }
 
     return NextResponse.json({
       success: true,
@@ -66,6 +47,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/hero-slides POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

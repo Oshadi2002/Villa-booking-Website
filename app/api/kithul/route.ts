@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllKithulProducts, createKithulProduct } from '@/lib/storage';
-import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
+import { dbGetAll, dbCreateKithulProduct } from '@/lib/db';
 import { KithulProduct } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
@@ -15,25 +14,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    let products: KithulProduct[] = [];
-    let postgresChecked = false;
-
-    if (isPostgresConfigured()) {
-      try {
-        products = await dbGetAll<KithulProduct>('lankagama_kithul');
-        postgresChecked = true;
-      } catch (e) {
-        console.error('Failed to load kithul from database:', e);
-      }
-    }
-
-    if (!postgresChecked) {
-      products = getAllKithulProducts();
-    }
-
+    const products = await dbGetAll<KithulProduct>('lankagama_kithul');
     return NextResponse.json({ success: true, products }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/kithul GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -49,7 +34,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Product name and price are required' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
-    const product = createKithulProduct({
+    const product = await dbCreateKithulProduct({
       name: body.name,
       sinhalaName: body.sinhalaName || body.name,
       category: body.category || 'treacle',
@@ -65,10 +50,6 @@ export async function POST(req: Request) {
       featured: body.featured ?? false
     });
 
-    if (isPostgresConfigured()) {
-      await dbSaveItem('lankagama_kithul', product);
-    }
-
     return NextResponse.json({
       success: true,
       message: 'Kithul product added successfully!',
@@ -76,6 +57,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/kithul POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

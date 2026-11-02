@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getBookingById, updateBooking, deleteBooking } from '@/lib/storage';
-import { isPostgresConfigured, dbSaveItem, dbDeleteItem, dbGetAll } from '@/lib/db';
-import { Booking } from '@/lib/types';
+import { dbFindBooking, dbUpdateBooking, dbDeleteItem } from '@/lib/db';
 import { requireAdmin, isAuthenticatedAdmin } from '@/lib/auth';
 import { maskBookingForPublic } from '@/lib/validations';
 
@@ -19,27 +17,7 @@ export async function GET(
     const { id } = await params;
     const isAdmin = isAuthenticatedAdmin(req);
 
-    let booking: Booking | undefined;
-
-    // Check Postgres first if configured
-    if (isPostgresConfigured()) {
-      try {
-        const all = await dbGetAll<Booking>('lankagama_bookings');
-        const cleanId = id.trim().toUpperCase();
-        const cleanPhone = id.replace(/[\s+-]/g, '');
-        booking = all.find(b => 
-          b.id.toUpperCase() === cleanId || 
-          (b.trackingToken && b.trackingToken.toUpperCase() === cleanId) ||
-          b.customerPhone.replace(/[\s+-]/g, '') === cleanPhone
-        );
-      } catch (e) {
-        console.error('Error fetching booking from DB:', e);
-      }
-    }
-
-    if (!booking) {
-      booking = getBookingById(id);
-    }
+    const booking = await dbFindBooking(id);
 
     if (!booking) {
       return NextResponse.json(
@@ -54,6 +32,7 @@ export async function GET(
     return NextResponse.json({ success: true, booking: safeBooking }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/bookings/[id] GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -70,31 +49,7 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
-    let updated: Booking | null = null;
-
-    if (isPostgresConfigured()) {
-      try {
-        const all = await dbGetAll<Booking>('lankagama_bookings');
-        const cleanId = id.trim().toUpperCase();
-        const existing = all.find(b => b.id.toUpperCase() === cleanId);
-        if (existing) {
-          const merged: Booking = {
-            ...existing,
-            ...body,
-            id: existing.id
-          };
-          await dbSaveItem('lankagama_bookings', merged);
-          updated = merged;
-        }
-      } catch (e) {
-        console.error('Failed to update booking in DB:', e);
-      }
-    }
-
-    const localUpdated = updateBooking(id, body);
-    if (!updated) {
-      updated = localUpdated;
-    }
+    const updated = await dbUpdateBooking(id, body);
 
     if (!updated) {
       return NextResponse.json(
@@ -110,6 +65,7 @@ export async function PATCH(
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/bookings/[id] PATCH error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -124,19 +80,7 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    let deleted = false;
-
-    if (isPostgresConfigured()) {
-      try {
-        await dbDeleteItem('lankagama_bookings', id);
-        deleted = true;
-      } catch (e) {
-        console.error('Failed to delete booking from DB:', e);
-      }
-    }
-
-    const localDeleted = deleteBooking(id);
-    if (localDeleted) deleted = true;
+    const deleted = await dbDeleteItem('lankagama_bookings', id);
 
     if (!deleted) {
       return NextResponse.json(
@@ -151,6 +95,7 @@ export async function DELETE(
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/bookings/[id] DELETE error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

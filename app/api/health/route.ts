@@ -9,31 +9,47 @@ const NO_CACHE_HEADERS = {
 
 export async function GET() {
   const configured = isPostgresConfigured();
-  let dbStatus = configured ? 'connected' : 'not_configured (using local storage)';
+  let dbAvailable = false;
+  let dbStatus: 'connected' | 'not_configured' | 'connection_error' = configured ? 'connected' : 'not_configured';
   let latencyMs = 0;
+  let errorMessage: string | undefined = undefined;
 
   if (configured) {
     try {
       const start = Date.now();
       await query('SELECT 1');
       latencyMs = Date.now() - start;
+      dbAvailable = true;
       dbStatus = 'connected';
     } catch (err: unknown) {
       const error = err as Error;
-      dbStatus = `error: ${error.message}`;
+      dbAvailable = false;
+      dbStatus = 'connection_error';
+      errorMessage = error.message;
     }
   }
 
+  const isHealthy = configured && dbAvailable;
+
   return NextResponse.json(
     {
-      status: 'ok',
+      status: isHealthy ? 'healthy' : 'degraded',
+      storageMode: 'postgresql_only',
+      jsonFallback: 'disabled',
+      inMemoryFallback: 'disabled',
+      singleSourceOfTruth: 'Cloud PostgreSQL',
       cloudDatabase: {
         configured,
+        available: dbAvailable,
         status: dbStatus,
-        latencyMs: latencyMs > 0 ? `${latencyMs}ms` : undefined
+        latency: latencyMs > 0 ? `${latencyMs}ms` : undefined,
+        error: errorMessage
       },
       timestamp: new Date().toISOString()
     },
-    { headers: NO_CACHE_HEADERS }
+    { 
+      status: isHealthy ? 200 : 503,
+      headers: NO_CACHE_HEADERS 
+    }
   );
 }

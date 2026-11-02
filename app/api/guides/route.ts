@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllGuides, createGuide, fetchFromCloudKV } from '@/lib/storage';
-import { isPostgresConfigured, dbGetAll, dbSaveItem } from '@/lib/db';
+import { dbGetAll, dbCreateGuide } from '@/lib/db';
 import { TourGuide } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
@@ -15,27 +14,11 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    let guides: TourGuide[] = [];
-    let postgresChecked = false;
-    if (isPostgresConfigured()) {
-      try {
-        guides = await dbGetAll<TourGuide>('lankagama_guides');
-        postgresChecked = true;
-      } catch (e) {
-        console.error('Failed to get guides from DB:', e);
-      }
-    }
-
-    if (!postgresChecked) {
-      const cloudGuides = await fetchFromCloudKV<TourGuide[]>('lankagama_guides');
-      guides = cloudGuides && Array.isArray(cloudGuides) && cloudGuides.length > 0
-        ? cloudGuides
-        : getAllGuides();
-    }
-
+    const guides = await dbGetAll<TourGuide>('lankagama_guides');
     return NextResponse.json({ success: true, guides }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/guides GET error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
@@ -54,7 +37,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const guide = createGuide({
+    const guide = await dbCreateGuide({
       name: body.name,
       nickname: body.nickname || body.name.split(' ')[0],
       experienceYears: Number(body.experienceYears) || 3,
@@ -68,14 +51,6 @@ export async function POST(req: Request) {
       verifiedLocal: true
     });
 
-    if (isPostgresConfigured()) {
-      try {
-        await dbSaveItem('lankagama_guides', guide);
-      } catch (e) {
-        console.error('Failed to save guide to DB:', e);
-      }
-    }
-
     return NextResponse.json({
       success: true,
       message: 'Guide created successfully!',
@@ -83,6 +58,7 @@ export async function POST(req: Request) {
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
+    console.error('API /api/guides POST error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
