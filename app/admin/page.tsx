@@ -10,9 +10,9 @@ import {
   MapPin, X, Tent, Waves, Menu, ChevronRight,
   ShieldCheck, AlertCircle, FileText, ShoppingBag,
   Wine, Star, MessageSquare, HelpCircle, Mail, Pencil,
-  Snowflake, Wind, Utensils, Key, Eye, EyeOff
+  Snowflake, Wind, Utensils, Key, Eye, EyeOff, BookOpen
 } from 'lucide-react';
-import { Booking, Villa, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry } from '@/lib/types';
+import { Booking, Villa, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry, BlogPost } from '@/lib/types';
 import { AGENCY_CONFIG, VILLAS } from '@/lib/data';
 import ImageUploadDropzone from '@/components/ImageUploadDropzone';
 import MultiImageUpload from '@/components/MultiImageUpload';
@@ -24,7 +24,7 @@ export default function AdminPage() {
   const [pinError, setPinError] = useState('');
 
   // Sidebar navigation tab
-  const [activeTab, setActiveTab] = useState<'bookings' | 'slides' | 'villas' | 'kithul' | 'camping' | 'attractions' | 'comments' | 'inquiries' | 'whatsapp'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'slides' | 'villas' | 'kithul' | 'camping' | 'attractions' | 'blogs' | 'comments' | 'inquiries' | 'whatsapp'>('bookings');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Data states
@@ -92,6 +92,29 @@ export default function AdminPage() {
     description: '',
     caution: 'Always check water currents; respect nature and refrain from leaving plastic or soap.',
     imageUrl: ''
+  });
+
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [isAddBlogModalOpen, setIsAddBlogModalOpen] = useState(false);
+  const [blogSearch, setBlogSearch] = useState('');
+  const [blogCategoryFilter, setBlogCategoryFilter] = useState<string>('All');
+  const [newBlog, setNewBlog] = useState({
+    title: '',
+    sinhalaTitle: '',
+    category: 'Waterfalls' as BlogPost['category'],
+    readTime: '4 min read',
+    badge: '35m Waterfall',
+    author: 'Sunil Shantha (Native Guide)',
+    authorSi: 'සුනිල් ශාන්ත (ප්‍රදේශවාසී මඟපෙන්වන්නා)',
+    imageUrl: '',
+    summary: '',
+    summarySi: '',
+    content: '',
+    contentSi: '',
+    highlightsText: '',
+    highlightsSiText: '',
+    caution: '',
+    cautionSi: ''
   });
 
   const [kithulProducts, setKithulProducts] = useState<KithulProduct[]>([]);
@@ -177,6 +200,9 @@ export default function AdminPage() {
   const [editingKithul, setEditingKithul] = useState<KithulProduct | null>(null);
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
   const [editingAttraction, setEditingAttraction] = useState<Attraction | null>(null);
+  const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
+  const [editingBlogHighlights, setEditingBlogHighlights] = useState('');
+  const [editingBlogHighlightsSi, setEditingBlogHighlightsSi] = useState('');
   const [editingComment, setEditingComment] = useState<CustomerComment | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -270,6 +296,14 @@ export default function AdminPage() {
     broadcastSync('SYNC_ATTRACTIONS', newAttractions);
   };
 
+  const syncBlogsState = (newBlogs: BlogPost[]) => {
+    setBlogs(newBlogs);
+    try {
+      localStorage.setItem('lankagama_synced_blogs', JSON.stringify(newBlogs));
+    } catch {}
+    broadcastSync('SYNC_BLOGS', newBlogs);
+  };
+
   const fetchAllData = async () => {
     setLoading(true);
     // 1. Initial check from localStorage for instant admin display
@@ -298,6 +332,11 @@ export default function AdminPage() {
       if (a) {
         const parsed = JSON.parse(a);
         if (Array.isArray(parsed) && parsed.length > 0) setAttractions(parsed);
+      }
+      const b = localStorage.getItem('lankagama_synced_blogs');
+      if (b) {
+        const parsed = JSON.parse(b);
+        if (Array.isArray(parsed) && parsed.length > 0) setBlogs(parsed);
       }
     } catch {}
 
@@ -357,6 +396,13 @@ export default function AdminPage() {
       // 8. Inquiries
       fetch(`/api/inquiries?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
         if (d.success && Array.isArray(d.inquiries)) setInquiries(d.inquiries);
+      }).catch(() => {});
+
+      // 9. Blogs & Guides
+      fetch(`/api/blogs?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
+        if (d.success && Array.isArray(d.blogs) && d.blogs.length > 0) {
+          setBlogs(d.blogs);
+        }
       }).catch(() => {});
 
       // 9. Centralized WhatsApp & Agency Settings
@@ -930,6 +976,83 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     }
   };
 
+  // ---------------- BLOGS & GUIDES ACTIONS ---------------- //
+  const handleCreateBlog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBlog.title || !newBlog.summary) {
+      alert('Please enter blog title and summary.');
+      return;
+    }
+
+    try {
+      const compressedImage = newBlog.imageUrl ? await compressDataUrl(newBlog.imageUrl) : '';
+      const highlights = newBlog.highlightsText
+        .split('\n')
+        .map(h => h.trim())
+        .filter(h => h.length > 0);
+      const highlightsSi = newBlog.highlightsSiText
+        .split('\n')
+        .map(h => h.trim())
+        .filter(h => h.length > 0);
+
+      const res = await fetch('/api/blogs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newBlog,
+          imageUrl: compressedImage || newBlog.imageUrl,
+          images: compressedImage ? [compressedImage] : (newBlog.imageUrl ? [newBlog.imageUrl] : []),
+          highlights,
+          highlightsSi
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.blog) {
+        syncBlogsState([data.blog, ...blogs]);
+        setIsAddBlogModalOpen(false);
+        showNotification(`Blog article "${data.blog.title}" published!`);
+        setNewBlog({
+          title: '',
+          sinhalaTitle: '',
+          category: 'Waterfalls',
+          readTime: '4 min read',
+          badge: '35m Waterfall',
+          author: 'Sunil Shantha (Native Guide)',
+          authorSi: 'සුනිල් ශාන්ත (ප්‍රදේශවාසී මඟපෙන්වන්නා)',
+          imageUrl: '',
+          summary: '',
+          summarySi: '',
+          content: '',
+          contentSi: '',
+          highlightsText: '',
+          highlightsSiText: '',
+          caution: '',
+          cautionSi: ''
+        });
+      } else {
+        alert(data.message || 'Failed to create blog post.');
+      }
+    } catch {
+      alert('Error creating blog post.');
+    }
+  };
+
+  const handleDeleteBlog = async (id: string, title: string) => {
+    if (!window.confirm(`Delete blog post "${title}"?`)) return;
+    try {
+      const res = await fetch(`/api/blogs/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        syncBlogsState(blogs.filter(b => b.id !== id));
+        showNotification(`Blog post "${title}" deleted.`);
+      } else {
+        alert(data.message || 'Failed to delete blog post.');
+      }
+    } catch {
+      alert('Error deleting blog post.');
+    }
+  };
+
   // ---------------- KITHUL & TODDY ACTIONS ---------------- //
   const handleCreateKithul = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1199,6 +1322,51 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
   const handleOpenEditAttraction = (attr: Attraction) => {
     setEditingAttraction(attr);
+  };
+
+  const handleOpenEditBlog = (blog: BlogPost) => {
+    setEditingBlog(blog);
+    setEditingBlogHighlights(blog.highlights ? blog.highlights.join('\n') : '');
+    setEditingBlogHighlightsSi(blog.highlightsSi ? blog.highlightsSi.join('\n') : '');
+  };
+
+  const handleUpdateBlogSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBlog) return;
+
+    try {
+      const compressedImage = editingBlog.imageUrl ? await compressDataUrl(editingBlog.imageUrl) : '';
+      const highlights = editingBlogHighlights
+        .split('\n')
+        .map(h => h.trim())
+        .filter(h => h.length > 0);
+      const highlightsSi = editingBlogHighlightsSi
+        .split('\n')
+        .map(h => h.trim())
+        .filter(h => h.length > 0);
+
+      const res = await fetch(`/api/blogs/${encodeURIComponent(editingBlog.id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...editingBlog,
+          imageUrl: compressedImage || editingBlog.imageUrl,
+          images: compressedImage ? [compressedImage] : (editingBlog.imageUrl ? [editingBlog.imageUrl] : []),
+          highlights,
+          highlightsSi
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.blog) {
+        syncBlogsState(blogs.map(b => b.id === editingBlog.id ? data.blog : b));
+        setEditingBlog(null);
+        showNotification(`Blog post "${data.blog.title}" updated successfully!`);
+      } else {
+        alert(data.message || 'Failed to update blog post.');
+      }
+    } catch {
+      alert('Error updating blog post.');
+    }
   };
 
   const handleUpdateAttractionSubmit = async (e: React.FormEvent) => {
@@ -1481,6 +1649,22 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
               <span className="text-[11px] opacity-75">{attractions.length}</span>
             </button>
 
+            {/* Blogs & Guides */}
+            <button
+              onClick={() => { setActiveTab('blogs'); setIsMobileSidebarOpen(false); }}
+              className={`w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                activeTab === 'blogs'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <BookOpen className="w-4 h-4" />
+                <span>Blogs & Field Guides</span>
+              </div>
+              <span className="text-[11px] opacity-75">{blogs.length}</span>
+            </button>
+
             {/* 6. Kithul & Toddy */}
             <button
               onClick={() => { setActiveTab('kithul'); setIsMobileSidebarOpen(false); }}
@@ -1605,6 +1789,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 activeTab === 'inquiries' ? 'Customer Questions & Inquiries' : 
                 activeTab === 'comments' ? 'Customer Reviews Wall' : 
                 activeTab === 'whatsapp' ? 'Agency Contact, Location & WhatsApp Settings' : 
+                activeTab === 'blogs' ? 'Blogs, Rainforest Guides & Articles' :
                 'Waterfalls & Sanctuaries'
               }</span>
             </h1>
@@ -2326,6 +2511,163 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* ============================================================
+             TAB: BLOGS & RAINFOREST GUIDES
+             ============================================================ */}
+          {activeTab === 'blogs' && (
+            <div className="space-y-6">
+              {/* Header & Controls */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-blue-600" />
+                    <span>Blogs, Field Notes & Rainforest Guides</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Manage detailed guides, waterfall notes, hiking checklists, and cultural articles with English &amp; Sinhala bilingual support.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                  <button
+                    onClick={() => setIsAddBlogModalOpen(true)}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+ Add New Blog Post</span>
+                  </button>
+                  <Link
+                    href="/blogs"
+                    target="_blank"
+                    className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs flex items-center gap-1.5 border border-slate-200 transition-colors"
+                  >
+                    <span>View Blogs Page</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Search & Category Filter */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                  {['All', 'Waterfalls', 'Trekking', 'Rainforest Tips', 'Village Culture'].map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setBlogCategoryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                        blogCategoryFilter === cat
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="w-full sm:w-72">
+                  <input
+                    type="text"
+                    placeholder="Search articles by title or keyword..."
+                    value={blogSearch}
+                    onChange={e => setBlogSearch(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-hidden focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Blogs Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {blogs
+                  .filter(b => {
+                    const matchesCat = blogCategoryFilter === 'All' || b.category === blogCategoryFilter;
+                    const q = blogSearch.toLowerCase();
+                    const matchesQ = b.title.toLowerCase().includes(q) ||
+                      (b.sinhalaTitle && b.sinhalaTitle.toLowerCase().includes(q)) ||
+                      b.summary.toLowerCase().includes(q);
+                    return matchesCat && matchesQ;
+                  })
+                  .map((blog) => (
+                    <div
+                      key={blog.id}
+                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow"
+                    >
+                      <div>
+                        {/* Cover Image */}
+                        <div className="relative h-44 bg-slate-100">
+                          <img
+                            src={blog.imageUrl}
+                            alt={blog.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-900/80 text-amber-400 backdrop-blur-xs">
+                              {blog.category}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/60 text-white backdrop-blur-xs">
+                              {blog.readTime}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Details */}
+                        <div className="p-4 space-y-2">
+                          <h3 className="text-sm font-bold text-slate-900 leading-snug line-clamp-2">
+                            {blog.title}
+                          </h3>
+                          {blog.sinhalaTitle && (
+                            <p className="text-xs text-blue-600 font-medium line-clamp-1">
+                              {blog.sinhalaTitle}
+                            </p>
+                          )}
+
+                          <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
+                            {blog.summary}
+                          </p>
+
+                          <div className="pt-2 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-100">
+                            <span>By {blog.author}</span>
+                            <span>{blog.publishedDate}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card Footer Actions */}
+                      <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2">
+                        <button
+                          onClick={() => handleOpenEditBlog(blog)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 hover:bg-blue-50 border border-blue-200 flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          <span>Edit Article</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteBlog(blog.id, blog.title)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 hover:bg-red-50 border border-red-200 flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              {blogs.length === 0 && (
+                <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 space-y-3">
+                  <p className="text-sm text-slate-500">No blog posts found.</p>
+                  <button
+                    onClick={() => setIsAddBlogModalOpen(true)}
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold"
+                  >
+                    + Create First Blog Post
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -3595,6 +3937,222 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       )}
 
       {/* ============================================================
+         MODAL: ADD BLOG / RAINFOREST GUIDE
+         ============================================================ */}
+      {isAddBlogModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Add New Blog / Rainforest Field Guide</h3>
+                <p className="text-xs text-slate-500">Create an informative article with English &amp; Sinhala bilingual support.</p>
+              </div>
+              <button onClick={() => setIsAddBlogModalOpen(false)} className="p-1 rounded-full text-slate-400 hover:bg-slate-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateBlog} className="space-y-4">
+              <ImageUploadDropzone
+                value={newBlog.imageUrl}
+                onChange={url => setNewBlog({ ...newBlog, imageUrl: url })}
+                label="Article Cover Photo (Drag & Drop or Select Image)"
+                hint="Landscape format recommended (1200x800px)"
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Title (English) *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Brahmana Ella: The 35-Meter Crown Jewel"
+                    value={newBlog.title}
+                    onChange={e => setNewBlog({ ...newBlog, title: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Title (Sinhala / සිංහල මාතෘකාව)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. බ්‍රාහ්මණ ඇල්ල: ලංකාගම දියඇලි රැජිණ"
+                    value={newBlog.sinhalaTitle}
+                    onChange={e => setNewBlog({ ...newBlog, sinhalaTitle: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category *</label>
+                  <select
+                    value={newBlog.category}
+                    onChange={e => setNewBlog({ ...newBlog, category: e.target.value as BlogPost['category'] })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  >
+                    <option value="Waterfalls">Waterfalls</option>
+                    <option value="Trekking">Trekking</option>
+                    <option value="Rainforest Tips">Rainforest Tips</option>
+                    <option value="Village Culture">Village Culture</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Badge / Tag</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 35m Waterfall"
+                    value={newBlog.badge}
+                    onChange={e => setNewBlog({ ...newBlog, badge: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Read Time</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 4 min read"
+                    value={newBlog.readTime}
+                    onChange={e => setNewBlog({ ...newBlog, readTime: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Author (English)</label>
+                  <input
+                    type="text"
+                    value={newBlog.author}
+                    onChange={e => setNewBlog({ ...newBlog, author: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Author (Sinhala)</label>
+                  <input
+                    type="text"
+                    value={newBlog.authorSi}
+                    onChange={e => setNewBlog({ ...newBlog, authorSi: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Short Summary (English) *</label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="A brief overview shown on the blog cards..."
+                  value={newBlog.summary}
+                  onChange={e => setNewBlog({ ...newBlog, summary: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Short Summary (Sinhala / සිංහල සාරාංශය)</label>
+                <textarea
+                  rows={2}
+                  placeholder="කාඩ්පත් වල පෙනෙන කෙටි හැඳින්වීම..."
+                  value={newBlog.summarySi}
+                  onChange={e => setNewBlog({ ...newBlog, summarySi: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Key Highlights (English, 1 per line)</label>
+                  <textarea
+                    rows={3}
+                    placeholder="15-min easy walk&#10;Natural swimming basins&#10;Photogenic suspension bridge"
+                    value={newBlog.highlightsText}
+                    onChange={e => setNewBlog({ ...newBlog, highlightsText: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Key Highlights (Sinhala, 1 per line)</label>
+                  <textarea
+                    rows={3}
+                    placeholder="විලාස් වල සිට විනාඩි 15ක පාගමන&#10;ස්වාභාවික ආරක්ෂිත නාන තටාක&#10;සුන්දර එල්ලෙන පාලම"
+                    value={newBlog.highlightsSiText}
+                    onChange={e => setNewBlog({ ...newBlog, highlightsSiText: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Article Content (English - Paragraphs)</label>
+                <textarea
+                  rows={4}
+                  placeholder="Full detailed article text for the popup modal. Separate paragraphs with double enter..."
+                  value={newBlog.content}
+                  onChange={e => setNewBlog({ ...newBlog, content: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Article Content (Sinhala - ඡේද වශයෙන්)</label>
+                <textarea
+                  rows={4}
+                  placeholder="Popup එකේ දිස්වන සම්පූර්ණ ලිපිය. ඡේද වෙන් කිරීමට Double Enter යොදන්න..."
+                  value={newBlog.contentSi}
+                  onChange={e => setNewBlog({ ...newBlog, contentSi: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Field Advice / Caution (English)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Strictly avoid slippery waterfall top ledges..."
+                    value={newBlog.caution}
+                    onChange={e => setNewBlog({ ...newBlog, caution: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Field Advice / Caution (Sinhala)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. ලිස්සන සුළු ගල් තලා මතට යාමෙන් වළකින්න..."
+                    value={newBlog.cautionSi}
+                    onChange={e => setNewBlog({ ...newBlog, cautionSi: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setIsAddBlogModalOpen(false)}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-sm"
+                >
+                  Publish Blog Article
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================
          MODAL 5: ADD KITHUL PRODUCT / TODDY TOUR
          ============================================================ */}
       {isAddKithulModalOpen && (
@@ -4537,6 +5095,210 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-sm"
                 >
                   Save Attraction Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================
+         EDIT MODAL: BLOG / RAINFOREST GUIDE
+         ============================================================ */}
+      {editingBlog && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Edit Blog / Field Guide</h3>
+                <p className="text-xs text-slate-500 font-mono">ID: {editingBlog.id}</p>
+              </div>
+              <button onClick={() => setEditingBlog(null)} className="p-1 rounded-full text-slate-400 hover:bg-slate-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateBlogSubmit} className="space-y-4">
+              <ImageUploadDropzone
+                value={editingBlog.imageUrl || ''}
+                onChange={url => setEditingBlog({ ...editingBlog, imageUrl: url })}
+                label="Article Cover Photo (Drag & Drop or Select File)"
+                hint="Landscape photo recommended"
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Title (English) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingBlog.title}
+                    onChange={e => setEditingBlog({ ...editingBlog, title: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Title (Sinhala / සිංහල මාතෘකාව)</label>
+                  <input
+                    type="text"
+                    value={editingBlog.sinhalaTitle || ''}
+                    onChange={e => setEditingBlog({ ...editingBlog, sinhalaTitle: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category *</label>
+                  <select
+                    value={editingBlog.category}
+                    onChange={e => setEditingBlog({ ...editingBlog, category: e.target.value as BlogPost['category'] })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  >
+                    <option value="Waterfalls">Waterfalls</option>
+                    <option value="Trekking">Trekking</option>
+                    <option value="Rainforest Tips">Rainforest Tips</option>
+                    <option value="Village Culture">Village Culture</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Badge / Tag</label>
+                  <input
+                    type="text"
+                    value={editingBlog.badge || ''}
+                    onChange={e => setEditingBlog({ ...editingBlog, badge: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Read Time</label>
+                  <input
+                    type="text"
+                    value={editingBlog.readTime || ''}
+                    onChange={e => setEditingBlog({ ...editingBlog, readTime: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Author (English)</label>
+                  <input
+                    type="text"
+                    value={editingBlog.author || ''}
+                    onChange={e => setEditingBlog({ ...editingBlog, author: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Author (Sinhala)</label>
+                  <input
+                    type="text"
+                    value={editingBlog.authorSi || ''}
+                    onChange={e => setEditingBlog({ ...editingBlog, authorSi: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Short Summary (English) *</label>
+                <textarea
+                  rows={2}
+                  required
+                  value={editingBlog.summary}
+                  onChange={e => setEditingBlog({ ...editingBlog, summary: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Short Summary (Sinhala / සිංහල සාරාංශය)</label>
+                <textarea
+                  rows={2}
+                  value={editingBlog.summarySi || ''}
+                  onChange={e => setEditingBlog({ ...editingBlog, summarySi: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Key Highlights (English, 1 per line)</label>
+                  <textarea
+                    rows={3}
+                    value={editingBlogHighlights}
+                    onChange={e => setEditingBlogHighlights(e.target.value)}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Key Highlights (Sinhala, 1 per line)</label>
+                  <textarea
+                    rows={3}
+                    value={editingBlogHighlightsSi}
+                    onChange={e => setEditingBlogHighlightsSi(e.target.value)}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Article Content (English - Paragraphs)</label>
+                <textarea
+                  rows={5}
+                  value={editingBlog.content || ''}
+                  onChange={e => setEditingBlog({ ...editingBlog, content: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Article Content (Sinhala - ඡේද වශයෙන්)</label>
+                <textarea
+                  rows={5}
+                  value={editingBlog.contentSi || ''}
+                  onChange={e => setEditingBlog({ ...editingBlog, contentSi: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Field Advice / Caution (English)</label>
+                  <input
+                    type="text"
+                    value={editingBlog.caution || ''}
+                    onChange={e => setEditingBlog({ ...editingBlog, caution: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Field Advice / Caution (Sinhala)</label>
+                  <input
+                    type="text"
+                    value={editingBlog.cautionSi || ''}
+                    onChange={e => setEditingBlog({ ...editingBlog, cautionSi: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setEditingBlog(null)}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-sm"
+                >
+                  Save Blog Changes
                 </button>
               </div>
             </form>

@@ -65,7 +65,8 @@ const MODULES = [
   { file: 'attractions.json', table: 'lankagama_attractions' },
   { file: 'bookings.json', table: 'lankagama_bookings' },
   { file: 'comments.json', table: 'lankagama_comments' },
-  { file: 'inquiries.json', table: 'lankagama_inquiries' }
+  { file: 'inquiries.json', table: 'lankagama_inquiries' },
+  { file: 'blogs.json', table: 'lankagama_blogs' }
 ];
 
 function readJsonFile(fileName) {
@@ -311,6 +312,14 @@ async function run() {
       const executionSummary = [];
 
       for (const mod of MODULES) {
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS ${mod.table} (
+            id VARCHAR(255) PRIMARY KEY,
+            data JSONB NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
         const jsonItems = readJsonFile(mod.file);
         let modInserted = 0;
         let modSkipped = 0;

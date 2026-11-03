@@ -1,8 +1,10 @@
 import { Pool } from 'pg';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import { 
   Booking, Villa, TourGuide, HeroSlide, Attraction, 
-  CampingGear, KithulProduct, CustomerComment, CustomerInquiry, AgencySettings 
+  CampingGear, KithulProduct, CustomerComment, CustomerInquiry, AgencySettings, BlogPost 
 } from './types';
 import { AGENCY_CONFIG } from './data';
 
@@ -141,6 +143,13 @@ export async function ensurePostgresTables(): Promise<boolean> {
     );
 
     CREATE TABLE IF NOT EXISTS lankagama_inquiries (
+      id VARCHAR(255) PRIMARY KEY,
+      data JSONB NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS lankagama_blogs (
       id VARCHAR(255) PRIMARY KEY,
       data JSONB NOT NULL,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -608,3 +617,68 @@ export async function dbUpdateInquiryStatus(id: string, status: 'new' | 'contact
   );
   return merged;
 }
+
+// 10. BLOGS & GUIDES
+export async function dbGetAllBlogs(): Promise<BlogPost[]> {
+  await ensurePostgresTables();
+  let blogs = await dbGetAll<BlogPost>('lankagama_blogs');
+  
+  // If table is empty, seed from data/blogs.json automatically
+  if (!blogs || blogs.length === 0) {
+    try {
+      const jsonPath = path.join(process.cwd(), 'data', 'blogs.json');
+      if (fs.existsSync(jsonPath)) {
+        const fileContent = fs.readFileSync(jsonPath, 'utf8');
+        const defaultBlogs = JSON.parse(fileContent) as BlogPost[];
+        if (Array.isArray(defaultBlogs) && defaultBlogs.length > 0) {
+          for (const item of defaultBlogs) {
+            await dbSaveItem('lankagama_blogs', item);
+          }
+          blogs = defaultBlogs;
+        }
+      }
+    } catch (seedErr) {
+      console.warn('Auto-seed blogs from JSON error:', seedErr);
+    }
+  }
+  
+  return blogs;
+}
+
+export async function dbCreateBlog(newBlog: Omit<BlogPost, 'id'> & { id?: string }): Promise<BlogPost> {
+  await ensurePostgresTables();
+  const id = newBlog.id || `blog-${Date.now()}`;
+  const blog: BlogPost = {
+    ...newBlog,
+    id,
+    images: newBlog.images && newBlog.images.length > 0 ? newBlog.images : [newBlog.imageUrl],
+    highlights: newBlog.highlights || [],
+    highlightsSi: newBlog.highlightsSi || []
+  };
+
+  await query(
+    `INSERT INTO lankagama_blogs (id, data, created_at, updated_at)
+     VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+    [blog.id, JSON.stringify(blog)]
+  );
+  return blog;
+}
+
+export async function dbUpdateBlog(id: string, updatedData: Partial<BlogPost>): Promise<BlogPost | null> {
+  await ensurePostgresTables();
+  const existing = await dbGetById<BlogPost>('lankagama_blogs', id);
+  if (!existing) return null;
+
+  const merged: BlogPost = {
+    ...existing,
+    ...updatedData,
+    id
+  };
+
+  await query(
+    `UPDATE lankagama_blogs SET data = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+    [id, JSON.stringify(merged)]
+  );
+  return merged;
+}
+

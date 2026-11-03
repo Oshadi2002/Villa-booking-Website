@@ -169,3 +169,26 @@ export interface CustomerInquiry {
   createdAt: string;
 }
 
+export interface BlogPost {
+  id: string;
+  title: string;
+  sinhalaTitle?: string;
+  category: 'Waterfalls' | 'Trekking' | 'Rainforest Tips' | 'Village Culture';
+  readTime: string;
+  badge: string;
+  summary: string;
+  summarySi?: string;
+  content?: string;
+  contentSi?: string;
+  caution?: string;
+  cautionSi?: string;
+  imageUrl: string;
+  images?: string[];
+  publishedDate: string;
+  author: string;
+  authorSi?: string;
+  highlights: string[];
+  highlightsSi?: string[];
+}
+
+
