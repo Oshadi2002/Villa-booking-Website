@@ -11,9 +11,10 @@ import { CampingGear } from '@/lib/types';
 interface CampingSectionProps {
   onSelectGear: (gear: CampingGear) => void;
   gearList?: CampingGear[];
+  isLoading?: boolean;
 }
 
-export default function CampingSection({ onSelectGear, gearList = CAMPING_GEAR }: CampingSectionProps) {
+export default function CampingSection({ onSelectGear, gearList = CAMPING_GEAR, isLoading = false }: CampingSectionProps) {
   const displayGear = gearList && gearList.length > 0 ? gearList : CAMPING_GEAR;
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -135,7 +136,33 @@ export default function CampingSection({ onSelectGear, gearList = CAMPING_GEAR }
         </div>
 
         {/* Camping Gear Carousel Slider Track */}
-        <div className="relative group/camping">
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {[1, 2, 3].map((idx) => (
+              <div
+                key={idx}
+                className="bg-[#2C3E33]/70 border border-[#3B5244] rounded-2xl overflow-hidden flex flex-col justify-between h-[420px] shadow-xl animate-pulse"
+              >
+                <div>
+                  <div className="relative h-56 bg-[#1E2A22] flex items-center justify-center">
+                    <Tent className="w-10 h-10 text-[#D4AF37]/20" />
+                    <div className="absolute top-3 left-3 w-24 h-6 rounded-full bg-[#14231B] border border-[#3B5244]" />
+                    <div className="absolute bottom-3 right-3 w-24 h-7 rounded-xl bg-[#14231B] border border-[#3B5244]" />
+                  </div>
+                  <div className="p-6 space-y-2.5">
+                    <div className="w-3/4 h-4 rounded bg-[#3B5244]" />
+                    <div className="w-full h-3 rounded bg-[#26372B]" />
+                    <div className="w-4/5 h-3 rounded bg-[#26372B]" />
+                  </div>
+                </div>
+                <div className="p-6 pt-0">
+                  <div className="w-full h-10 rounded-xl bg-[#14231B] border border-[#3B5244]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="relative group/camping">
           {/* Edge Fade Gradients */}
           <div className="hidden lg:block absolute left-0 inset-y-0 w-8 bg-gradient-to-r from-[#14231B] to-transparent pointer-events-none z-10" />
           <div className="hidden lg:block absolute right-0 inset-y-0 w-8 bg-gradient-to-l from-[#14231B] to-transparent pointer-events-none z-10" />
@@ -232,6 +259,7 @@ export default function CampingSection({ onSelectGear, gearList = CAMPING_GEAR }
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
+        )}
 
         {/* Carousel Pagination Dots */}
         <div className="mt-8 flex items-center justify-center gap-2">

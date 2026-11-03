@@ -13,6 +13,7 @@ interface VillaSectionProps {
   onSelectVilla: (villa: Villa) => void;
   onViewDetails: (villa: Villa) => void;
   villas?: Villa[];
+  isLoading?: boolean;
 }
 
 // Subcomponent: Individual Villa Card with its own Photo Slider
@@ -221,7 +222,7 @@ function VillaCardItem({
   );
 }
 
-export default function VillaSection({ onSelectVilla, onViewDetails, villas = [] }: VillaSectionProps) {
+export default function VillaSection({ onSelectVilla, onViewDetails, villas = [], isLoading = false }: VillaSectionProps) {
   const displayVillas = villas || [];
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -347,7 +348,39 @@ export default function VillaSection({ onSelectVilla, onViewDetails, villas = []
           )}
         </div>
 
-        {displayVillas.length === 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {[1, 2, 3].map((idx) => (
+              <div
+                key={idx}
+                className="bg-[#2C3E33]/70 rounded-2xl overflow-hidden border border-[#3B5244] shadow-xl flex flex-col justify-between h-[490px] animate-pulse"
+              >
+                <div>
+                  <div className="h-64 sm:h-72 bg-[#14231B] relative overflow-hidden flex items-center justify-center">
+                    <Home className="w-10 h-10 text-[#D4AF37]/25" />
+                    <div className="absolute top-4 left-4 w-28 h-6 rounded-full bg-[#2C3E33]/80 border border-[#3B5244]" />
+                    <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                      <div className="space-y-2 w-1/2">
+                        <div className="w-20 h-3 rounded bg-[#3B5244]" />
+                        <div className="w-36 h-5 rounded bg-[#3B5244]" />
+                      </div>
+                      <div className="w-24 h-9 rounded-xl bg-[#14231B] border border-[#3B5244]" />
+                    </div>
+                  </div>
+                  <div className="p-6 space-y-3">
+                    <div className="w-2/3 h-3.5 rounded bg-[#3B5244]" />
+                    <div className="w-full h-3 rounded bg-[#26372B]" />
+                    <div className="w-4/5 h-3 rounded bg-[#26372B]" />
+                  </div>
+                </div>
+                <div className="p-6 pt-0 flex gap-2">
+                  <div className="w-1/2 h-10 rounded-xl bg-[#14231B] border border-[#3B5244]" />
+                  <div className="w-1/2 h-10 rounded-xl bg-[#D4AF37]/20 border border-[#D4AF37]/30" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : displayVillas.length === 0 ? (
           <div className="bg-[#2C3E33]/70 rounded-3xl p-10 sm:p-14 border border-[#3B5244] text-center max-w-2xl mx-auto my-6 shadow-2xl">
             <div className="w-16 h-16 rounded-2xl bg-[#14231B] border border-[#3B5244] flex items-center justify-center text-[#D4AF37] mx-auto mb-5 shadow-inner">
               <Home className="w-8 h-8" />
