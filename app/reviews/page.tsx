@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import TrackModal from '@/components/TrackModal';
 import { useModalHistory } from '@/lib/useModalHistory';
 import { CustomerComment } from '@/lib/types';
-import { CUSTOMER_COMMENTS, AGENCY_CONFIG } from '@/lib/data';
+import { AGENCY_CONFIG } from '@/lib/data';
 import { useWhatsApp } from '@/lib/useWhatsApp';
 import { 
   Star, ShieldCheck, MessageSquare, Send, Sparkles, 
@@ -18,7 +18,7 @@ import {
 export default function ReviewsPage() {
   const { formattedNumber, phone, getWhatsAppLink } = useWhatsApp();
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
-  const [comments, setComments] = useState<CustomerComment[]>(CUSTOMER_COMMENTS);
+  const [comments, setComments] = useState<CustomerComment[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   // Review submission modal state
@@ -57,7 +57,7 @@ export default function ReviewsPage() {
     fetch('/api/comments')
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.comments) && data.comments.length > 0) {
+        if (data.success && Array.isArray(data.comments)) {
           setComments(data.comments);
         }
       })

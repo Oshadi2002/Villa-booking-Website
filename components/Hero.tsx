@@ -4,45 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { HeroSlide } from '@/lib/types';
 
-const HERO_SLIDES: HeroSlide[] = [
-  {
-    id: 'slide-1',
-    url: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1920&q=85',
-    title: 'Brahmana Ella & Hidden Cascades',
-    subtitle: 'Pristine rainforest waterfalls flowing through the Sinharaja valley'
-  },
-  {
-    id: 'slide-2',
-    url: 'https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1920&q=85',
-    title: 'Sinharaja Virgin Rainforest Canopy',
-    subtitle: 'UNESCO World Heritage biological hotspot with endemic wildlife'
-  },
-  {
-    id: 'slide-3',
-    url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1920&q=85',
-    title: 'Gin Ganga Natural River Pools',
-    subtitle: 'Crystal-clear freshwater streams and serene natural rock baths'
-  },
-  {
-    id: 'slide-4',
-    url: 'https://images.unsplash.com/photo-1542332213-9b5a5a3fad35?auto=format&fit=crop&w=1920&q=85',
-    title: 'Deep Jungle Trails & Suspension Bridges',
-    subtitle: 'Ancient walking trails through misty tropical evergreen canopies'
-  },
-  {
-    id: 'slide-5',
-    url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=85',
-    title: 'Mist-Shrouded Mountain Ridges',
-    subtitle: 'Dramatic sunrise vistas over Neluwa and the Lankagama valley'
-  }
-];
-
 export default function Hero({ slides }: { slides?: HeroSlide[] }) {
-  const activeSlides = slides && slides.length > 0 ? slides : HERO_SLIDES;
+  const activeSlides = slides || [];
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // Auto-advance slides every 5.5 seconds
+  // Auto-advance slides every 5.5 seconds if more than 1 slide
   useEffect(() => {
+    if (activeSlides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
     }, 5500);
@@ -50,10 +18,12 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
   }, [activeSlides.length]);
 
   const handleNextSlide = () => {
+    if (activeSlides.length <= 1) return;
     setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
   };
 
   const handlePrevSlide = () => {
+    if (activeSlides.length <= 1) return;
     setCurrentSlide((prev) => (prev - 1 + activeSlides.length) % activeSlides.length);
   };
 
@@ -96,21 +66,25 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
       </div>
 
       {/* Manual Slide Navigation Arrows (Desktop) */}
-      <button
-        onClick={handlePrevSlide}
-        className="hidden md:flex absolute left-4 lg:left-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-[#2C3E33]/85 hover:bg-[#2C3E33] text-[#F5F2EB] items-center justify-center backdrop-blur-md border border-[#3B5244] hover:border-[#D4AF37] shadow-lg transition-all cursor-pointer"
-        title="Previous photo"
-      >
-        <ChevronLeft className="w-5 h-5" />
-      </button>
+      {activeSlides.length > 1 && (
+        <>
+          <button
+            onClick={handlePrevSlide}
+            className="hidden md:flex absolute left-4 lg:left-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-[#2C3E33]/85 hover:bg-[#2C3E33] text-[#F5F2EB] items-center justify-center backdrop-blur-md border border-[#3B5244] hover:border-[#D4AF37] shadow-lg transition-all cursor-pointer"
+            title="Previous photo"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
-      <button
-        onClick={handleNextSlide}
-        className="hidden md:flex absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-[#2C3E33]/85 hover:bg-[#2C3E33] text-[#F5F2EB] items-center justify-center backdrop-blur-md border border-[#3B5244] hover:border-[#D4AF37] shadow-lg transition-all cursor-pointer"
-        title="Next photo"
-      >
-        <ChevronRight className="w-5 h-5" />
-      </button>
+          <button
+            onClick={handleNextSlide}
+            className="hidden md:flex absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-[#2C3E33]/85 hover:bg-[#2C3E33] text-[#F5F2EB] items-center justify-center backdrop-blur-md border border-[#3B5244] hover:border-[#D4AF37] shadow-lg transition-all cursor-pointer"
+            title="Next photo"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </>
+      )}
 
       {/* Main Content Area */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full my-auto">
@@ -200,36 +174,38 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
       {/* ============================================================
          BOTTOM SLIDE CONTROLLER BAR
          ============================================================ */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-10">
-        <div className="bg-[#2C3E33]/90 backdrop-blur-md border border-[#3B5244] rounded-2xl px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
-          {/* Current Active Slide Label */}
-          <div className="flex items-center gap-2.5 text-xs text-[#F5F2EB]">
-            <span className="w-2 h-2 rounded-full bg-[#D4AF37]" />
-            <span className="font-serif italic text-[#F5F2EB] text-sm font-semibold">
-              {activeSlides[currentSlide]?.title || ''}
-            </span>
-            <span className="hidden md:inline text-[#C2BCB0]">
-              • {activeSlides[currentSlide]?.subtitle || activeSlides[currentSlide]?.sinhala || ''}
-            </span>
-          </div>
+      {activeSlides.length > 0 && (
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-10">
+          <div className="bg-[#2C3E33]/90 backdrop-blur-md border border-[#3B5244] rounded-2xl px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+            {/* Current Active Slide Label */}
+            <div className="flex items-center gap-2.5 text-xs text-[#F5F2EB]">
+              <span className="w-2 h-2 rounded-full bg-[#D4AF37]" />
+              <span className="font-serif italic text-[#F5F2EB] text-sm font-semibold">
+                {activeSlides[currentSlide]?.title || ''}
+              </span>
+              <span className="hidden md:inline text-[#C2BCB0]">
+                • {activeSlides[currentSlide]?.subtitle || activeSlides[currentSlide]?.sinhala || ''}
+              </span>
+            </div>
 
-          {/* Slide Indicator Pills */}
-          <div className="flex items-center gap-2">
-            {activeSlides.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentSlide(idx)}
-                className={`h-2 rounded-full transition-all cursor-pointer ${
-                  currentSlide === idx
-                    ? 'w-8 bg-[#D4AF37]'
-                    : 'w-2 bg-[#3B5244] hover:bg-[#D4AF37]/60'
-                }`}
-                title={`Switch to slide ${idx + 1}`}
-              />
-            ))}
+            {/* Slide Indicator Pills */}
+            <div className="flex items-center gap-2">
+              {activeSlides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`h-2 rounded-full transition-all cursor-pointer ${
+                    currentSlide === idx
+                      ? 'w-8 bg-[#D4AF37]'
+                      : 'w-2 bg-[#3B5244] hover:bg-[#D4AF37]/60'
+                  }`}
+                  title={`Switch to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
     </section>
   );

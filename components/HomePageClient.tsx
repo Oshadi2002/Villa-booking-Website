@@ -18,7 +18,7 @@ import {
   KithulProduct 
 } from '@/lib/types';
 import { 
-  AGENCY_CONFIG, CAMPING_GEAR 
+  AGENCY_CONFIG 
 } from '@/lib/data';
 import { MessageCircle, Search, ShoppingBag, BookOpen, MessageSquare, ArrowRight } from 'lucide-react';
 import { useWhatsApp } from '@/lib/useWhatsApp';
@@ -52,7 +52,7 @@ export default function HomePageClient({
   // Data lists initialized with server-prefetched data for instant loading
   const [villasList, setVillasList] = useState<Villa[]>(initialVillas);
   const [slidesList, setSlidesList] = useState<HeroSlide[]>(initialSlides);
-  const [gearList, setGearList] = useState<CampingGear[]>(initialGear.length > 0 ? initialGear : CAMPING_GEAR);
+  const [gearList, setGearList] = useState<CampingGear[]>(initialGear);
   const [kithulList, setKithulList] = useState<KithulProduct[]>(initialKithul);
   const [isLoading, setIsLoading] = useState<boolean>(initialVillas.length === 0);
 
@@ -135,12 +135,18 @@ export default function HomePageClient({
         } catch {}
       }
 
-      if (slidesData?.success && Array.isArray(slidesData.slides) && slidesData.slides.length > 0) {
+      if (slidesData?.success && Array.isArray(slidesData.slides)) {
         setSlidesList(slidesData.slides);
+        try {
+          localStorage.setItem('lankagama_synced_slides', JSON.stringify(slidesData.slides));
+        } catch {}
       }
 
-      if (campingData?.success && Array.isArray(campingData.gear) && campingData.gear.length > 0) {
+      if (campingData?.success && Array.isArray(campingData.gear)) {
         setGearList(campingData.gear);
+        try {
+          localStorage.setItem('lankagama_synced_camping', JSON.stringify(campingData.gear));
+        } catch {}
       }
 
       if (kithulData?.success && Array.isArray(kithulData.products)) {

@@ -3,14 +3,13 @@
 import React from 'react';
 import { MapPin, AlertCircle, Compass } from 'lucide-react';
 import { Attraction } from '@/lib/types';
-import { ATTRACTIONS } from '@/lib/data';
 
 interface AttractionsSectionProps {
   attractionsList?: Attraction[];
 }
 
-export default function AttractionsSection({ attractionsList }: AttractionsSectionProps) {
-  const displayAttractions = attractionsList && attractionsList.length > 0 ? attractionsList : ATTRACTIONS;
+export default function AttractionsSection({ attractionsList = [] }: AttractionsSectionProps) {
+  const displayAttractions = attractionsList || [];
 
   return (
     <section id="attractions" className="py-24 bg-[#14231B] text-[#F5F2EB] border-t border-[#2C3E33]">

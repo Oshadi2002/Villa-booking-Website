@@ -7,7 +7,7 @@ import {
   ShieldCheck, AlertCircle, MessageCircle, ArrowRight
 } from 'lucide-react';
 import { CustomerComment, CustomerInquiry } from '@/lib/types';
-import { CUSTOMER_COMMENTS, AGENCY_CONFIG } from '@/lib/data';
+import { AGENCY_CONFIG } from '@/lib/data';
 import { useWhatsApp } from '@/lib/useWhatsApp';
 
 interface CustomerReviewsAndInquirySectionProps {
@@ -15,7 +15,7 @@ interface CustomerReviewsAndInquirySectionProps {
 }
 
 export default function CustomerReviewsAndInquirySection({ 
-  comments = CUSTOMER_COMMENTS 
+  comments = [] 
 }: CustomerReviewsAndInquirySectionProps) {
   const { phone: agencyPhone, email: agencyEmail, getWhatsAppLink } = useWhatsApp();
   const [commentList, setCommentList] = useState<CustomerComment[]>(comments);

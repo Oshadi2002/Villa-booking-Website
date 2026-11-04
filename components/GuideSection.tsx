@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Star, Award, Languages, Compass, Check } from 'lucide-react';
-import { TOUR_GUIDES } from '@/lib/data';
 import { TourGuide } from '@/lib/types';
 
 interface GuideSectionProps {
@@ -10,8 +9,8 @@ interface GuideSectionProps {
   guides?: TourGuide[];
 }
 
-export default function GuideSection({ onSelectGuide, guides = TOUR_GUIDES }: GuideSectionProps) {
-  const displayGuides = guides && guides.length > 0 ? guides : TOUR_GUIDES;
+export default function GuideSection({ onSelectGuide, guides = [] }: GuideSectionProps) {
+  const displayGuides = guides || [];
 
   return (
     <section id="guides" className="py-24 bg-[#1E2A22] text-[#F5F2EB] border-t border-[#2C3E33]">

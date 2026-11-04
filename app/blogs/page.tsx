@@ -13,113 +13,9 @@ import {
   ArrowRight, Sparkles, ChevronRight, Eye, Search
 } from 'lucide-react';
 
-const FALLBACK_GUIDES: BlogPost[] = [
-  {
-    id: 'guide-brahmana',
-    title: 'Brahmana Ella: The 35-Meter Crown Jewel of Lankagama',
-    sinhalaTitle: 'බ්‍රාහ්මණ ඇල්ල: ලංකාගම ගම්මානයේ අභිමානවත් දියඇලි රැජිණ',
-    category: 'Waterfalls',
-    readTime: '4 min read',
-    badge: '35m Waterfall',
-    summary: 'Roaring over tiered black rock amphitheaters into deep natural pools, Brahmana Ella is the undisputed icon of Lankagama. Just a 15-minute scenic riverside stroll from most village villas.',
-    summarySi: 'කළු ගල් තලා මතින් ස්වාභාවික ගැඹුරු දිය තටාක වෙත පතිත වන මීටර් 35ක් උසැති බ්‍රාහ්මණ ඇල්ල ලංකාගමේ ප්‍රධානතම සලකුණයි. විලාස් වල සිට විනාඩි 15ක සුන්දර ගංගාබඩ ඇවිදීමකින් පහසුවෙන් ළඟාවිය හැක.',
-    caution: 'Always bathe in designated calm rock pools below; strictly avoid slippery waterfall top ledges during sudden rain.',
-    cautionSi: 'පහළ පිහිටි ආරක්ෂිත ස්වාභාවික දිය තටාක වල පමණක් ස්නානය කරන්න. හදිසි වැසි සහිත අවස්ථාවල ඉහළ ලිස්සන සුළු ගල් තලා මතට යාමෙන් වළකින්න.',
-    imageUrl: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1200&q=80',
-    publishedDate: 'October 2026',
-    author: 'Sunil Shantha (Native Guide)',
-    authorSi: 'සුනිල් ශාන්ත (ප්‍රදේශවාසී මඟපෙන්වන්නා)',
-    highlights: ['15-min easy walk from villas', 'Natural swimming basins', 'Photogenic suspension bridge']
-  },
-  {
-    id: 'guide-doowili',
-    title: 'Doowili Ella: Chasing the Enchanted Rainforest Mist',
-    sinhalaTitle: 'දූවිලි ඇල්ල: සිංහරාජයේ අද්භූත ක්ෂුද්‍ර මීදුම් දහරාව',
-    category: 'Waterfalls',
-    readTime: '6 min read',
-    badge: 'Mist Waterfall',
-    summary: 'Named for the perpetual microscopic mist cloud that hovers beneath the canopy as water plunges through virgin jungle. This secluded waterfall offers an authentic deep-wilderness trekking experience.',
-    summarySi: 'ඝන වනාන්තර වියන මැදින් ඇදහැලෙද්දී නැගෙන ක්ෂුද්‍ර මීදුම් වලාව නිසා දූවිලි ඇල්ල ලෙස හැඳින්වේ. වනගත ගැඹුරු පරිසරයක සැබෑ වනාන්තර අත්දැකීමක් ලබාගැනීමට සුදුසුම ඉසව්වකි.',
-    caution: 'Dense rainforest trail. We strongly recommend entering with a certified native guide and wearing leech socks.',
-    cautionSi: 'ඝන වැසි වනාන්තර මාර්ගයකි. ප්‍රදේශයේ පළපුරුදු මඟපෙන්වන්නෙකු සමඟ යාම සහ කූඩැලු මේස් පැළඳීම අනිවාර්ය වේ.',
-    imageUrl: 'https://images.unsplash.com/photo-1511497584788-87676104235f?auto=format&fit=crop&w=1200&q=80',
-    publishedDate: 'October 2026',
-    author: 'Nalin Pradeep (Field Naturalist)',
-    authorSi: 'නලින් ප්‍රදීප් (ස්වාභාවික විද්‍යා ගවේෂක)',
-    highlights: ['Virgin rainforest trail', 'Cool micro-climate mist', 'Rare bird spotting zone']
-  },
-  {
-    id: 'guide-gin-ganga',
-    title: 'Secret Rock Pools of Gin Ganga: Natural River Spa',
-    sinhalaTitle: 'ගිං ගඟේ රහසිගත දිය තටාක: ස්වාභාවික නිදහස් දිය සම්බාහනය',
-    category: 'Waterfalls',
-    readTime: '3 min read',
-    badge: 'Natural River Pools',
-    summary: 'Flowing pristine and unpolluted straight from the Sinharaja reserve core, Upper Gin Ganga provides soothing cold-water baths and natural doctor-fish nibbles in shaded rock pools.',
-    summarySi: 'සිංහරාජයේ හරයෙන්ම ගලා බසිනා පිරිසිදු ගිං ගඟේ ඉහළ දිය දහරාව, ස්වාභාවික මසුන්ගේ සම්බාහනය (Doctor-fish) සහ සිසිල් දිය නෑමේ නිදහස එකසේ ලබාදෙයි.',
-    caution: 'Do not use chemical soaps, shampoos or single-use plastics to protect endemic freshwater fish species.',
-    cautionSi: 'ආවේණික මත්ස්‍ය විශේෂ ආරක්ෂා කරගැනීම සඳහා කිසිදු සබන්, ෂැම්පු හෝ ප්ලාස්ටික් වර්ග ගඟට එකතු නොකරන්න.',
-    imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80',
-    publishedDate: 'October 2026',
-    author: 'The Sinharaja Collection Team',
-    authorSi: 'ද සිංහරාජ කලෙක්ෂන් කණ්ඩායම',
-    highlights: ['Crystal-clear water', 'Natural fish pedicure', 'Safe shallow wading zones']
-  },
-  {
-    id: 'guide-trekking-tips',
-    title: 'Sinharaja Trekking Checklist: Leech Defense & Gear Advice',
-    sinhalaTitle: 'සිංහරාජ ගමන් මලු මාර්ගෝපදේශය: කූඩැලු ආරක්ෂාව සහ අත්‍යවශ්‍ය උපකරණ',
-    category: 'Rainforest Tips',
-    readTime: '5 min read',
-    badge: 'Trekker Safety',
-    summary: 'Everything first-timers need to know before entering the rainforest: why knee-high leech socks work best, choosing quick-drying clothing, waterproof bags, and keeping digital cameras safe from tropical humidity.',
-    summarySi: 'පළමු වරට සිංහරාජයට යන අය දැනගත යුතු සියල්ල: කූඩැලු මේස් වල වැදගත්කම, ඉක්මනින් වේලෙන සැහැල්ලු ඇඳුම්, වෝටර්පෲෆ් බෑග් සහ කැමරා ආරක්ෂා කරගන්නා උපක්‍රම.',
-    caution: 'Always carry a lightweight raincoat or poncho; sudden downpours are characteristic of the wet evergreen rainforest.',
-    cautionSi: 'සැහැල්ලු වැහි කබායක් (Raincoat/Poncho) නිරතුරුව ළඟ තබාගන්න. ක්ෂණික ධාරානිපාත වැසි ඕනෑම මොහොතක ඇදහැලිය හැක.',
-    imageUrl: 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=1200&q=80',
-    publishedDate: 'October 2026',
-    author: 'Sunil Shantha (Native Guide)',
-    authorSi: 'සුනිල් ශාන්ත (ප්‍රදේශවාසී මඟපෙන්වන්නා)',
-    highlights: ['Leech protection hacks', 'Footwear recommendations', 'Camera humidity precautions']
-  },
-  {
-    id: 'guide-kithul-culture',
-    title: 'The Ancient Art of Lankagama Rainforest Kithul Tapping',
-    sinhalaTitle: 'ලංකාගම පාරම්පරික කිතුල් කර්මාන්තය: පරම්පරාගත නියම කිතුල් රසය',
-    category: 'Village Culture',
-    readTime: '5 min read',
-    badge: 'Heritage & Food',
-    summary: 'How native village tappers ascend towering Caryota urens palms at dawn in the Sinharaja buffer zone, collect pure floral sap, and slow-boil it in open earthen cauldrons with zero artificial sugar.',
-    summarySi: 'සිංහරාජ මායිමේ අහස උසට වැඩුණු කිතුල් ගස් වලට අලුයම නැග, මල තලා එකතු කරගන්නා නැවුම් තෙලිජ්ජ කිසිදු සීනි කලවම් නොකර මැටි තාච්චි වල තම්බා සැබෑ කිතුල් පැණි සහ හකුරු සාදන ආකාරය.',
-    caution: 'Pure forest-grade Kithul contains zero sugar. Beware of roadside adulterated products sold in lowlands.',
-    cautionSi: 'නියම ලංකාගම කිතුල් පැණි වල සීනි අංශු මාත්‍රයක්වත් අඩංගු නොවේ.',
-    imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=1200&q=80',
-    publishedDate: 'October 2026',
-    author: 'Local Elder Heritage Circle',
-    authorSi: 'ලංකාගම පාරම්පරික කිතුල් හිමිකරුවන්ගේ එකමුතුව',
-    highlights: ['Dawn tree tapping process', 'Clay pot slow boiling', 'How to test genuine treacle purity']
-  },
-  {
-    id: 'guide-neluwa-road',
-    title: 'Neluwa to Lankagama Route: Bridges, Rivers & Scenic Vistas',
-    sinhalaTitle: 'නෙළුව - ලංකාගම සුන්දර මාර්ගය: එල්ලෙන පාලම්, ගංගා සහ තේ වතු',
-    category: 'Trekking',
-    readTime: '4 min read',
-    badge: 'Scenic Road & Bridges',
-    summary: 'A breathtaking drive traversing emerald green tea estates, suspension footbridges, and mountain slopes flanking Gin Ganga into the village sanctuary.',
-    summarySi: 'ගිං ගඟට සමාන්තරව, මනරම් තේ වතු සහ ඓතිහාසික එල්ලෙන පාලම් පසුකරමින් ලංකාගම ගම්මානය කරා වැටී ඇති සුන්දර කඳුකර මාර්ගය.',
-    caution: 'Drive with care; slow down for village pedestrians, monitors, and butterflies.',
-    cautionSi: 'පටු වංගු සහිත බැවින් සෙමින් ධාවනය කරන්න. පාර මාරුවන ගම්වාසීන් සහ සතුන්ට ප්‍රමුඛත්වය ලබාදෙන්න.',
-    imageUrl: 'https://images.unsplash.com/photo-1542332213-9b5a5a3fad35?auto=format&fit=crop&w=1200&q=80',
-    publishedDate: 'October 2026',
-    author: 'The Sinharaja Collection Team',
-    authorSi: 'ද සිංහරාජ කලෙක්ෂන් කණ්ඩායම',
-    highlights: ['Suspension footbridges', 'Panoramic mountain tea views', 'Accessible for most cars & vans']
-  }
-];
-
 export default function BlogsPage() {
-  const [blogs, setBlogs] = useState<BlogPost[]>(FALLBACK_GUIDES);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [pageLang, setPageLang] = useState<'en' | 'si'>('en');
@@ -132,12 +28,14 @@ export default function BlogsPage() {
     fetch('/api/blogs')
       .then(res => res.json())
       .then(data => {
-        if (data.success && Array.isArray(data.blogs) && data.blogs.length > 0) {
+        if (data.success && Array.isArray(data.blogs)) {
           setBlogs(data.blogs);
         }
+        setIsLoading(false);
       })
       .catch((err) => {
         console.warn('Error fetching blogs from API:', err);
+        setIsLoading(false);
       });
   }, []);
 
@@ -289,8 +187,22 @@ export default function BlogsPage() {
       <section className="py-16 sm:py-20 flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPosts.map((post) => {
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-[#1E2A22] rounded-3xl overflow-hidden border border-[#3B5244] h-[380px] animate-pulse">
+                  <div className="h-56 bg-[#14231B]" />
+                  <div className="p-6 space-y-3">
+                    <div className="w-1/3 h-3 rounded bg-[#3B5244]" />
+                    <div className="w-3/4 h-5 rounded bg-[#2C3E33]" />
+                    <div className="w-full h-3 rounded bg-[#26372B]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredPosts.map((post) => {
               const cardTitle = isSi && post.sinhalaTitle ? post.sinhalaTitle : post.title;
               const cardSummary = isSi && post.summarySi ? post.summarySi : post.summary;
               const cardAuthor = isSi && post.authorSi ? post.authorSi : post.author;
@@ -392,8 +304,9 @@ export default function BlogsPage() {
               );
             })}
           </div>
+          )}
 
-          {filteredPosts.length === 0 && (
+          {!isLoading && filteredPosts.length === 0 && (
             <div className="py-20 text-center space-y-3">
               <p className="text-base text-[#C2BCB0]">
                 {isSi ? `"${searchQuery}" සඳහා ප්‍රතිඵල හමු නොවීය.` : `No guides found matching "${searchQuery}".`}

@@ -5,7 +5,6 @@ import {
   Shield, Check, Package, ChevronLeft, ChevronRight, 
   Sparkles, Tent
 } from 'lucide-react';
-import { CAMPING_GEAR } from '@/lib/data';
 import { CampingGear } from '@/lib/types';
 
 interface CampingSectionProps {
@@ -14,8 +13,8 @@ interface CampingSectionProps {
   isLoading?: boolean;
 }
 
-export default function CampingSection({ onSelectGear, gearList = CAMPING_GEAR, isLoading = false }: CampingSectionProps) {
-  const displayGear = gearList && gearList.length > 0 ? gearList : CAMPING_GEAR;
+export default function CampingSection({ onSelectGear, gearList = [], isLoading = false }: CampingSectionProps) {
+  const displayGear = gearList || [];
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
@@ -172,7 +171,12 @@ export default function CampingSection({ onSelectGear, gearList = CAMPING_GEAR, 
             ref={trackRef}
             className="flex gap-6 sm:gap-8 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-4 pt-1 px-1"
           >
-            {displayGear.map((item) => (
+            {displayGear.length === 0 ? (
+              <div className="w-full py-16 text-center bg-[#2C3E33]/50 rounded-2xl border border-dashed border-[#3B5244] text-[#C2BCB0] text-sm">
+                No camping equipment currently listed.
+              </div>
+            ) : (
+              displayGear.map((item) => (
               <div
                 key={item.id}
                 className="w-[85vw] sm:w-[380px] lg:w-[calc(33.333%-16px)] shrink-0 snap-start"
@@ -238,7 +242,7 @@ export default function CampingSection({ onSelectGear, gearList = CAMPING_GEAR, 
                   </div>
                 </div>
               </div>
-            ))}
+            )))}
           </div>
 
           {/* Floating Next/Prev Buttons on track sides for desktop */}
