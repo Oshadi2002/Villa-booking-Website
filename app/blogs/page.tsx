@@ -8,17 +8,18 @@ import TrackModal from '@/components/TrackModal';
 import BlogDetailModal from '@/components/BlogDetailModal';
 import { BlogPost } from '@/lib/types';
 import { AGENCY_CONFIG } from '@/lib/data';
+import { useLanguage, LanguageSwitcher } from '@/lib/LanguageContext';
 import { 
   AlertCircle, Compass, Clock, BookOpen, 
   ArrowRight, Sparkles, ChevronRight, Eye, Search
 } from 'lucide-react';
 
 export default function BlogsPage() {
+  const { lang, isSi, t } = useLanguage();
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [pageLang, setPageLang] = useState<'en' | 'si'>('en');
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,30 +93,7 @@ export default function BlogsPage() {
             </div>
 
             {/* Language Switcher Pill */}
-            <div className="inline-flex items-center rounded-full bg-[#1E2A22] p-1 border border-[#3B5244] shadow-xs">
-              <button
-                type="button"
-                onClick={() => setPageLang('en')}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  pageLang === 'en'
-                    ? 'bg-[#D4AF37] text-[#14231B] shadow-xs'
-                    : 'text-[#9EA89F] hover:text-[#F5F2EB]'
-                }`}
-              >
-                🇬🇧 English
-              </button>
-              <button
-                type="button"
-                onClick={() => setPageLang('si')}
-                className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  pageLang === 'si'
-                    ? 'bg-[#D4AF37] text-[#14231B] shadow-xs'
-                    : 'text-[#9EA89F] hover:text-[#F5F2EB]'
-                }`}
-              >
-                🇱🇰 සිංහල
-              </button>
-            </div>
+            <LanguageSwitcher />
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-medium tracking-tight text-[#F5F2EB] mb-6">
@@ -370,7 +348,7 @@ export default function BlogsPage() {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         blog={selectedBlog}
-        initialLang={pageLang}
+        initialLang={lang}
       />
 
       {/* Track Booking Modal */}

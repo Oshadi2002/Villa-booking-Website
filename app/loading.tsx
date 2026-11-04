@@ -32,7 +32,7 @@ export default function Loading() {
         </h2>
 
         <p className="text-xs text-[#C2BCB0] font-light mb-6 tracking-wide">
-          දත්ත සූදානම් වෙමින් පවතී • Loading sanctuary stays...
+           • Loading sanctuary stays...
         </p>
 
         {/* Elegant Gold Shimmer Progress Line */}

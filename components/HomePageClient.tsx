@@ -22,6 +22,7 @@ import {
 } from '@/lib/data';
 import { MessageCircle, Search, ShoppingBag, BookOpen, MessageSquare, ArrowRight } from 'lucide-react';
 import { useWhatsApp } from '@/lib/useWhatsApp';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface HomePageClientProps {
   initialVillas?: Villa[];
@@ -36,6 +37,7 @@ export default function HomePageClient({
   initialGear = [],
   initialKithul = []
 }: HomePageClientProps) {
+  const { isSi, t } = useLanguage();
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -244,11 +246,15 @@ export default function HomePageClient({
                   <BookOpen className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#D4AF37] block">Field Notes & Safety</span>
-                  <h3 className="text-2xl font-serif font-semibold text-[#F5F2EB] mt-1">Waterfalls & Sinharaja Guides</h3>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#D4AF37] block">
+                    {t('hub.waterfallsPill', 'Field Notes & Safety')}
+                  </span>
+                  <h3 className="text-2xl font-serif font-semibold text-[#F5F2EB] mt-1">
+                    {t('hub.waterfallsTitle', 'Waterfalls & Sinharaja Guides')}
+                  </h3>
                 </div>
                 <p className="text-xs sm:text-sm text-[#C2BCB0] leading-relaxed">
-                  Explore Brahmana Ella, Doowili Ella, Gin Ganga secret pools, trekking gear checklists, and village heritage with native naturalist guidance.
+                  {t('hub.waterfallsDesc', 'Explore Brahmana Ella, Doowili Ella, Gin Ganga secret pools, trekking gear checklists, and village heritage with native naturalist guidance.')}
                 </p>
               </div>
 
@@ -257,7 +263,7 @@ export default function HomePageClient({
                   href="/blogs"
                   className="inline-flex items-center gap-2 text-xs font-bold text-[#D4AF37] hover:text-white transition-colors"
                 >
-                  <span>Explore Waterfalls & Guides</span>
+                  <span>{t('hub.waterfallsBtn', 'Explore Waterfalls & Guides')}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
@@ -270,11 +276,15 @@ export default function HomePageClient({
                   <MessageSquare className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#D4AF37] block">Rated 4.9 / 5.0 by Travelers</span>
-                  <h3 className="text-2xl font-serif font-semibold text-[#F5F2EB] mt-1">Guest Reviews & FAQ</h3>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#D4AF37] block">
+                    {t('hub.reviewsPill', 'Rated 4.9 / 5.0 by Travelers')}
+                  </span>
+                  <h3 className="text-2xl font-serif font-semibold text-[#F5F2EB] mt-1">
+                    {t('hub.reviewsTitle', 'Guest Reviews & FAQ')}
+                  </h3>
                 </div>
                 <p className="text-xs sm:text-sm text-[#C2BCB0] leading-relaxed">
-                  Read authentic feedback from travelers who stayed at our villas, ordered fresh Kithul treacle, or rented camping gear. Ask us questions directly.
+                  {t('hub.reviewsDesc', 'Read authentic feedback from travelers who stayed at our villas, ordered fresh Kithul treacle, or rented camping gear. Ask us questions directly.')}
                 </p>
               </div>
 
@@ -283,7 +293,7 @@ export default function HomePageClient({
                   href="/reviews"
                   className="inline-flex items-center gap-2 text-xs font-bold text-[#D4AF37] hover:text-white transition-colors"
                 >
-                  <span>Read Guest Reviews & FAQ</span>
+                  <span>{t('hub.reviewsBtn', 'Read Guest Reviews & FAQ')}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
@@ -337,7 +347,7 @@ export default function HomePageClient({
           className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#1E2A22]/95 text-[#D4AF37] hover:text-white border border-[#D4AF37]/50 hover:border-[#D4AF37] shadow-lg backdrop-blur-md text-xs font-semibold hover:scale-102 transition-all cursor-pointer"
         >
           <ShoppingBag className="w-3.5 h-3.5 text-[#D4AF37]" />
-          <span>Order Kithul to Villa</span>
+          <span>{isSi ? 'විලා එකට කිතුල් ඇණවුම් කරන්න' : 'Order Kithul to Villa'}</span>
         </a>
 
         {/* Track Booking quick bubble */}
@@ -346,7 +356,7 @@ export default function HomePageClient({
           className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#2C3E33]/95 text-[#F5F2EB] hover:text-[#D4AF37] border border-[#3B5244] hover:border-[#D4AF37] shadow-lg backdrop-blur-md text-xs font-medium hover:scale-102 transition-all cursor-pointer"
         >
           <Search className="w-3.5 h-3.5 text-[#D4AF37]" />
-          <span>Track Reservation</span>
+          <span>{isSi ? 'වෙන්කිරීම පරීක්ෂා කරන්න' : 'Track Reservation'}</span>
         </button>
 
         {/* WhatsApp Chat Floating Bubble */}
@@ -358,7 +368,7 @@ export default function HomePageClient({
           title="Direct WhatsApp Concierge"
         >
           <MessageCircle className="w-4 h-4 fill-[#14231B] text-[#D4AF37]" />
-          <span className="hidden sm:inline">WhatsApp Agency</span>
+          <span className="hidden sm:inline">{isSi ? 'WhatsApp සහය' : 'WhatsApp Agency'}</span>
         </a>
       </div>
 

@@ -5,10 +5,16 @@ import Link from 'next/link';
 import { Compass, Phone, Mail, MapPin, MessageCircle, ShieldCheck } from 'lucide-react';
 import { AGENCY_CONFIG } from '@/lib/data';
 import { useWhatsApp } from '@/lib/useWhatsApp';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function Footer() {
+  const { isSi, t } = useLanguage();
   const { formattedNumber, phone, email, address, getWhatsAppLink } = useWhatsApp();
-  const whatsappUrl = getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I would like to make an inquiry.');
+  const whatsappUrl = getWhatsAppLink(
+    isSi
+      ? 'ආයුබෝවන් The Sinharaja Collection Lankagama! මට විස්තර දැනගැනීමට අවශ්‍යයි.'
+      : 'Hello The Sinharaja Collection Lankagama! I would like to make an inquiry.'
+  );
 
   return (
     <footer className="bg-[#14231B] text-[#F5F2EB] border-t border-[#2C3E33] pt-16 pb-12">
@@ -26,29 +32,33 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-xs text-[#C2BCB0] leading-relaxed font-normal max-w-md">
-              <span className="text-[#D4AF37] font-semibold mr-1.5">ලංකාගම</span> • {AGENCY_CONFIG.sinhalaName}. Official agency for peaceful riverside stays, camping gear rentals, pure kithul, and trusted local guides in Lankagama.
+              <span className="text-[#D4AF37] font-semibold mr-1.5">ලංකාගම</span> • {t('footer.brandDesc', 'Official agency for peaceful riverside stays, camping gear rentals, pure kithul, and trusted local guides in Lankagama.')}
             </p>
             <div className="flex items-center gap-2 text-xs text-[#D4AF37]">
               <ShieldCheck className="w-4 h-4 shrink-0" />
-              <span>Sinharaja Buffer Zone Verified Agency</span>
+              <span>{t('footer.badge', 'Sinharaja Buffer Zone Verified Agency')}</span>
             </div>
           </div>
 
           {/* Service Links */}
           <div className="space-y-3 md:col-span-3">
-            <h4 className="text-xs font-semibold text-[#F5F2EB] uppercase tracking-[0.16em]">Directory</h4>
+            <h4 className="text-xs font-semibold text-[#F5F2EB] uppercase tracking-[0.16em]">
+              {t('footer.directory', 'Directory')}
+            </h4>
             <ul className="space-y-2 text-xs text-[#C2BCB0]">
-              <li><Link href="/#villas" className="hover:text-[#D4AF37] transition-colors">Private Villas & Stays</Link></li>
-              <li><Link href="/#kithul" className="hover:text-[#D4AF37] transition-colors">Pure Kithul & Toddy</Link></li>
-              <li><Link href="/#camping" className="hover:text-[#D4AF37] transition-colors">Expedition Camping Sets</Link></li>
-              <li><Link href="/blogs" className="hover:text-[#D4AF37] transition-colors">Blogs & Waterfalls Guide</Link></li>
-              <li><Link href="/reviews" className="hover:text-[#D4AF37] transition-colors">Guest Reviews & FAQ</Link></li>
+              <li><Link href="/#villas" className="hover:text-[#D4AF37] transition-colors">{t('footer.villas', 'Private Villas & Stays')}</Link></li>
+              <li><Link href="/#kithul" className="hover:text-[#D4AF37] transition-colors">{t('footer.kithul', 'Pure Kithul & Toddy')}</Link></li>
+              <li><Link href="/#camping" className="hover:text-[#D4AF37] transition-colors">{t('footer.camping', 'Expedition Camping Sets')}</Link></li>
+              <li><Link href="/blogs" className="hover:text-[#D4AF37] transition-colors">{t('footer.blogs', 'Blogs & Waterfalls Guide')}</Link></li>
+              <li><Link href="/reviews" className="hover:text-[#D4AF37] transition-colors">{t('footer.reviews', 'Guest Reviews & FAQ')}</Link></li>
             </ul>
           </div>
 
           {/* Contact Details */}
           <div className="space-y-3 md:col-span-4">
-            <h4 className="text-xs font-semibold text-[#F5F2EB] uppercase tracking-[0.16em]">Direct Contact</h4>
+            <h4 className="text-xs font-semibold text-[#F5F2EB] uppercase tracking-[0.16em]">
+              {t('footer.directContact', 'Direct Contact')}
+            </h4>
             <div className="space-y-2.5 text-xs text-[#C2BCB0]">
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
@@ -59,7 +69,7 @@ export default function Footer() {
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#D4AF37] transition-colors">
-                  WhatsApp Direct Inquiry
+                  {t('footer.whatsapp', 'WhatsApp Direct Inquiry')}
                 </a>
               </div>
               <div className="flex items-center gap-2">
@@ -79,9 +89,9 @@ export default function Footer() {
 
         {/* Bottom copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-[#9EA89F] gap-4 font-normal">
-          <p>© 2026 The Sinharaja Collection Lankagama. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} The Sinharaja Collection Lankagama. {t('footer.rights', 'All rights reserved.')}</p>
           <p>
-            Dedicated to community eco-tourism in Lankagama, Sri Lanka.
+            {t('footer.tagline', 'Dedicated to community eco-tourism in Lankagama, Sri Lanka.')}
           </p>
         </div>
       </div>

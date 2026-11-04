@@ -7,6 +7,7 @@ import {
   Check, Flame, Compass, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { KithulProduct } from '@/lib/types';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface KithulSectionProps {
   onSelectProduct: (product: KithulProduct) => void;
@@ -14,6 +15,7 @@ interface KithulSectionProps {
 }
 
 export default function KithulSection({ onSelectProduct, products = [] }: KithulSectionProps) {
+  const { isSi, t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<'all' | 'treacle' | 'jaggery' | 'toddy' | 'experience'>('all');
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -86,17 +88,16 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#2C3E33]/90 border border-[#3B5244] text-[#D4AF37] text-xs font-semibold tracking-wider uppercase shadow-xs">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Sinharaja Rainforest Harvest • Artisanal Delicacies</span>
+            <span>{t('kithul.pill', 'Sinharaja Rainforest Harvest • Artisanal Delicacies')}</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-[#F5F2EB] tracking-tight">
-            100% Pure Kithul Delicacies & <br className="hidden sm:inline" />
-            <span className="italic text-[#D4AF37] font-normal">Fresh Toddy Experience</span>
+            {t('kithul.title1', '100% Pure Kithul Delicacies &')} <br className="hidden sm:inline" />
+            <span className="italic text-[#D4AF37] font-normal">{t('kithul.title2', 'Fresh Toddy Experience')}</span>
           </h2>
 
           <p className="text-sm sm:text-base text-[#C2BCB0] leading-relaxed max-w-2xl mx-auto">
-            Tapped from ancient wild fishtail palms deep in the Lankagama rainforest basin. 
-            Enjoy unadulterated pure treacle, jaggery, and fresh morning toddy <strong className="text-[#D4AF37]">delivered directly to your villa veranda or campsite</strong>.
+            {t('kithul.desc', 'Tapped from ancient wild fishtail palms deep in the Lankagama rainforest basin. Enjoy unadulterated pure treacle, jaggery, and fresh morning toddy delivered directly to your villa veranda or campsite.')}
           </p>
         </div>
 
@@ -108,13 +109,13 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-widest text-[#D4AF37] block">
-                Exclusive Villa Guest Privilege
+                {isSi ? 'විශේෂ ආගන්තුක වරප්‍රසාදය' : 'Exclusive Villa Guest Privilege'}
               </span>
               <h3 className="text-lg sm:text-xl font-serif text-[#F5F2EB] font-bold mt-0.5">
-                Delivered Direct to Your Villa Veranda in Lankagama
+                {t('kithul.benefitTitle', 'Delivered Direct to Your Villa Veranda in Lankagama')}
               </h3>
               <p className="text-xs text-[#C2BCB0] mt-1 max-w-xl leading-relaxed">
-                Staying at any villa or campsite in Lankagama? Enjoy complimentary doorstep delivery of warm, organic Kithul syrup and fresh jaggery for your morning hoppers, curd, or Ceylon tea.
+                {t('kithul.benefitDesc', 'Staying at any villa or campsite in Lankagama? Enjoy complimentary doorstep delivery of warm, organic Kithul syrup and fresh jaggery for your morning hoppers, curd, or Ceylon tea.')}
               </p>
             </div>
           </div>
@@ -122,7 +123,7 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
           <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#14231B] border border-[#3B5244] text-xs text-[#D4AF37] font-semibold">
               <ShieldCheck className="w-4 h-4" />
-              <span>Zero Added Sugar Guarantee</span>
+              <span>{isSi ? '100% සීනි රහිත බවට සහතිකය' : 'Zero Added Sugar Guarantee'}</span>
             </div>
           </div>
         </div>
@@ -138,7 +139,7 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                   : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
               }`}
             >
-              All Delicacies ({products.length})
+              {t('kithul.tabAll', 'All Delicacies')} ({products.length})
             </button>
             <button
               onClick={() => handleCategoryChange('treacle')}
@@ -148,7 +149,7 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                   : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
               }`}
             >
-              Pure Treacle
+              {t('kithul.tabTreacle', 'Pure Treacle')}
             </button>
             <button
               onClick={() => handleCategoryChange('jaggery')}
@@ -158,7 +159,7 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                   : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
               }`}
             >
-              Palm Jaggery
+              {t('kithul.tabJaggery', 'Palm Jaggery')}
             </button>
             <button
               onClick={() => handleCategoryChange('toddy')}
@@ -168,7 +169,7 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                   : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
               }`}
             >
-              Fresh Raa Bottle
+              {t('kithul.tabToddy', 'Fresh Raa Bottle')}
             </button>
             <button
               onClick={() => handleCategoryChange('experience')}
@@ -178,7 +179,7 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                   : 'bg-[#1E2A22] text-[#C2BCB0] border-[#3B5244] hover:bg-[#2C3E33] hover:text-[#F5F2EB]'
               }`}
             >
-              Live Tapping Tour
+              {t('kithul.tabExperience', 'Live Tapping Tour')}
             </button>
           </div>
 
@@ -259,17 +260,17 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                   <div className="p-6 space-y-3.5">
                     <div>
                       <h3 className="text-lg font-serif font-medium text-[#F5F2EB] group-hover:text-white transition-colors">
-                        {item.name}
+                        {isSi && item.sinhalaName ? item.sinhalaName : item.name}
                       </h3>
                       <p className="text-xs text-[#D4AF37] font-medium mt-0.5">
-                        {item.sinhalaName}
+                        {isSi ? item.name : item.sinhalaName}
                       </p>
                     </div>
 
                     {/* Harvest Origin */}
                     <div className="flex items-center gap-1.5 text-[11px] text-[#C2BCB0]">
                       <MapPin className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-                      <span>Origin: {item.harvestOrigin}</span>
+                      <span>{isSi ? 'නිෂ්පාදනය: ' : 'Origin: '}{item.harvestOrigin}</span>
                     </div>
 
                     {/* Description */}
@@ -288,7 +289,9 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                 {/* Card Footer: Price & Order Action */}
                 <div className="p-6 pt-0 border-t border-[#3B5244]/60 mt-4 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-[#C2BCB0] uppercase tracking-wider block">Price</span>
+                    <span className="text-[10px] text-[#C2BCB0] uppercase tracking-wider block">
+                      {isSi ? 'මිල' : 'Price'}
+                    </span>
                     <div className="text-xl font-bold font-mono text-[#D4AF37]">
                       Rs. {item.priceLKR.toLocaleString()}
                       <span className="text-xs font-normal text-[#C2BCB0] font-sans ml-1">/{item.unit}</span>
@@ -299,7 +302,11 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                     onClick={() => onSelectProduct(item)}
                     className="px-4 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md group-hover:scale-102"
                   >
-                    <span>{item.category === 'experience' ? 'Book Experience' : 'Order to Villa'}</span>
+                    <span>
+                      {item.category === 'experience'
+                        ? (isSi ? 'අත්දැකීම වෙන්කරන්න' : 'Book Experience')
+                        : (isSi ? 'විලා එකට ඇණවුම් කරන්න' : 'Order to Villa')}
+                    </span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -352,7 +359,7 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
 
         {/* Swipe Guidance Cue for Mobile */}
         <div className="mt-4 flex sm:hidden items-center justify-center gap-2 text-[11px] text-[#C2BCB0]">
-          <span>👈 Swipe sideways to explore pure Kithul delicacies 👉</span>
+          <span>{isSi ? '👈 කිතුල් නිෂ්පාදන බැලීමට දෙපසට අදින්න 👉' : '👈 Swipe sideways to explore pure Kithul delicacies 👉'}</span>
         </div>
 
         {/* Traditional Tapping Cultural Note */}
@@ -360,33 +367,34 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
           <div className="lg:col-span-2 space-y-3">
             <span className="text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] flex items-center gap-1.5">
               <Compass className="w-3.5 h-3.5" />
-              <span>Sinharaja Heritage Tradition • The Ancient Palm Craft</span>
+              <span>{isSi ? 'සිංහරාජ උරුමය • සාම්ප්‍රදායික කිතුල් කර්මාන්තය' : 'Sinharaja Heritage Tradition • The Ancient Palm Craft'}</span>
             </span>
             <h3 className="text-2xl font-serif text-[#F5F2EB] font-medium">
-              The Legend of Sinharaja Kithul Palms
+              {isSi ? 'ලංකාගම පාරම්පරික කිතුල් නිම්නය' : 'The Legend of Sinharaja Kithul Palms'}
             </h3>
             <p className="text-xs sm:text-sm text-[#C2BCB0] leading-relaxed">
-              Lankagama sits in the rainforest valley where wild Kithul trees (Caryota urens) absorb minerals from pristine mountain mist and crystal river waters. Local tappers still scale giant trees barefoot with traditional rope pulleys to tap the inflorescence before sunrise. 
-              Because there is no adulteration with cane sugar, our Kithul maintains a lower glycemic index, natural caramel essence, and pure rainforest probiotics.
+              {isSi 
+                ? 'පිරිසිදු සිංහරාජ වනාන්තර දියදහරා සහ කඳුකර මීදුමෙන් පෝෂණය වන වනගත කිතුල් ගස්වලින් අලුයම නිස්සාරණය කරන මිහිරි තෙලිදියෙන් මෙම පැණි සහ හකුරු සාදනු ලබයි. කිසිදු සීනි හෝ කෘත්‍රිම ද්‍රව්‍යයක් මිශ්‍ර නොකරන බැවින් ස්වභාවික ගුණය සහ රසය 100% ක් සුරැකී ඇත.'
+                : 'Lankagama sits in the rainforest valley where wild Kithul trees (Caryota urens) absorb minerals from pristine mountain mist and crystal river waters. Local tappers still scale giant trees barefoot with traditional rope pulleys to tap the inflorescence before sunrise. Because there is no adulteration with cane sugar, our Kithul maintains a lower glycemic index, natural caramel essence, and pure rainforest probiotics.'}
             </p>
           </div>
 
           <div className="space-y-3 bg-[#14231B] p-5 rounded-2xl border border-[#3B5244]">
             <div className="flex items-center gap-2.5 text-xs text-[#F5F2EB]">
               <Check className="w-4 h-4 text-[#D4AF37] shrink-0" />
-              <span>Tested & free from sugar syrup</span>
+              <span>{isSi ? 'සීනි හෝ කෘත්‍රිම පැණිරසකාරක රහිත බවට සහතිකයි' : 'Tested & free from sugar syrup'}</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs text-[#F5F2EB]">
               <Check className="w-4 h-4 text-[#D4AF37] shrink-0" />
-              <span>Delivered chilled or warm to your room</span>
+              <span>{isSi ? 'ඔබගේ කාමරයටම හෝ කඳවුරටම ගෙන්වා ගත හැක' : 'Delivered chilled or warm to your room'}</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs text-[#F5F2EB]">
               <Check className="w-4 h-4 text-[#D4AF37] shrink-0" />
-              <span>Supports local Lankagama tapper families</span>
+              <span>{isSi ? 'ලංකාගම ගම්වැසි කිතුල් පවුල් සවිබල ගැන්වීම' : 'Supports local Lankagama tapper families'}</span>
             </div>
             <div className="flex items-center gap-2.5 text-xs text-[#F5F2EB]">
               <Check className="w-4 h-4 text-[#D4AF37] shrink-0" />
-              <span>Special leak-proof packing for air flights</span>
+              <span>{isSi ? 'ගුවන් ගමන් සඳහා සුදුසු කාන්දු නොවන ඇසුරුම්' : 'Special leak-proof packing for air flights'}</span>
             </div>
           </div>
         </div>

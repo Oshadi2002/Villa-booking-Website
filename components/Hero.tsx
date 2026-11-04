@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { HeroSlide } from '@/lib/types';
+import { useLanguage } from '@/lib/LanguageContext';
 
 export default function Hero({ slides }: { slides?: HeroSlide[] }) {
   const activeSlides = slides || [];
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { isSi, t } = useLanguage();
 
   // Auto-advance slides every 5.5 seconds if more than 1 slide
   useEffect(() => {
@@ -93,29 +95,45 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
         <div className="flex justify-center mb-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#2C3E33]/90 backdrop-blur-md border border-[#3B5244] text-[#F5F2EB] text-xs tracking-[0.16em] uppercase font-semibold shadow-md">
             <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
-            <span>Sinharaja Rainforest Southern Gateway • Sri Lanka</span>
+            <span>{t('hero.pill', 'Sinharaja Rainforest Southern Gateway • Sri Lanka')}</span>
           </div>
         </div>
 
         {/* Master Editorial Headline */}
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif tracking-tight leading-[1.2] text-[#F5F2EB] font-medium drop-shadow-md">
-            Where the Rainforest Meets <br className="hidden sm:inline" />
-            the Living Waters of <br />
-            <span className="italic font-normal text-[#D4AF37]">
-              <span className="font-sans font-semibold not-italic mr-2">ලංකාගම</span>• Lankagama Valley
-            </span>
+            {isSi ? (
+              <>
+                වැසි වනාන්තරය හමුවන <br className="hidden sm:inline" />
+                ජීවමාන දිය දහරාවන් පිරි <br />
+                <span className="italic font-normal text-[#D4AF37]">
+                  <span className="font-sans font-semibold not-italic mr-2">ලංකාගම</span>• නිම්න අසිරිය
+                </span>
+              </>
+            ) : (
+              <>
+                Where the Rainforest Meets <br className="hidden sm:inline" />
+                the Living Waters of <br />
+                <span className="italic font-normal text-[#D4AF37]">
+                  <span className="font-sans font-semibold not-italic mr-2">ලංකාගම</span>• Lankagama Valley
+                </span>
+              </>
+            )}
           </h1>
 
           <p className="mt-5 text-sm sm:text-base lg:text-lg text-[#C2BCB0] max-w-2xl mx-auto leading-relaxed font-normal drop-shadow">
-            Book comfortable riverside villas, rent camping gear, and explore waterfalls with friendly local guides in Lankagama.
+            {t('hero.desc', 'Book comfortable riverside villas, rent camping gear, and explore waterfalls with friendly local guides in Lankagama.')}
           </p>
 
           {/* Simple Process Badge */}
           <div className="mt-7 inline-flex items-center gap-2.5 bg-[#2C3E33]/90 backdrop-blur-md border border-[#3B5244] rounded-full px-5 py-2 text-xs text-[#F5F2EB] shadow-md">
-            <span className="text-[#D4AF37] font-serif italic text-sm font-semibold">How It Works:</span>
+            <span className="text-[#D4AF37] font-serif italic text-sm font-semibold">
+              {isSi ? 'ක්‍රියාපටිපාටිය:' : 'How It Works:'}
+            </span>
             <span className="text-[#C2BCB0] font-medium">
-              Choose your stay → We confirm with local host → Instant WhatsApp booking approval.
+              {isSi 
+                ? 'නවාතැන තෝරන්න → නවාතැන්කරු සමඟ තහවුරු කරන්න → වට්ස්ඇප් මගින් සෘජු වෙන්කරවා ගැනීම.'
+                : 'Choose your stay → We confirm with local host → Instant WhatsApp booking approval.'}
             </span>
           </div>
         </div>
@@ -130,18 +148,18 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
           >
             <div className="flex items-center justify-between text-[#C2BCB0] mb-2.5">
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#D4AF37]">
-                Service 01 • Stays
+                {t('hero.card1Badge', 'Service 01 • Stays')}
               </span>
               <ArrowRight className="w-4 h-4 text-[#C2BCB0] group-hover:text-[#D4AF37] group-hover:translate-x-1 transition-all" />
             </div>
             <h3 className="text-xl font-serif font-semibold text-[#F5F2EB] group-hover:text-[#D4AF37] transition-colors">
-              Private Villas & Eco-Lodges
+              {t('hero.card1Title', 'Private Villas & Eco-Lodges')}
             </h3>
             <p className="text-xs text-[#C2BCB0] mt-2.5 leading-relaxed font-normal">
-              Peaceful riverside rooms with natural swimming spots, fresh mountain air, and authentic village meals cooked on woodfire.
+              {t('hero.card1Desc', 'Peaceful riverside rooms with natural swimming spots, fresh mountain air, and authentic village meals cooked on woodfire.')}
             </p>
             <div className="mt-3.5 pt-3 border-t border-[#3B5244] text-[11px] text-[#D4AF37] font-medium flex items-center gap-1.5">
-              <span>✓ Certified native Sinharaja guide available on booking</span>
+              <span>{t('hero.card1Footer', '✓ Certified native Sinharaja guide available on booking')}</span>
             </div>
           </div>
 
@@ -152,18 +170,18 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
           >
             <div className="flex items-center justify-between text-[#C2BCB0] mb-2.5">
               <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#D4AF37]">
-                Service 02 • Field Gear
+                {t('hero.card2Badge', 'Service 02 • Field Gear')}
               </span>
               <ArrowRight className="w-4 h-4 text-[#C2BCB0] group-hover:text-[#D4AF37] group-hover:translate-x-1 transition-all" />
             </div>
             <h3 className="text-xl font-serif font-semibold text-[#F5F2EB] group-hover:text-[#D4AF37] transition-colors">
-              Expedition Camping Sets
+              {t('hero.card2Title', 'Expedition Camping Sets')}
             </h3>
             <p className="text-xs text-[#C2BCB0] mt-2.5 leading-relaxed font-normal">
-              High-quality rainproof tents, portable stoves, lanterns, and leech socks delivered directly to you in Lankagama.
+              {t('hero.card2Desc', 'High-quality rainproof tents, portable stoves, lanterns, and leech socks delivered directly to you in Lankagama.')}
             </p>
             <div className="mt-3.5 pt-3 border-t border-[#3B5244] text-[11px] text-[#D4AF37] font-medium flex items-center gap-1.5">
-              <span>✓ Certified native Sinharaja guide available on booking</span>
+              <span>{t('hero.card2Footer', '✓ Certified native Sinharaja guide available on booking')}</span>
             </div>
           </div>
 

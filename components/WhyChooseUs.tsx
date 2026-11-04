@@ -7,6 +7,7 @@ import {
   Clock, HeartHandshake, PhoneCall
 } from 'lucide-react';
 import { AGENCY_CONFIG } from '@/lib/data';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface WhyChooseUsProps {
   onExploreVillas?: () => void;
@@ -15,62 +16,77 @@ interface WhyChooseUsProps {
 }
 
 export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExploreCamping }: WhyChooseUsProps) {
-  const whatsappUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent('Hello The Sinharaja Collection Lankagama! I want to organize a trip with stays, pure kithul delivery, and camping gear.')}`;
+  const { isSi, t } = useLanguage();
+  const whatsappUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent(
+    isSi 
+      ? 'ආයුබෝවන් The Sinharaja Collection Lankagama! මට විලා වෙන්කරගැනීම, කිතුල් නිෂ්පාදන සහ කූඩාරම් උපකරණ පිළිබඳ විස්තර දැනගැනීමට අවශ්‍යයි.'
+      : 'Hello The Sinharaja Collection Lankagama! I want to organize a trip with stays, pure kithul delivery, and camping gear.'
+  )}`;
 
   const pillars = [
     {
       icon: Home,
-      title: 'Villas & Nature Stays',
-      subtitle: 'Curated Riverside & Waterfall Chalets',
-      description: 'Carefully vetted riverside chalets and waterfall-view eco lodges bordering Sinharaja Rainforest. Verified vacancy and transparent pricing.',
-      benefit: 'River bathing pools & home-cooked meals included',
-      ctaText: 'View Stays',
+      title: isSi ? 'විලා සහ ස්වභාවික නවාතැන්' : 'Villas & Nature Stays',
+      subtitle: isSi ? 'ගංගාබඩ හා දියඇලි අසල පරිසර හිතකාමී නවාතැන්' : 'Curated Riverside & Waterfall Chalets',
+      description: isSi 
+        ? 'සිංහරාජ මායිමේ ඇති පිරිසිදු ගංගාබඩ චැලේ සහ දියඇලි දසුන් සහිත පරිසර හිතකාමී නවාතැන්. නිවැරදි මිල ගණන් සහ තහවුරු කළ කාමර පහසුකම්.'
+        : 'Carefully vetted riverside chalets and waterfall-view eco lodges bordering Sinharaja Rainforest. Verified vacancy and transparent pricing.',
+      benefit: isSi ? 'ස්වාභාවික දියනෑමේ තටාක සහ ගෙදර කෑම ඇතුළත්ය' : 'River bathing pools & home-cooked meals included',
+      ctaText: isSi ? 'නවාතැන් බලන්න' : 'View Stays',
       href: '#villas',
       onClick: onExploreVillas,
-      badge: 'Handpicked Stays'
+      badge: isSi ? 'තෝරාගත් නවාතැන්' : 'Handpicked Stays'
     },
     {
       icon: ShoppingBag,
-      title: '100% Pure Kithul Direct to Villa',
-      subtitle: 'Zero Additives & Organic Jaggery',
-      description: 'Zero added sugar, zero chemicals. Pure organic Kithul treacle and solid jaggery halves tapped in Lankagama, delivered right to your villa door.',
-      benefit: 'Doorstep delivery to your room or campsite',
-      ctaText: 'Order Kithul',
+      title: isSi ? '100% පිරිසිදු කිතුල් විලා එකටම' : '100% Pure Kithul Direct to Villa',
+      subtitle: isSi ? 'සීනි රහිත හා ස්වභාවික හකුරු' : 'Zero Additives & Organic Jaggery',
+      description: isSi 
+        ? 'කිසිදු සීනි හෝ කෘත්‍රිම රසකාරක නොමැතිව, ලංකාගම සැබෑ කිතුල් ගස්වලින් උණු උණුවේ පිසින ලද පැණි සහ හකුරු ඔබේ කාමරයේ දොරකඩටම ලබාදේ.'
+        : 'Zero added sugar, zero chemicals. Pure organic Kithul treacle and solid jaggery halves tapped in Lankagama, delivered right to your villa door.',
+      benefit: isSi ? 'ඔබ නැවතී සිටින විලා එකට හෝ කඳවුරටම බෙදාහැරීම' : 'Doorstep delivery to your room or campsite',
+      ctaText: isSi ? 'කිතුල් ඇණවුම් කරන්න' : 'Order Kithul',
       href: '#kithul',
       onClick: onExploreKithul,
-      badge: 'Villa Doorstep Delivery'
+      badge: isSi ? 'කාමරයටම බෙදාහැරීම' : 'Villa Doorstep Delivery'
     },
     {
       icon: Wine,
-      title: 'Fresh Kithul Raa & Tapping Tour',
-      subtitle: 'Living Sinharaja Palm Culture',
-      description: 'Experience genuine Sinharaja palm culture. Enjoy freshly tapped sweet morning toddy delivered chilled, or join a master tapper on a live tree-climbing session.',
-      benefit: 'Tapped fresh at dawn from rainforest palms',
-      ctaText: 'Toddy Experience',
+      title: isSi ? 'නැවුම් කිතුල් රා සහ තෙලිදිය' : 'Fresh Kithul Raa & Tapping Tour',
+      subtitle: isSi ? 'සැබෑ සිංහරාජ කිතුල් සංස්කෘතිය' : 'Living Sinharaja Palm Culture',
+      description: isSi 
+        ? 'අලුයම මලෙන් බාන ලද සිසිල් මිහිරි තෙලිදිය රසවිඳින්න. නැතහොත් පළපුරුදු කිතුල් මැදින්නෙකු සමඟ ගසට නගින සැබෑ අත්දැකීම විඳගන්න.'
+        : 'Experience genuine Sinharaja palm culture. Enjoy freshly tapped sweet morning toddy delivered chilled, or join a master tapper on a live tree-climbing session.',
+      benefit: isSi ? 'අලුයම වනගත තෙලිදියෙන් ලබාගත් නැවුම් බව' : 'Tapped fresh at dawn from rainforest palms',
+      ctaText: isSi ? 'රා අත්දැකීම' : 'Toddy Experience',
       href: '#kithul',
       onClick: onExploreKithul,
-      badge: 'Exclusive Privilege'
+      badge: isSi ? 'විශේෂ අත්දැකීමක්' : 'Exclusive Privilege'
     },
     {
       icon: Tent,
-      title: 'Expedition Camping & BBQ Sets',
-      subtitle: '3000mm Rainproof All-Weather Tents',
-      description: 'High-grade 3000mm rainproof tents, sleeping bags, gas cookers, lanterns, and charcoal BBQ kits. Ready-to-camp packs ready when you arrive.',
-      benefit: 'No need to transport bulky gear from home',
-      ctaText: 'Browse Gear',
+      title: isSi ? 'කූඩාරම් සහ BBQ උපකරණ' : 'Expedition Camping & BBQ Sets',
+      subtitle: isSi ? '3000mm වර්ෂාවට ඔරොත්තු දෙන කූඩාරම්' : '3000mm Rainproof All-Weather Tents',
+      description: isSi 
+        ? 'වර්ෂාපතනයට ඔරොත්තු දෙන කූඩාරම්, නිදන බෑග්, ගෑස් ලිප්, ලන්තෑරුම් සහ අඟුරු BBQ උපකරණ. කොළඹින් බර උස්සන් ඒමෙන් තොරව මෙහිදී ලබාගන්න.'
+        : 'High-grade 3000mm rainproof tents, sleeping bags, gas cookers, lanterns, and charcoal BBQ kits. Ready-to-camp packs ready when you arrive.',
+      benefit: isSi ? 'නිවසේ සිට බර උපකරණ රැගෙන ඒම අවශ්‍ය නොවේ' : 'No need to transport bulky gear from home',
+      ctaText: isSi ? 'උපකරණ බලන්න' : 'Browse Gear',
       href: '#camping',
       onClick: onExploreCamping,
-      badge: 'Full Sets for Rent'
+      badge: isSi ? 'සම්පූර්ණ කට්ටල කුලියට' : 'Full Sets for Rent'
     },
     {
       icon: Compass,
-      title: 'Native Rainforest Field Guides',
-      subtitle: 'Certified Endemic Flora & Fauna Trackers',
-      description: 'Born-and-raised local guides who know every hidden cascade, safe rock pool in Gin Ganga, and endemic bird trails while keeping you safe from flash floods.',
-      benefit: 'Safety first + leech socks provided',
-      ctaText: 'Explore Waterfalls',
+      title: isSi ? 'ප්‍රදේශයේ පළපුරුදු මඟපෙන්වන්නන්' : 'Native Rainforest Field Guides',
+      subtitle: isSi ? 'දේශීය සත්ත්ව හා ශාක ගවේෂකයින්' : 'Certified Endemic Flora & Fauna Trackers',
+      description: isSi 
+        ? 'ලංකාගමම ඉපදී හැදීවැඩුණු, සැඟවුණු සුන්දර දියඇලි, ගිං ගඟේ ආරක්ෂිත දියනෑමේ ස්ථාන සහ ආරක්ෂිත ගමන් මඟ දන්නා විශ්වාසවන්ත මඟපෙන්වන්නන්.'
+        : 'Born-and-raised local guides who know every hidden cascade, safe rock pool in Gin Ganga, and endemic bird trails while keeping you safe from flash floods.',
+      benefit: isSi ? 'ආරක්ෂාව මුල්තැන + කූඩැල්ලන්ගෙන් ආරක්ෂිත මේස්' : 'Safety first + leech socks provided',
+      ctaText: isSi ? 'දියඇලි ගවේෂණය කරන්න' : 'Explore Waterfalls',
       href: '/blogs',
-      badge: 'Local Sinharaja Guides'
+      badge: isSi ? 'ගම්වැසි මඟපෙන්වන්නන්' : 'Local Sinharaja Guides'
     }
   ];
 
@@ -86,17 +102,16 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
         <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#2C3E33]/90 border border-[#3B5244] text-[#D4AF37] text-xs font-semibold tracking-wider uppercase shadow-xs">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Curated Rainforest Hospitality • Why Choose Us</span>
+            <span>{t('whyUs.pill', 'Curated Rainforest Hospitality • Why Choose Us')}</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-[#F5F2EB] tracking-tight">
-            Everything in One Place for Your <br className="hidden sm:inline" />
-            <span className="italic text-[#D4AF37] font-normal">Lankagama Experience</span>
+            {t('whyUs.title1', 'Everything in One Place for Your')} <br className="hidden sm:inline" />
+            <span className="italic text-[#D4AF37] font-normal">{t('whyUs.title2', 'Lankagama Experience')}</span>
           </h2>
 
           <p className="text-sm sm:text-base text-[#C2BCB0] leading-relaxed max-w-2xl mx-auto">
-            From peaceful riverfront stays and delicious home-cooked meals to pure village kithul, 
-            camping gear rentals, and trusted local guides — we make your entire trip to Lankagama easy and memorable.
+            {t('whyUs.desc', 'From peaceful riverfront stays and delicious home-cooked meals to pure village kithul, camping gear rentals, and trusted local guides — we make your entire trip to Lankagama easy and memorable.')}
           </p>
         </div>
 
@@ -166,29 +181,30 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
 
               <div>
                 <span className="text-[10px] uppercase font-bold tracking-widest text-[#D4AF37] block">
-                  The Lankagama Advantage
+                  {isSi ? 'ලංකාගම විශේෂ වාසිය' : 'The Lankagama Advantage'}
                 </span>
                 <h3 className="text-xl font-serif text-[#F5F2EB] font-bold mt-1">
-                  One Contact. Zero Hassle.
+                  {isSi ? 'එක් සබඳතාවක්. කිසිදු කරදරයක් නැත.' : 'One Contact. Zero Hassle.'}
                 </h3>
                 <p className="text-xs text-[#C2BCB0] mt-2.5 leading-relaxed">
-                  You don’t need to coordinate with 5 different village contacts for rooms, honey, gear, and trails. 
-                  Our local concierge coordinates everything seamlessly before you even depart home.
+                  {isSi 
+                    ? 'කාමර, පැණි, කූඩාරම් සහ මඟපෙන්වන්නන් සඳහා වෙන වෙනම පුද්ගලයින් සෙවීමට අවශ්‍ය නොවේ. ඔබ නිවසින් පිටත්වීමට පෙරම අපගේ දේශීය සහයක කණ්ඩායම සියල්ල සුදානම් කර දෙයි.'
+                    : 'You don’t need to coordinate with 5 different village contacts for rooms, honey, gear, and trails. Our local concierge coordinates everything seamlessly before you even depart home.'}
                 </p>
               </div>
 
               <div className="space-y-2 pt-2 border-t border-[#3B5244]/80 text-xs text-[#F5F2EB]">
                 <div className="flex items-center gap-2 text-[11px]">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>Doorstep delivery to any villa in Lankagama</span>
+                  <span>{isSi ? 'ලංකාගම ඕනෑම විලා එකකට දොරකඩටම ගෙනවිත් දීම' : 'Doorstep delivery to any villa in Lankagama'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-[11px]">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>No upfront credit card deposit needed</span>
+                  <span>{isSi ? 'ක්‍රෙඩිට් කාඩ්පත් තැන්පතු අවශ්‍ය නොවේ' : 'No upfront credit card deposit needed'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-[11px]">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#D4AF37]" />
-                  <span>24/7 Local assistance & road condition alerts</span>
+                  <span>{isSi ? '24/7 දේශීය සහය සහ මාර්ග තත්ත්ව තොරතුරු' : '24/7 Local assistance & road condition alerts'}</span>
                 </div>
               </div>
             </div>
@@ -201,7 +217,7 @@ export default function WhyChooseUs({ onExploreVillas, onExploreKithul, onExplor
                 className="w-full py-3 px-4 rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
               >
                 <PhoneCall className="w-4 h-4" />
-                <span>Chat with Local Concierge</span>
+                <span>{isSi ? 'දේශීය සහයකයා අමතන්න (WhatsApp)' : 'Chat with Local Concierge'}</span>
               </a>
             </div>
           </div>

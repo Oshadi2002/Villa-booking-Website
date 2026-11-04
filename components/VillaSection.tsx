@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Villa } from '@/lib/types';
 import { useWhatsApp } from '@/lib/useWhatsApp';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface VillaSectionProps {
   onSelectVilla: (villa: Villa) => void;
@@ -28,6 +29,7 @@ function VillaCardItem({
 }) {
   const images = villa.images && villa.images.length > 0 ? villa.images : [villa.imageUrl];
   const [photoIndex, setPhotoIndex] = useState(0);
+  const { isSi, t } = useLanguage();
 
   const prevPhoto = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -125,10 +127,10 @@ function VillaCardItem({
           <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between text-[#F5F2EB] z-10">
             <div className="pr-2">
               <span className="text-[11px] font-medium tracking-wider uppercase text-[#D4AF37] block">
-                {villa.sinhalaName}
+                {isSi ? villa.name : villa.sinhalaName}
               </span>
               <h3 className="text-xl font-serif font-medium leading-tight drop-shadow-sm group-hover:text-[#D4AF37] transition-colors">
-                {villa.name}
+                {isSi && villa.sinhalaName ? villa.sinhalaName : villa.name}
               </h3>
             </div>
 
@@ -136,28 +138,30 @@ function VillaCardItem({
               {villa.pricePerRoomLKR ? (
                 <div className="text-right space-y-0.5">
                   <div className="flex items-center justify-end gap-1.5 text-[11px] font-medium text-[#C2BCB0]">
-                    <span>🏠 Full Villa:</span>
+                    <span>{isSi ? '🏠 මුළු විලා:' : '🏠 Full Villa:'}</span>
                     <span className="font-bold text-[#F5F2EB] font-mono">Rs. {villa.pricePerNightLKR.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-end gap-1.5 text-[11px] font-semibold text-[#D4AF37]">
-                    <span>🛏️ Per Room:</span>
+                    <span>{isSi ? '🛏️ කාමරයක්:' : '🛏️ Per Room:'}</span>
                     <span className="font-bold font-mono">Rs. {villa.pricePerRoomLKR.toLocaleString()}</span>
                   </div>
                 </div>
               ) : villa.pricePerNightAcLKR ? (
                 <div className="text-right space-y-0.5">
                   <div className="flex items-center justify-end gap-1.5 text-[11px] font-medium text-[#C2BCB0]">
-                    <span>Non-A/C:</span>
+                    <span>{isSi ? 'සාමාන්‍ය:' : 'Non-A/C:'}</span>
                     <span className="font-bold text-[#F5F2EB] font-mono">Rs. {villa.pricePerNightLKR.toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-end gap-1.5 text-[11px] font-semibold text-[#D4AF37]">
-                    <span>A/C Room:</span>
+                    <span>{isSi ? 'A/C කාමර:' : 'A/C Room:'}</span>
                     <span className="font-bold font-mono">Rs. {villa.pricePerNightAcLKR.toLocaleString()}</span>
                   </div>
                 </div>
               ) : (
                 <>
-                  <span className="text-[10px] text-[#C2BCB0] block uppercase tracking-wider">Per Night</span>
+                  <span className="text-[10px] text-[#C2BCB0] block uppercase tracking-wider">
+                    {isSi ? 'රාත්‍රියකට' : 'Per Night'}
+                  </span>
                   <span className="text-base font-bold text-[#D4AF37] font-mono">
                     Rs. {villa.pricePerNightLKR.toLocaleString()}
                   </span>
@@ -202,20 +206,22 @@ function VillaCardItem({
             className="py-2.5 px-3 rounded-xl font-medium text-xs text-[#F5F2EB] bg-[#1E2A22] hover:bg-[#14231B] transition-colors flex items-center justify-center gap-1.5 border border-[#3B5244] hover:border-[#D4AF37] cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span>Photos & Details</span>
+            <span>{isSi ? 'ඡායාරූප සහ විස්තර' : 'Photos & Details'}</span>
           </button>
 
           <button
             onClick={() => onSelectVilla(villa)}
             className="py-2.5 px-3 rounded-xl font-semibold text-xs text-[#14231B] bg-[#D4AF37] hover:bg-[#C5A880] active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
           >
-            <span>Book Villa / Room</span>
+            <span>{isSi ? 'කාමර / විලා වෙන්කරන්න' : 'Book Villa / Room'}</span>
             <ArrowRight className="w-3.5 h-3.5 text-[#14231B]" />
           </button>
         </div>
 
         <p className="text-[11px] text-center text-[#C2BCB0] font-normal">
-          Direct verification with host • Optional guide available
+          {isSi 
+            ? 'නවාතැන්කරු සමඟ සෘජු තහවුරු කිරීම • අවශ්‍ය නම් මඟපෙන්වන්නන්' 
+            : 'Direct verification with host • Optional guide available'}
         </p>
       </div>
     </div>
@@ -227,6 +233,7 @@ export default function VillaSection({ onSelectVilla, onViewDetails, villas = []
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
+  const { isSi, t } = useLanguage();
   const { getWhatsAppLink } = useWhatsApp();
   const whatsappUrl = getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I want to inquire about villa booking and current availability.');
 
@@ -294,13 +301,13 @@ export default function VillaSection({ onSelectVilla, onViewDetails, villas = []
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div className="max-w-2xl">
             <span className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[#D4AF37] block mb-2">
-              Curated Private Stays • Sinharaja Rainforest Border
+              {t('villas.pill', 'Curated Private Stays • Sinharaja Rainforest Border')}
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-[#F5F2EB] tracking-tight font-medium">
-              Villas & Eco-Lodges in Lankagama
+              {t('villas.title', 'Villas & Eco-Lodges in Lankagama')}
             </h2>
             <p className="mt-3 text-sm sm:text-base text-[#C2BCB0] leading-relaxed font-normal">
-              Every property is personally vetted by our agency. Browse our riverside villas and rainforest lodges with direct host verification.
+              {t('villas.desc', 'Every property is personally vetted by our agency. Browse our riverside villas and rainforest lodges with direct host verification.')}
             </p>
           </div>
 
