@@ -87,7 +87,7 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
 
   const getNavClass = (sectionKey: string) => {
     const isActive = activeSection === sectionKey;
-    return `transition-all py-1 relative hover:after:w-full after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all ${
+    return `transition-all py-1.5 px-1 relative whitespace-nowrap shrink-0 hover:after:w-full after:h-0.5 after:bg-[#D4AF37] after:absolute after:bottom-0 after:left-0 after:transition-all ${
       isActive
         ? 'text-[#D4AF37] font-bold after:w-full'
         : 'text-[#F5F2EB]/90 hover:text-[#D4AF37] after:w-0'
@@ -96,7 +96,7 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
 
   const getMobileNavClass = (sectionKey: string) => {
     const isActive = activeSection === sectionKey;
-    return `p-2 rounded-lg transition-colors flex items-center justify-between ${
+    return `p-2.5 rounded-xl transition-colors flex items-center justify-between ${
       isActive
         ? 'bg-[#2C3E33] text-[#D4AF37] font-bold'
         : 'text-[#F5F2EB]/90 hover:bg-[#2C3E33] hover:text-[#D4AF37]'
@@ -107,19 +107,19 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-40 bg-[#14231B]/95 backdrop-blur-md text-[#F5F2EB] border-b border-[#2C3E33] shadow-md transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-2 sm:gap-4">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20 gap-2 sm:gap-4 lg:gap-6">
           
           {/* Brand Logo & Editorial Typography */}
-          <Link href="/" className="flex items-center gap-2.5 sm:gap-3.5 group shrink min-w-0 mr-1 sm:mr-3 lg:mr-4 xl:mr-6">
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0 mr-1 sm:mr-2 xl:mr-4">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#2C3E33] border border-[#3B5244] flex items-center justify-center text-[#D4AF37] shadow-inner group-hover:scale-102 transition-transform shrink-0">
               <Compass className="w-5 h-5 text-[#D4AF37]" strokeWidth={1.75} />
             </div>
-            <div className="min-w-0">
-              <span className="text-base sm:text-xl xl:text-2xl font-serif tracking-tight text-[#F5F2EB] font-medium block whitespace-nowrap">
+            <div className="shrink-0">
+              <span className="text-base sm:text-lg xl:text-xl font-serif tracking-tight text-[#F5F2EB] font-medium block whitespace-nowrap">
                 The Sinharaja <span className="italic font-normal text-[#D4AF37]">Collection</span>
               </span>
-              <p className="text-[11px] text-[#C2BCB0] font-normal tracking-wide hidden md:block whitespace-nowrap">
+              <p className="text-[10px] text-[#C2BCB0] font-normal tracking-wide hidden 2xl:block whitespace-nowrap">
                 <span className="text-[#D4AF37] font-medium tracking-normal mr-1">ලංකාගම</span>
                 <span className="text-[#7A8A7F]">•</span>
                 <span className="ml-1">Rainforest Gateway • Sri Lanka</span>
@@ -128,7 +128,7 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
           </Link>
 
           {/* Clean Desktop Navigation Links with dynamic section scroll spy */}
-          <nav className="hidden lg:flex items-center gap-2 xl:gap-4 2xl:gap-6 text-[11px] xl:text-xs uppercase tracking-wide font-semibold shrink min-w-0">
+          <nav className="hidden lg:flex items-center gap-2 xl:gap-4 2xl:gap-6 text-xs xl:text-[13px] tracking-wide font-medium shrink-0">
             <Link 
               href="/#villas" 
               onClick={(e) => handleSectionClick(e, '#villas')}
@@ -166,18 +166,18 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
           </nav>
 
           {/* Action CTAs: Language Switcher, Track Booking & WhatsApp */}
-          <div className="hidden sm:flex items-center gap-2 xl:gap-3 shrink-0 ml-auto lg:ml-2 xl:ml-4">
+          <div className="hidden sm:flex items-center gap-2 xl:gap-3 shrink-0 ml-auto">
             {/* Global Language Toggle Switch */}
             <LanguageSwitcher />
 
             {/* Status Tracking */}
             <button
               onClick={onOpenTrackModal}
-              className="flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-2 text-xs font-semibold rounded-xl text-[#F5F2EB] hover:text-white border border-[#3B5244] hover:border-[#D4AF37]/60 bg-[#2C3E33] hover:bg-[#354A3D] transition-all cursor-pointer shadow-xs whitespace-nowrap"
+              className="flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-1.5 text-xs font-semibold rounded-xl text-[#F5F2EB] hover:text-white border border-[#3B5244] hover:border-[#D4AF37]/60 bg-[#2C3E33] hover:bg-[#354A3D] transition-all cursor-pointer shadow-xs whitespace-nowrap shrink-0"
+              title={t('nav.track', 'Track Booking')}
             >
               <Search className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span className="hidden xl:inline">{t('nav.track', 'Track Booking')}</span>
-              <span className="xl:hidden">Track</span>
             </button>
 
             {/* Direct WhatsApp Concierge */}
@@ -185,11 +185,11 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 xl:gap-2 px-3 xl:px-4 py-2 text-xs font-bold rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] transition-all shadow-sm cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1.5 xl:gap-2 px-3 xl:px-3.5 py-1.5 text-xs font-bold rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] transition-all shadow-sm cursor-pointer whitespace-nowrap shrink-0"
+              title="Direct WhatsApp Concierge"
             >
               <MessageCircle className="w-4 h-4 fill-[#14231B] text-[#D4AF37]" />
               <span className="hidden xl:inline">{t('nav.whatsapp', 'WhatsApp Agency')}</span>
-              <span className="xl:hidden">WhatsApp</span>
             </a>
           </div>
 

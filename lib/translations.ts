@@ -113,14 +113,14 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
 
   si: {
     // Navigation
-    'nav.whyUs': 'අප තෝරාගත යුත්තේ ඇයි',
-    'nav.villas': 'විලා සහ නවාතැන්',
+    'nav.whyUs': 'විශේෂතා',
+    'nav.villas': 'නවාතැන්',
     'nav.kithul': 'කිතුල් සහ රා',
-    'nav.camping': 'කඳවුරු උපකරණ',
-    'nav.blogs': 'ලිපි සහ මාර්ගෝපදේශ',
-    'nav.reviews': 'අදහස් සහ ප්‍රශ්නෝත්තර',
-    'nav.track': 'වෙන්කිරීම් විස්තර',
-    'nav.whatsapp': 'වට්ස්ඇප් සේවාව',
+    'nav.camping': 'කඳවුරු',
+    'nav.blogs': 'මඟපෙන්වීම්',
+    'nav.reviews': 'සමාලෝචන',
+    'nav.track': 'වෙන්කිරීම් සොයන්න',
+    'nav.whatsapp': 'වට්ස්ඇප්',
     'nav.mobileTitle': 'සිංහරාජ දොරටුව • ශ්‍රී ලංකා',
 
     // Hero Section
