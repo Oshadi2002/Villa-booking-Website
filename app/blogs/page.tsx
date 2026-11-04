@@ -11,7 +11,8 @@ import { AGENCY_CONFIG } from '@/lib/data';
 import { useLanguage, LanguageSwitcher } from '@/lib/LanguageContext';
 import { 
   AlertCircle, Compass, Clock, BookOpen, 
-  ArrowRight, Sparkles, ChevronRight, Eye, Search
+  ArrowRight, Sparkles, ChevronRight, Eye, Search,
+  Image as ImageIcon
 } from 'lucide-react';
 
 export default function BlogsPage() {
@@ -210,6 +211,12 @@ export default function BlogsPage() {
                           <Clock className="w-3 h-3 text-[#D4AF37]" />
                           {post.readTime}
                         </span>
+                        {post.images && post.images.length > 1 && (
+                          <span className="px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-[#D4AF37] text-[10px] font-semibold border border-white/10 flex items-center gap-1">
+                            <ImageIcon className="w-3 h-3 text-[#D4AF37]" />
+                            <span>{post.images.length} {isSi ? 'ඡායාරූප' : 'Photos'}</span>
+                          </span>
+                        )}
                       </div>
 
                       {/* Click indicator badge on hover */}

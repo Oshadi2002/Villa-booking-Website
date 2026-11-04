@@ -185,6 +185,26 @@ export default function BlogDetailModal({
             )}
           </div>
 
+          {/* Gallery Thumbnail Strip if multiple photos */}
+          {images.length > 1 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar">
+              {images.map((img, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setActivePhotoIdx(i)}
+                  className={`relative w-16 h-12 sm:w-20 sm:h-14 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
+                    activePhotoIdx === i
+                      ? 'border-[#D4AF37] scale-102 shadow-md ring-2 ring-[#D4AF37]/40'
+                      : 'border-[#3B5244] opacity-60 hover:opacity-100 hover:border-[#D4AF37]/60'
+                  }`}
+                >
+                  <img src={img} alt={`Gallery photo ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Article Header & Metadata */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3 text-xs text-[#A6B2A8]">

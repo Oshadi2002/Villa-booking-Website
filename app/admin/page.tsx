@@ -107,6 +107,7 @@ export default function AdminPage() {
     author: 'Sunil Shantha (Native Guide)',
     authorSi: 'සුනිල් ශාන්ත (ප්‍රදේශවාසී මඟපෙන්වන්නා)',
     imageUrl: '',
+    galleryImages: [] as string[],
     summary: '',
     summarySi: '',
     content: '',
@@ -203,6 +204,7 @@ export default function AdminPage() {
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
   const [editingBlogHighlights, setEditingBlogHighlights] = useState('');
   const [editingBlogHighlightsSi, setEditingBlogHighlightsSi] = useState('');
+  const [editingBlogGallery, setEditingBlogGallery] = useState<string[]>([]);
   const [editingComment, setEditingComment] = useState<CustomerComment | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -995,13 +997,19 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
         .map(h => h.trim())
         .filter(h => h.length > 0);
 
+      const coverUrl = compressedImage || newBlog.imageUrl || '';
+      const allImages = [
+        coverUrl,
+        ...(newBlog.galleryImages || []).filter(img => img && img !== coverUrl)
+      ].filter(Boolean);
+
       const res = await fetch('/api/blogs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...newBlog,
-          imageUrl: compressedImage || newBlog.imageUrl,
-          images: compressedImage ? [compressedImage] : (newBlog.imageUrl ? [newBlog.imageUrl] : []),
+          imageUrl: coverUrl || (allImages[0] || ''),
+          images: allImages.length > 0 ? allImages : (coverUrl ? [coverUrl] : []),
           highlights,
           highlightsSi
         })
@@ -1020,6 +1028,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           author: 'Sunil Shantha (Native Guide)',
           authorSi: 'සුනිල් ශාන්ත (ප්‍රදේශවාසී මඟපෙන්වන්නා)',
           imageUrl: '',
+          galleryImages: [],
           summary: '',
           summarySi: '',
           content: '',
@@ -1328,6 +1337,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     setEditingBlog(blog);
     setEditingBlogHighlights(blog.highlights ? blog.highlights.join('\n') : '');
     setEditingBlogHighlightsSi(blog.highlightsSi ? blog.highlightsSi.join('\n') : '');
+    const extraImages = (blog.images || []).filter(img => img && img !== blog.imageUrl);
+    setEditingBlogGallery(extraImages);
   };
 
   const handleUpdateBlogSubmit = async (e: React.FormEvent) => {
@@ -1345,13 +1356,19 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
         .map(h => h.trim())
         .filter(h => h.length > 0);
 
+      const coverUrl = compressedImage || editingBlog.imageUrl || '';
+      const allImages = [
+        coverUrl,
+        ...(editingBlogGallery || []).filter(img => img && img !== coverUrl)
+      ].filter(Boolean);
+
       const res = await fetch(`/api/blogs/${encodeURIComponent(editingBlog.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...editingBlog,
-          imageUrl: compressedImage || editingBlog.imageUrl,
-          images: compressedImage ? [compressedImage] : (editingBlog.imageUrl ? [editingBlog.imageUrl] : []),
+          imageUrl: coverUrl || (allImages[0] || ''),
+          images: allImages.length > 0 ? allImages : (coverUrl ? [coverUrl] : []),
           highlights,
           highlightsSi
         })
@@ -1360,6 +1377,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       if (data.success && data.blog) {
         syncBlogsState(blogs.map(b => b.id === editingBlog.id ? data.blog : b));
         setEditingBlog(null);
+        setEditingBlogGallery([]);
         showNotification(`Blog post "${data.blog.title}" updated successfully!`);
       } else {
         alert(data.message || 'Failed to update blog post.');
@@ -3953,12 +3971,24 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
             </div>
 
             <form onSubmit={handleCreateBlog} className="space-y-4">
-              <ImageUploadDropzone
-                value={newBlog.imageUrl}
-                onChange={url => setNewBlog({ ...newBlog, imageUrl: url })}
-                label="Article Cover Photo (Drag & Drop or Select Image)"
-                hint="Landscape format recommended (1200x800px)"
-              />
+              {/* Photo Upload Zone: Primary Cover & Additional Gallery Photos */}
+              <div className="space-y-3 pt-1">
+                <ImageUploadDropzone
+                  value={newBlog.imageUrl}
+                  onChange={url => setNewBlog({ ...newBlog, imageUrl: url })}
+                  label="Article Cover Photo (Drag & Drop or Select Image)"
+                  hint="Main display image for the blog card & article banner (1200x800px recommended)"
+                />
+
+                <MultiImageUpload
+                  images={newBlog.galleryImages}
+                  onChange={imgs => setNewBlog({ ...newBlog, galleryImages: imgs })}
+                  coverImage={newBlog.imageUrl}
+                  onSetCover={url => setNewBlog({ ...newBlog, imageUrl: url })}
+                  label="Additional Article Photos (2-3 Gallery Photos)"
+                  hint="Select or drop 2-3 additional photos from your computer for this field guide"
+                />
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -5119,12 +5149,24 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
             </div>
 
             <form onSubmit={handleUpdateBlogSubmit} className="space-y-4">
-              <ImageUploadDropzone
-                value={editingBlog.imageUrl || ''}
-                onChange={url => setEditingBlog({ ...editingBlog, imageUrl: url })}
-                label="Article Cover Photo (Drag & Drop or Select File)"
-                hint="Landscape photo recommended"
-              />
+              {/* Photo Upload Zone: Primary Cover & Additional Gallery Photos */}
+              <div className="space-y-3 pt-1">
+                <ImageUploadDropzone
+                  value={editingBlog.imageUrl || ''}
+                  onChange={url => setEditingBlog({ ...editingBlog, imageUrl: url })}
+                  label="Article Cover Photo (Drag & Drop or Select File)"
+                  hint="Landscape photo recommended (1200x800px)"
+                />
+
+                <MultiImageUpload
+                  images={editingBlogGallery}
+                  onChange={imgs => setEditingBlogGallery(imgs)}
+                  coverImage={editingBlog.imageUrl}
+                  onSetCover={url => setEditingBlog({ ...editingBlog, imageUrl: url })}
+                  label="Additional Article Photos (2-3 Gallery Photos)"
+                  hint="Select or drop 2-3 additional photos from your computer for this field guide"
+                />
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
