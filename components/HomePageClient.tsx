@@ -205,10 +205,7 @@ export default function HomePageClient({
       {/* Hero with Agency value proposition */}
       <Hero slides={slidesList} />
 
-      {/* 1. Why Choose Us: All-in-one platform benefits */}
-      <WhyChooseUs />
-
-      {/* 2. Curated Villas Showcase */}
+      {/* 1. Curated Villas Showcase */}
       <VillaSection
         onSelectVilla={handleSelectVilla}
         onViewDetails={(villa) => {
@@ -219,18 +216,21 @@ export default function HomePageClient({
         isLoading={isLoading}
       />
 
-      {/* 3. Pure Sinharaja Kithul Products & Fresh Toddy Experience */}
+      {/* 2. Pure Sinharaja Kithul Products & Fresh Toddy Experience */}
       <KithulSection
         onSelectProduct={handleSelectKithul}
         products={kithulList}
       />
 
-      {/* 4. Expedition Camping Gear Rentals */}
+      {/* 3. Expedition Camping Gear Rentals */}
       <CampingSection
         onSelectGear={handleSelectGear}
         gearList={gearList}
         isLoading={isLoading}
       />
+
+      {/* 4. Why Choose Us: All-in-one platform benefits */}
+      <WhyChooseUs />
 
       {/* Exploration & Community Section */}
       <section className="py-20 bg-[#16271E] border-t border-[#2C3E33]">

@@ -27,7 +27,7 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
   useEffect(() => {
     if (pathname !== '/') return;
 
-    const sectionIds = ['why-us', 'villas', 'kithul', 'camping'];
+    const sectionIds = ['villas', 'kithul', 'camping', 'why-us'];
     const handleScroll = () => {
       if (window.scrollY < 160) {
         setActiveScrollSection('');
@@ -128,13 +128,6 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
           {/* Clean Desktop Navigation Links with dynamic section scroll spy */}
           <nav className="hidden lg:flex items-center gap-2 xl:gap-4 2xl:gap-6 text-[11px] xl:text-xs uppercase tracking-wide font-semibold shrink min-w-0">
             <Link 
-              href="/#why-us" 
-              onClick={(e) => handleSectionClick(e, '#why-us')}
-              className={getNavClass('why-us')}
-            >
-              Why Us
-            </Link>
-            <Link 
               href="/#villas" 
               onClick={(e) => handleSectionClick(e, '#villas')}
               className={getNavClass('villas')}
@@ -154,6 +147,13 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
               className={getNavClass('camping')}
             >
               Camping Gear
+            </Link>
+            <Link 
+              href="/#why-us" 
+              onClick={(e) => handleSectionClick(e, '#why-us')}
+              className={getNavClass('why-us')}
+            >
+              Why Us
             </Link>
             <Link href="/blogs" className={getNavClass('blogs')}>
               Blogs & Guides
@@ -214,13 +214,6 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
         <div className="lg:hidden bg-[#14231B] border-b border-[#2C3E33] px-5 pt-4 pb-7 space-y-5 animate-in slide-in-from-top-3">
           <nav className="flex flex-col gap-2 text-xs uppercase tracking-[0.12em] font-semibold">
             <Link 
-              href="/#why-us" 
-              onClick={(e) => handleMobileSectionClick(e, '#why-us')}
-              className={getMobileNavClass('why-us')}
-            >
-              <span>Why Choose Us</span>
-            </Link>
-            <Link 
               href="/#villas" 
               onClick={(e) => handleMobileSectionClick(e, '#villas')}
               className={getMobileNavClass('villas')}
@@ -240,6 +233,13 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
               className={getMobileNavClass('camping')}
             >
               <span>Camping Gear Rentals</span>
+            </Link>
+            <Link 
+              href="/#why-us" 
+              onClick={(e) => handleMobileSectionClick(e, '#why-us')}
+              className={getMobileNavClass('why-us')}
+            >
+              <span>Why Choose Us</span>
             </Link>
             <Link 
               href="/blogs" 
