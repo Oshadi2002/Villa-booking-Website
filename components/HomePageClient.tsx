@@ -18,7 +18,7 @@ import {
   KithulProduct 
 } from '@/lib/types';
 import { 
-  AGENCY_CONFIG, CAMPING_GEAR, KITHUL_PRODUCTS 
+  AGENCY_CONFIG, CAMPING_GEAR 
 } from '@/lib/data';
 import { MessageCircle, Search, ShoppingBag, BookOpen, MessageSquare, ArrowRight } from 'lucide-react';
 import { useWhatsApp } from '@/lib/useWhatsApp';
@@ -53,7 +53,7 @@ export default function HomePageClient({
   const [villasList, setVillasList] = useState<Villa[]>(initialVillas);
   const [slidesList, setSlidesList] = useState<HeroSlide[]>(initialSlides);
   const [gearList, setGearList] = useState<CampingGear[]>(initialGear.length > 0 ? initialGear : CAMPING_GEAR);
-  const [kithulList, setKithulList] = useState<KithulProduct[]>(initialKithul.length > 0 ? initialKithul : KITHUL_PRODUCTS);
+  const [kithulList, setKithulList] = useState<KithulProduct[]>(initialKithul);
   const [isLoading, setIsLoading] = useState<boolean>(initialVillas.length === 0);
 
   const { getWhatsAppLink } = useWhatsApp();
@@ -85,7 +85,10 @@ export default function HomePageClient({
       const k = localStorage.getItem('lankagama_synced_kithul');
       if (k) {
         const parsed = JSON.parse(k);
-        if (Array.isArray(parsed) && parsed.length > 0) setKithulList(parsed);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter((p: KithulProduct) => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(p.id));
+          if (cleaned.length > 0) setKithulList(cleaned);
+        }
       }
     } catch {}
   };
@@ -140,8 +143,12 @@ export default function HomePageClient({
         setGearList(campingData.gear);
       }
 
-      if (kithulData?.success && Array.isArray(kithulData.products) && kithulData.products.length > 0) {
-        setKithulList(kithulData.products);
+      if (kithulData?.success && Array.isArray(kithulData.products)) {
+        const cleaned = kithulData.products.filter((p: KithulProduct) => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(p.id));
+        setKithulList(cleaned);
+        try {
+          localStorage.setItem('lankagama_synced_kithul', JSON.stringify(cleaned));
+        } catch {}
       }
 
       setIsLoading(false);

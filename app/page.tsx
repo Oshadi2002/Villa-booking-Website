@@ -18,7 +18,7 @@ export default async function HomePage() {
     initialVillas = rawVillas.filter(v => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
     initialSlides = rawSlides;
     initialGear = rawCamping;
-    initialKithul = rawKithul;
+    initialKithul = rawKithul.filter(k => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(k.id));
   } catch (error) {
     console.warn('Server prefetch fallback:', error);
   }

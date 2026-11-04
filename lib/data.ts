@@ -189,22 +189,6 @@ export const KITHUL_PRODUCTS: KithulProduct[] = [
     featured: true
   },
   {
-    id: 'kithul-treacle-clay-1000',
-    name: 'Traditional Clay Pot Kithul Treacle (1L Kalagediya)',
-    sinhalaName: 'නියම කැකුළු කිතුල් පැණි මැටි කලගෙඩිය (1L)',
-    category: 'treacle',
-    description: 'Poured while warm into an earthen unglazed clay pot that preserves the natural floral enzymes and imparts a soothing earthen aroma. Perfect companion with fresh buffalo curd, hoppers, or morning tea.',
-    priceLKR: 3200,
-    unit: 'clay pot',
-    weightOrVolume: '1000ml Earthen Pot',
-    purityBadge: 'Heritage Clay Vessel',
-    harvestOrigin: 'Sinharaja Buffer Zone, Lankagama',
-    deliveryNote: 'Delivered directly to your villa dining table for morning breakfast with curd.',
-    imageUrl: 'https://images.unsplash.com/photo-1576618148400-f54bed99fcfd?auto=format&fit=crop&w=800&q=80',
-    inStock: true,
-    featured: false
-  },
-  {
     id: 'kithul-jaggery-500',
     name: 'Authentic Lankagama Kithul Jaggery (500g Halves)',
     sinhalaName: 'නියම ලංකාගම කිතුල් හකුරු මුල් (500g)',
@@ -216,25 +200,9 @@ export const KITHUL_PRODUCTS: KithulProduct[] = [
     purityBadge: 'Sugar-Free Guarantee',
     harvestOrigin: 'Lankagama Village Home-Heaths',
     deliveryNote: 'Delivered fresh to your room for Ceylon tea pairing or souvenir takeaway.',
-    imageUrl: 'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=800&q=80',
-    inStock: true,
-    featured: true
-  },
-  {
-    id: 'kithul-jaggery-1000',
-    name: 'Sinharaja Palm Jaggery Master Block (1kg Bundle)',
-    sinhalaName: 'සිංහරාජ බැමි කිතුල් හකුරු (1kg)',
-    category: 'jaggery',
-    description: 'Full 1kg bundle of freshly boiled pure Kithul jaggery wrapped in traditional dried palm leaves. Long shelf-life without chemical additives.',
-    priceLKR: 2600,
-    unit: 'bundle',
-    weightOrVolume: '1kg Leaf Wrapped Bundle',
-    purityBadge: 'Eco Palm Leaf Wrapped',
-    harvestOrigin: 'Lankagama Forest Groves',
-    deliveryNote: 'Delivered to your villa or dispatched via courier islandwide.',
     imageUrl: 'https://images.unsplash.com/photo-1606913084603-3e7702b01627?auto=format&fit=crop&w=800&q=80',
     inStock: true,
-    featured: false
+    featured: true
   },
   {
     id: 'kithul-toddy-bottle-1500',

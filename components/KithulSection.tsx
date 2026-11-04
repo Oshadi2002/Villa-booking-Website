@@ -7,14 +7,13 @@ import {
   Check, Flame, Compass, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { KithulProduct } from '@/lib/types';
-import { KITHUL_PRODUCTS } from '@/lib/data';
 
 interface KithulSectionProps {
   onSelectProduct: (product: KithulProduct) => void;
   products?: KithulProduct[];
 }
 
-export default function KithulSection({ onSelectProduct, products = KITHUL_PRODUCTS }: KithulSectionProps) {
+export default function KithulSection({ onSelectProduct, products = [] }: KithulSectionProps) {
   const [activeCategory, setActiveCategory] = useState<'all' | 'treacle' | 'jaggery' | 'toddy' | 'experience'>('all');
   const trackRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
