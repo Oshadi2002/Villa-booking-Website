@@ -9,6 +9,7 @@ import { useModalHistory } from '@/lib/useModalHistory';
 import { CustomerComment } from '@/lib/types';
 import { AGENCY_CONFIG } from '@/lib/data';
 import { useWhatsApp } from '@/lib/useWhatsApp';
+import { useLanguage } from '@/lib/LanguageContext';
 import { 
   Star, ShieldCheck, MessageSquare, Send, Sparkles, 
   HelpCircle, ChevronDown, ChevronUp, MessageCircle, 
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 
 export default function ReviewsPage() {
+  const { isSi, t } = useLanguage();
   const { formattedNumber, phone, getWhatsAppLink } = useWhatsApp();
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [comments, setComments] = useState<CustomerComment[]>([]);
@@ -132,7 +134,24 @@ export default function ReviewsPage() {
     }
   };
 
-  const faqs = [
+  const faqs = isSi ? [
+    {
+      q: 'ලංකාගම ගම්මානයට ළඟා වන්නේ කෙසේද? යා හැකි වාහන මොනවාද?',
+      a: 'නෙළුව නගරය හරහා පැමිණිය හැකි අතර, නෙළුව සිට විනාඩි 45ක් පමණ ගතවේ. මාර්ගය කොන්ක්‍රීට් කර ඇති බැවින් කාර්, වෑන් සහ 4x4 ජීප් රථවලින් ආරක්ෂිතව පැමිණිය හැක. වෙන්කිරීමෙන් පසු අපි සම්පූර්ණ මාර්ග සිතියම සහ උපදෙස් ලබාදෙන්නෙමු.'
+    },
+    {
+      q: 'අප රැඳී සිටින විලා එකටම 100% පිරිසිදු කිතුල් පැණි සහ රා ගෙන්වා ගත හැකිද?',
+      a: 'ඔව්! ලංකාගම පාරම්පරික කිතුල් මැදින්නන්ගෙන් උණු උණුවේ පිසින ලද පැණි සහ අලුයම මලෙන් බාන ලද සිසිල් මිහිරි රා ඔබේ කාමරයටම නොමිලේ ගෙනවිත් දෙනු ලැබේ.'
+    },
+    {
+      q: 'බ්‍රාහ්මණ ඇල්ල සහ දූවිලි ඇල්ල නැරඹීමට මඟපෙන්වන්නෙකු අවශ්‍යද?',
+      a: 'බ්‍රාහ්මණ ඇල්ලට විලා අසල සිට විනාඩි 15ක පහසු පයින් ගමනකින් ළඟාවිය හැක. නමුත් දූවිලි ඇල්ල සහ වනාන්තරයේ ගැඹුරට යන මාර්ග සඳහා ආරක්ෂාව, මාර්ග මඟපෙන්වීම සහ කූඩැල්ලන්ගෙන් ආරක්ෂා වීමට බලපත්‍රලාභී ප්‍රදේශවාසී මඟපෙන්වන්නෙකු අත්‍යවශ්‍ය වේ.'
+    },
+    {
+      q: 'කූඩාරම් කුලියට ගැනීමේ පැකේජයට ඇතුළත් වන්නේ මොනවාද?',
+      a: 'අපගේ කට්ටලවලට 3000mm වර්ෂාපතනයට ඔරොත්තු දෙන කූඩාරම්, නිදන බෑග්, පොළවට දමන ආවරණ, ගෑස් ලිප් සහ ගෑස් සිලින්ඩර්, ලන්තෑරුම් සහ කූඩැල්ලන්ගෙන් ආරක්ෂිත මේස් ඇතුළත්ය.'
+    }
+  ] : [
     {
       q: 'How do we reach Lankagama village? What vehicles can go?',
       a: 'The route connects via Neluwa and takes approximately 45 minutes from Neluwa town. The road is paved concrete for most stretches; cars, vans, and 4x4s can reach safely. We provide exact directions and assistance upon booking.'
@@ -163,22 +182,32 @@ export default function ReviewsPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1E2A22] border border-[#3B5244] text-[#D4AF37] text-xs font-semibold uppercase tracking-widest mb-6">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Guest Testimonials & Verified Stays</span>
+            <span>{isSi ? 'සත්‍යාපිත අමුත්තන්ගේ අත්දැකීම් සහ සමාලෝචන' : 'Guest Testimonials & Verified Stays'}</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-medium tracking-tight text-[#F5F2EB] mb-6">
-            What Travelers Say About <span className="italic text-[#D4AF37]">The Collection</span>
+            {isSi ? (
+              <>
+                ලංකාගම අත්දැකීම් පිළිබඳ <span className="italic text-[#D4AF37]">සංචාරකයින්ගේ අදහස්</span>
+              </>
+            ) : (
+              <>
+                What Travelers Say About <span className="italic text-[#D4AF37]">The Collection</span>
+              </>
+            )}
           </h1>
 
           <p className="max-w-2xl mx-auto text-sm sm:text-base text-[#C2BCB0] leading-relaxed font-normal">
-            Read verified reviews from guests who experienced our river-edge villas, pure Sinharaja Kithul deliveries, expedition camping sets, and guided rainforest trails.
+            {isSi 
+              ? 'අපගේ විලා නවාතැන්, පිරිසිදු කිතුල් නිෂ්පාදන, කූඩාරම් උපකරණ සහ මඟපෙන්වන්නන් පිළිබඳ සැබෑ අමුත්තන් පළකළ අදහස් කියවන්න.'
+              : 'Read verified reviews from guests who experienced our river-edge villas, pure Sinharaja Kithul deliveries, expedition camping sets, and guided rainforest trails.'}
           </p>
 
           {/* Quick Breadcrumb back to Home */}
           <div className="mt-8 flex items-center justify-center gap-2 text-xs text-[#9EA89F]">
-            <Link href="/" className="hover:text-[#D4AF37] transition-colors">Home</Link>
+            <Link href="/" className="hover:text-[#D4AF37] transition-colors">{isSi ? 'මුල් පිටුව' : 'Home'}</Link>
             <ChevronRight className="w-3 h-3 text-[#D4AF37]" />
-            <span className="text-[#F5F2EB] font-medium">Guest Reviews & FAQ</span>
+            <span className="text-[#F5F2EB] font-medium">{isSi ? 'අමුත්තන්ගේ අදහස් සහ FAQ' : 'Guest Reviews & FAQ'}</span>
           </div>
         </div>
       </section>
@@ -189,19 +218,19 @@ export default function ReviewsPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="p-4 rounded-2xl bg-[#1E2A22] border border-[#3B5244]">
               <div className="text-2xl sm:text-3xl font-serif font-bold text-[#D4AF37]">4.9 / 5.0</div>
-              <div className="text-[11px] text-[#C2BCB0] uppercase tracking-wider mt-1">Average Guest Rating</div>
+              <div className="text-[11px] text-[#C2BCB0] uppercase tracking-wider mt-1">{isSi ? 'සාමාන්‍ය අමුත්තන්ගේ ඇගයීම' : 'Average Guest Rating'}</div>
             </div>
             <div className="p-4 rounded-2xl bg-[#1E2A22] border border-[#3B5244]">
               <div className="text-2xl sm:text-3xl font-serif font-bold text-[#D4AF37]">100%</div>
-              <div className="text-[11px] text-[#C2BCB0] uppercase tracking-wider mt-1">Verified Village Stays</div>
+              <div className="text-[11px] text-[#C2BCB0] uppercase tracking-wider mt-1">{isSi ? 'සත්‍යාපිත ගම්බද විලා' : 'Verified Village Stays'}</div>
             </div>
             <div className="p-4 rounded-2xl bg-[#1E2A22] border border-[#3B5244]">
               <div className="text-2xl sm:text-3xl font-serif font-bold text-[#D4AF37]">Pure Grade</div>
-              <div className="text-[11px] text-[#C2BCB0] uppercase tracking-wider mt-1">Direct Forest Kithul</div>
+              <div className="text-[11px] text-[#C2BCB0] uppercase tracking-wider mt-1">{isSi ? '100% පිරිසිදු කිතුල්' : 'Direct Forest Kithul'}</div>
             </div>
             <div className="p-4 rounded-2xl bg-[#1E2A22] border border-[#3B5244]">
               <div className="text-2xl sm:text-3xl font-serif font-bold text-[#D4AF37]">Certified</div>
-              <div className="text-[11px] text-[#C2BCB0] uppercase tracking-wider mt-1">Native Rainforest Guides</div>
+              <div className="text-[11px] text-[#C2BCB0] uppercase tracking-wider mt-1">{isSi ? 'බලපත්‍රලාභී මඟපෙන්වන්නන්' : 'Native Rainforest Guides'}</div>
             </div>
           </div>
         </div>
@@ -216,7 +245,7 @@ export default function ReviewsPage() {
             <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
               <span className="text-xs text-[#9EA89F] uppercase tracking-wider font-semibold mr-2 flex items-center gap-1.5 shrink-0">
                 <Filter className="w-3.5 h-3.5" />
-                Filter:
+                {isSi ? 'පෙරහන:' : 'Filter:'}
               </span>
               {categories.map(cat => (
                 <button
@@ -228,7 +257,7 @@ export default function ReviewsPage() {
                       : 'bg-[#1E2A22] text-[#C2BCB0] hover:text-[#F5F2EB] border border-[#3B5244]'
                   }`}
                 >
-                  {cat}
+                  {cat === 'All' ? (isSi ? 'සියල්ල' : 'All') : cat}
                 </button>
               ))}
             </div>
@@ -238,7 +267,7 @@ export default function ReviewsPage() {
               className="px-5 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] text-xs font-bold flex items-center gap-2 transition-all cursor-pointer shadow-md shrink-0 self-start md:self-auto"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>Leave a Review</span>
+              <span>{isSi ? 'අදහසක් එක්කරන්න' : 'Leave a Review'}</span>
             </button>
           </div>
 
@@ -311,24 +340,26 @@ export default function ReviewsPage() {
             {/* Left: Contact Info */}
             <div className="space-y-6">
               <span className="text-xs font-semibold tracking-widest uppercase text-[#D4AF37] block">
-                Direct Travel Concierge
+                {isSi ? 'සෘජු සංචාරක සහය' : 'Direct Travel Concierge'}
               </span>
               <h2 className="text-3xl sm:text-4xl font-serif text-[#F5F2EB] font-medium leading-tight">
-                Planning a Trip to Lankagama? Ask Us Anything.
+                {isSi ? 'ලංකාගමට සංචාරයක් සැලසුම් කරනවාද? ඕනෑම දෙයක් අසන්න.' : 'Planning a Trip to Lankagama? Ask Us Anything.'}
               </h2>
               <p className="text-xs sm:text-sm text-[#C2BCB0] leading-relaxed font-normal">
-                Whether you need advice on river water levels, villa vacancies for large family groups, special meal requirements, or native trail guides, we respond promptly.
+                {isSi 
+                  ? 'ගංගාවේ ජල මට්ටම්, විශාල පවුල් සඳහා විලා කාමර, කෑම බීම හෝ මඟපෙන්වන්නන් පිළිබඳ ඕනෑම විස්තරයක් ක්ෂණිකව විමසන්න.'
+                  : 'Whether you need advice on river water levels, villa vacancies for large family groups, special meal requirements, or native trail guides, we respond promptly.'}
               </p>
 
               <div className="space-y-3 pt-2">
                 <a
-                  href={getWhatsAppLink('Hello The Sinharaja Collection Lankagama! I would like to make an inquiry about visiting.')}
+                  href={getWhatsAppLink(isSi ? 'ආයුබෝවන් The Sinharaja Collection Lankagama! මට ලංකාගම සංචාරය ගැන විමසීමට අවශ්‍යයි.' : 'Hello The Sinharaja Collection Lankagama! I would like to make an inquiry about visiting.')}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] font-bold text-xs shadow-md transition-all cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 fill-[#14231B]" />
-                  <span>Instant WhatsApp Chat: {phone || formattedNumber || AGENCY_CONFIG.phone}</span>
+                  <span>{isSi ? 'ක්ෂණික WhatsApp සහය:' : 'Instant WhatsApp Chat:'} {phone || formattedNumber || AGENCY_CONFIG.phone}</span>
                 </a>
               </div>
             </div>
@@ -336,31 +367,35 @@ export default function ReviewsPage() {
             {/* Right: Message Form */}
             <div className="bg-[#1E2A22] rounded-3xl p-6 sm:p-8 border border-[#3B5244] shadow-xl">
               <h3 className="text-lg font-serif font-semibold text-[#F5F2EB] mb-4">
-                Send an Online Inquiry
+                {isSi ? 'පණිවිඩයක් එවන්න' : 'Send an Online Inquiry'}
               </h3>
 
               {inquirySuccess ? (
                 <div className="p-6 rounded-2xl bg-emerald-950/60 border border-emerald-800 text-center space-y-2">
                   <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
-                  <h4 className="text-sm font-bold text-emerald-300">Message Received!</h4>
-                  <p className="text-xs text-emerald-200/80">Thank you. Our Lankagama team will call or WhatsApp you shortly.</p>
+                  <h4 className="text-sm font-bold text-emerald-300">{isSi ? 'පණිවිඩය ලැබුණි!' : 'Message Received!'}</h4>
+                  <p className="text-xs text-emerald-200/80">{isSi ? 'ස්තූතියි. අපගේ කණ්ඩායම ඔබව අමතනු ඇත.' : 'Thank you. Our Lankagama team will call or WhatsApp you shortly.'}</p>
                 </div>
               ) : (
                 <form onSubmit={handleInquirySubmit} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">Your Name</label>
+                      <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">
+                        {isSi ? 'ඔබගේ නම' : 'Your Name'}
+                      </label>
                       <input
                         type="text"
                         required
                         value={inquiryForm.name}
                         onChange={(e) => setInquiryForm({ ...inquiryForm, name: e.target.value })}
-                        placeholder="e.g. Kasun Silva"
+                        placeholder={isSi ? 'උදා: කසුන් සිල්වා' : 'e.g. Kasun Silva'}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-[#14231B] border border-[#3B5244] text-xs text-[#F5F2EB] focus:border-[#D4AF37] focus:outline-hidden"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">WhatsApp / Phone</label>
+                      <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">
+                        {isSi ? 'දුරකථන / WhatsApp' : 'WhatsApp / Phone'}
+                      </label>
                       <input
                         type="text"
                         required
@@ -373,28 +408,32 @@ export default function ReviewsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">Topic</label>
+                    <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">
+                      {isSi ? 'විමසන කරුණ' : 'Topic'}
+                    </label>
                     <select
                       value={inquiryForm.subject}
                       onChange={(e) => setInquiryForm({ ...inquiryForm, subject: e.target.value })}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#14231B] border border-[#3B5244] text-xs text-[#F5F2EB] focus:border-[#D4AF37] focus:outline-hidden"
                     >
-                      <option value="Villa Availability">Villa Availability & Pricing</option>
-                      <option value="Camping Gear Rental">Camping Gear Rental</option>
-                      <option value="Tour Guide Booking">Tour Guide & Waterfall Trek</option>
-                      <option value="Kithul & Toddy Order">Pure Kithul & Toddy Orders</option>
-                      <option value="General Question">General Question</option>
+                      <option value="Villa Availability">{isSi ? 'විලා කාමර පහසුකම් සහ මිල ගණන්' : 'Villa Availability & Pricing'}</option>
+                      <option value="Camping Gear Rental">{isSi ? 'කූඩාරම් උපකරණ කුලියට ගැනීම' : 'Camping Gear Rental'}</option>
+                      <option value="Tour Guide Booking">{isSi ? 'මඟපෙන්වන්නන් සහ දියඇලි සංචාර' : 'Tour Guide & Waterfall Trek'}</option>
+                      <option value="Kithul & Toddy Order">{isSi ? 'කිතුල් පැණි සහ රා ඇණවුම්' : 'Pure Kithul & Toddy Orders'}</option>
+                      <option value="General Question">{isSi ? 'සාමාන්‍ය විමසීම්' : 'General Question'}</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">Message / Your Question</label>
+                    <label className="block text-[11px] uppercase tracking-wider text-[#C2BCB0] font-semibold mb-1">
+                      {isSi ? 'ඔබගේ පණිවිඩය / ප්‍රශ්නය' : 'Message / Your Question'}
+                    </label>
                     <textarea
                       required
                       rows={3}
                       value={inquiryForm.message}
                       onChange={(e) => setInquiryForm({ ...inquiryForm, message: e.target.value })}
-                      placeholder="Let us know your travel dates, group size, or questions..."
+                      placeholder={isSi ? 'සංචාරය කරන දිනය, පිරිස හෝ ප්‍රශ්න මෙහි සටහන් කරන්න...' : 'Let us know your travel dates, group size, or questions...'}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#14231B] border border-[#3B5244] text-xs text-[#F5F2EB] focus:border-[#D4AF37] focus:outline-hidden"
                     />
                   </div>
@@ -405,7 +444,7 @@ export default function ReviewsPage() {
                     className="w-full py-3 rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>{inquirySubmitting ? 'Sending...' : 'Send Inquiry to Agency'}</span>
+                    <span>{inquirySubmitting ? (isSi ? 'යවමින් පවතී...' : 'Sending...') : (isSi ? 'පණිවිඩය යවන්න' : 'Send Inquiry to Agency')}</span>
                   </button>
                 </form>
               )}
@@ -420,10 +459,10 @@ export default function ReviewsPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-xs font-semibold tracking-widest uppercase text-[#D4AF37] block mb-2">
-              Help & Information
+              {isSi ? 'උදව් සහ තොරතුරු' : 'Help & Information'}
             </span>
             <h2 className="text-3xl font-serif text-[#F5F2EB] font-medium">
-              Frequently Asked Questions (FAQ)
+              {isSi ? 'නිතර අසන ප්‍රශ්න (FAQ)' : 'Frequently Asked Questions (FAQ)'}
             </h2>
           </div>
 
@@ -467,7 +506,7 @@ export default function ReviewsPage() {
           <div className="bg-[#1E2A22] rounded-3xl border border-[#3B5244] max-w-md w-full p-6 sm:p-7 shadow-2xl relative animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#2C3E33]">
               <h3 className="text-base font-serif font-bold text-[#F5F2EB]">
-                Share Your Experience
+                {isSi ? 'ඔබගේ අත්දැකීම බෙදාගන්න' : 'Share Your Experience'}
               </h3>
               <button
                 onClick={() => setIsCommentModalOpen(false)}
@@ -480,51 +519,59 @@ export default function ReviewsPage() {
             {commentSuccess ? (
               <div className="py-8 text-center space-y-2">
                 <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-                <h4 className="text-sm font-bold text-emerald-300">Thank you!</h4>
-                <p className="text-xs text-[#C2BCB0]">Your review has been submitted successfully.</p>
+                <h4 className="text-sm font-bold text-emerald-300">{isSi ? 'ස්තූතියි!' : 'Thank you!'}</h4>
+                <p className="text-xs text-[#C2BCB0]">{isSi ? 'ඔබගේ සමාලෝචනය සාර්ථකව ලැබුණි.' : 'Your review has been submitted successfully.'}</p>
               </div>
             ) : (
               <form onSubmit={handleCommentSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">Your Name</label>
+                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">
+                    {isSi ? 'ඔබගේ නම' : 'Your Name'}
+                  </label>
                   <input
                     type="text"
                     required
                     value={commentForm.author}
                     onChange={(e) => setCommentForm({ ...commentForm, author: e.target.value })}
-                    placeholder="e.g. Ruwan Jayawardena"
+                    placeholder={isSi ? 'උදා: රුවන් ජයවර්ධන' : 'e.g. Ruwan Jayawardena'}
                     className="w-full px-3 py-2 rounded-xl bg-[#14231B] border border-[#3B5244] text-xs text-[#F5F2EB]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">Your City / Country</label>
+                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">
+                    {isSi ? 'ඔබගේ නගරය / රට' : 'Your City / Country'}
+                  </label>
                   <input
                     type="text"
                     required
                     value={commentForm.cityOrCountry}
                     onChange={(e) => setCommentForm({ ...commentForm, cityOrCountry: e.target.value })}
-                    placeholder="e.g. Colombo, Sri Lanka / London, UK"
+                    placeholder={isSi ? 'උදා: කොළඹ, ශ්‍රී ලංකාව' : 'e.g. Colombo, Sri Lanka / London, UK'}
                     className="w-full px-3 py-2 rounded-xl bg-[#14231B] border border-[#3B5244] text-xs text-[#F5F2EB]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">Experience Type</label>
+                    <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">
+                      {isSi ? 'අත්දැකීම් වර්ගය' : 'Experience Type'}
+                    </label>
                     <select
                       value={commentForm.category}
                       onChange={(e) => setCommentForm({ ...commentForm, category: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl bg-[#14231B] border border-[#3B5244] text-xs text-[#F5F2EB]"
                     >
-                      <option value="Villa Stay">Villa Stay</option>
-                      <option value="Pure Kithul">Pure Kithul</option>
-                      <option value="Camping Gear">Camping Gear</option>
-                      <option value="Tour Guide">Tour Guide</option>
+                      <option value="Villa Stay">{isSi ? 'විලා නවාතැන්' : 'Villa Stay'}</option>
+                      <option value="Pure Kithul">{isSi ? 'පිරිසිදු කිතුල්' : 'Pure Kithul'}</option>
+                      <option value="Camping Gear">{isSi ? 'කූඩාරම් උපකරණ' : 'Camping Gear'}</option>
+                      <option value="Tour Guide">{isSi ? 'මඟපෙන්වන්නන්' : 'Tour Guide'}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">Rating</label>
+                    <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">
+                      {isSi ? 'ඇගයීම' : 'Rating'}
+                    </label>
                     <select
                       value={commentForm.rating}
                       onChange={(e) => setCommentForm({ ...commentForm, rating: Number(e.target.value) })}
@@ -538,24 +585,28 @@ export default function ReviewsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">Stayed Villa / Product</label>
+                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">
+                    {isSi ? 'නැවතුණු විලා හෝ ඇණවුම් කළ අයිතමය' : 'Stayed Villa / Product'}
+                  </label>
                   <input
                     type="text"
                     value={commentForm.stayedAtOrOrdered}
                     onChange={(e) => setCommentForm({ ...commentForm, stayedAtOrOrdered: e.target.value })}
-                    placeholder="e.g. Sinharaja Gin Ganga Villa"
+                    placeholder={isSi ? 'උදා: Sinharaja Gin Ganga Villa' : 'e.g. Sinharaja Gin Ganga Villa'}
                     className="w-full px-3 py-2 rounded-xl bg-[#14231B] border border-[#3B5244] text-xs text-[#F5F2EB]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">Your Review / Comment</label>
+                  <label className="block text-[11px] text-[#C2BCB0] font-semibold mb-1">
+                    {isSi ? 'ඔබගේ අදහස / සමාලෝචනය' : 'Your Review / Comment'}
+                  </label>
                   <textarea
                     required
                     rows={3}
                     value={commentForm.comment}
                     onChange={(e) => setCommentForm({ ...commentForm, comment: e.target.value })}
-                    placeholder="Share your experience with the stay, food, nature, or service..."
+                    placeholder={isSi ? 'නවාතැන්, ආහාර, ස්වභාව සෞන්දර්යය හෝ සේවාව පිළිබඳ ඔබේ අදහස...' : 'Share your experience with the stay, food, nature, or service...'}
                     className="w-full px-3 py-2 rounded-xl bg-[#14231B] border border-[#3B5244] text-xs text-[#F5F2EB]"
                   />
                 </div>
@@ -565,7 +616,7 @@ export default function ReviewsPage() {
                   disabled={submittingComment}
                   className="w-full py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] font-bold text-xs cursor-pointer disabled:opacity-50"
                 >
-                  {submittingComment ? 'Submitting...' : 'Post Verified Review'}
+                  {submittingComment ? (isSi ? 'යවමින් පවතී...' : 'Submitting...') : (isSi ? 'සමාලෝචනය පළකරන්න' : 'Post Verified Review')}
                 </button>
               </form>
             )}

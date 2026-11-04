@@ -56,8 +56,6 @@ export default function BlogsPage() {
 
   const categories = ['All', 'Waterfalls', 'Trekking', 'Rainforest Tips', 'Village Culture'];
 
-  const isSi = pageLang === 'si';
-
   const filteredPosts = blogs.filter(post => {
     const matchesCategory = selectedCategory === 'All' || post.category === selectedCategory;
     const q = searchQuery.toLowerCase();
