@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Compass, Search, MessageCircle, Menu, X } from 'lucide-react';
+import { Compass, MessageCircle, Menu, X } from 'lucide-react';
 import { useWhatsApp } from '@/lib/useWhatsApp';
 import { useLanguage, LanguageSwitcher } from '@/lib/LanguageContext';
 
 interface NavbarProps {
-  onOpenTrackModal: () => void;
+  onOpenTrackModal?: () => void;
 }
 
 export default function Navbar({ onOpenTrackModal }: NavbarProps) {
@@ -165,20 +165,10 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
             </Link>
           </nav>
 
-          {/* Action CTAs: Language Switcher, Track Booking & WhatsApp */}
+          {/* Action CTAs: Language Switcher & WhatsApp */}
           <div className="hidden sm:flex items-center gap-2 xl:gap-3 shrink-0 ml-auto">
             {/* Global Language Toggle Switch */}
             <LanguageSwitcher />
-
-            {/* Status Tracking */}
-            <button
-              onClick={onOpenTrackModal}
-              className="flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-1.5 text-xs font-semibold rounded-xl text-[#F5F2EB] hover:text-white border border-[#3B5244] hover:border-[#D4AF37]/60 bg-[#2C3E33] hover:bg-[#354A3D] transition-all cursor-pointer shadow-xs whitespace-nowrap shrink-0"
-              title={t('nav.track', 'Track Booking')}
-            >
-              <Search className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span className="hidden xl:inline">{t('nav.track', 'Track Booking')}</span>
-            </button>
 
             {/* Direct WhatsApp Concierge */}
             <a
@@ -189,20 +179,13 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
               title="Direct WhatsApp Concierge"
             >
               <MessageCircle className="w-4 h-4 fill-[#14231B] text-[#D4AF37]" />
-              <span className="hidden xl:inline">{t('nav.whatsapp', 'WhatsApp Agency')}</span>
+              <span>{t('nav.whatsapp', 'WhatsApp Agency')}</span>
             </a>
           </div>
 
           {/* Mobile & Tablet Menu Controls */}
           <div className="flex lg:hidden items-center gap-1.5 sm:gap-2 shrink-0">
             <LanguageSwitcher className="sm:hidden" />
-            <button
-              onClick={onOpenTrackModal}
-              className="sm:hidden p-2 rounded-xl bg-[#2C3E33] text-[#F5F2EB] border border-[#3B5244] hover:border-[#D4AF37]"
-              title="Track Booking"
-            >
-              <Search className="w-4 h-4 text-[#D4AF37]" />
-            </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-xl bg-[#2C3E33] text-[#F5F2EB] border border-[#3B5244] hover:border-[#D4AF37] transition-colors"
@@ -272,17 +255,6 @@ export default function Navbar({ onOpenTrackModal }: NavbarProps) {
           </nav>
 
           <div className="pt-3 flex flex-col gap-2.5 border-t border-[#2C3E33]">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenTrackModal();
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[#3B5244] text-[#F5F2EB] text-xs font-semibold bg-[#2C3E33]"
-            >
-              <Search className="w-4 h-4 text-[#D4AF37]" />
-              <span>{t('nav.track', 'Track Booking')}</span>
-            </button>
-
             <a
               href={whatsappUrl}
               target="_blank"

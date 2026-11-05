@@ -20,7 +20,7 @@ import {
 import { 
   AGENCY_CONFIG 
 } from '@/lib/data';
-import { MessageCircle, Search, ShoppingBag, BookOpen, MessageSquare, ArrowRight } from 'lucide-react';
+import { MessageCircle, ShoppingBag, BookOpen, MessageSquare, ArrowRight } from 'lucide-react';
 import { useWhatsApp } from '@/lib/useWhatsApp';
 import { useLanguage } from '@/lib/LanguageContext';
 
@@ -349,15 +349,6 @@ export default function HomePageClient({
           <ShoppingBag className="w-3.5 h-3.5 text-[#D4AF37]" />
           <span>{isSi ? 'විලා එකට කිතුල් ඇණවුම් කරන්න' : 'Order Kithul to Villa'}</span>
         </a>
-
-        {/* Track Booking quick bubble */}
-        <button
-          onClick={() => setIsTrackModalOpen(true)}
-          className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#2C3E33]/95 text-[#F5F2EB] hover:text-[#D4AF37] border border-[#3B5244] hover:border-[#D4AF37] shadow-lg backdrop-blur-md text-xs font-medium hover:scale-102 transition-all cursor-pointer"
-        >
-          <Search className="w-3.5 h-3.5 text-[#D4AF37]" />
-          <span>{isSi ? 'වෙන්කිරීම පරීක්ෂා කරන්න' : 'Track Reservation'}</span>
-        </button>
 
         {/* WhatsApp Chat Floating Bubble */}
         <a
