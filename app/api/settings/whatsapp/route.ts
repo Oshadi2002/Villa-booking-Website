@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { requireAdmin } from '@/lib/auth';
 import { dbGetSettings, dbSaveSettings } from '@/lib/db';
+import { CACHE_TAGS, getCachedPublicWhatsAppSettings } from '@/lib/cached-data';
 import { normalizeWhatsAppNumber, whatsappSettingsSchema } from '@/lib/validations';
 import { AGENCY_CONFIG } from '@/lib/data';
 import { AgencySettings } from '@/lib/types';
@@ -13,23 +15,11 @@ const NO_CACHE_HEADERS = {
 
 export async function GET() {
   try {
-    const settings = await dbGetSettings();
-
-    const rawNumber = settings.activeWhatsAppNumber || AGENCY_CONFIG.whatsappNumber;
-    const normalized = normalizeWhatsAppNumber(rawNumber);
+    const publicSettings = await getCachedPublicWhatsAppSettings();
 
     return NextResponse.json({
       success: true,
-      whatsappNumber: normalized.isValid ? normalized.cleanDigits : rawNumber,
-      formattedNumber: normalized.formatted || rawNumber,
-      waLink: normalized.waLink || `https://wa.me/${rawNumber}`,
-      phone: settings.phone || normalized.formatted || AGENCY_CONFIG.phone,
-      email: settings.email || AGENCY_CONFIG.email,
-      address: settings.address || AGENCY_CONFIG.address,
-      locationDetails: settings.locationDetails || AGENCY_CONFIG.locationDetails,
-      name: settings.name || AGENCY_CONFIG.name,
-      sinhalaName: settings.sinhalaName || AGENCY_CONFIG.sinhalaName,
-      updatedAt: settings.updatedAt
+      ...publicSettings
     }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
@@ -82,6 +72,8 @@ export async function POST(req: Request) {
 
     // Save directly to PostgreSQL
     const saved = await dbSaveSettings(merged);
+
+    revalidateTag(CACHE_TAGS.WHATSAPP_SETTINGS, { expire: 0 });
 
     return NextResponse.json({
       success: true,

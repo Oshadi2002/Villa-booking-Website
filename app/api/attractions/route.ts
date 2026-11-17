@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { dbGetAll, dbCreateAttraction } from '@/lib/db';
-import { Attraction } from '@/lib/types';
+import { revalidateTag } from 'next/cache';
+import { dbCreateAttraction } from '@/lib/db';
+import { CACHE_TAGS, getCachedAttractions } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const attractions = await dbGetAll<Attraction>('lankagama_attractions');
+    const attractions = await getCachedAttractions();
     return NextResponse.json({ success: true, attractions }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
@@ -41,6 +42,8 @@ export async function POST(req: Request) {
       caution: body.caution || 'Travel with care; respect nature and river currents.',
       imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80'
     });
+
+    revalidateTag(CACHE_TAGS.ATTRACTIONS, { expire: 0 });
 
     return NextResponse.json({
       success: true,

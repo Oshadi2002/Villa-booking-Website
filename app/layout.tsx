@@ -78,6 +78,15 @@ export const metadata: Metadata = {
     title: "The Sinharaja Collection Lankagama | Rainforest Stays & Villas",
     description: "Curated riverside villas, camping gear rentals, pure kithul, and guided waterfall trekking in Lankagama.",
     images: ["https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&w=1200&q=80"]
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' }
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }
+    ]
   }
 };
 

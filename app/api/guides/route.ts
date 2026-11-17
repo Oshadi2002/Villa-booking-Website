@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { dbGetAll, dbCreateGuide } from '@/lib/db';
-import { TourGuide } from '@/lib/types';
+import { revalidateTag } from 'next/cache';
+import { dbCreateGuide } from '@/lib/db';
+import { CACHE_TAGS, getCachedGuides } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const guides = await dbGetAll<TourGuide>('lankagama_guides');
+    const guides = await getCachedGuides();
     return NextResponse.json({ success: true, guides }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
@@ -50,6 +51,8 @@ export async function POST(req: Request) {
       rating: Number(body.rating) || 5.0,
       verifiedLocal: true
     });
+
+    revalidateTag(CACHE_TAGS.GUIDES, { expire: 0 });
 
     return NextResponse.json({
       success: true,

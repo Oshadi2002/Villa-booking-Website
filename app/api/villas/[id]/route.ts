@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { dbGetById, dbUpdateVilla, dbDeleteItem } from '@/lib/db';
+import { CACHE_TAGS, getCachedVillaById } from '@/lib/cached-data';
 import { Villa } from '@/lib/types';
 import { requireAdmin } from '@/lib/auth';
 
@@ -12,7 +14,7 @@ const NO_CACHE_HEADERS = {
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const villa = await dbGetById<Villa>('lankagama_villas', id);
+    const villa = await getCachedVillaById(id);
     if (!villa) {
       return NextResponse.json({ success: false, message: 'Villa not found' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
@@ -38,7 +40,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ success: false, message: 'Villa not found' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
-    const updated = await dbUpdateVilla(id, body);
+    const updated = await dbUpdateVilla(id, body, existing);
+
+    revalidateTag(CACHE_TAGS.VILLAS, { expire: 0 });
+    revalidateTag(CACHE_TAGS.VILLA_BY_ID(id), { expire: 0 });
 
     return NextResponse.json({
       success: true,
@@ -64,6 +69,9 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Villa not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
+
+    revalidateTag(CACHE_TAGS.VILLAS, { expire: 0 });
+    revalidateTag(CACHE_TAGS.VILLA_BY_ID(id), { expire: 0 });
 
     return NextResponse.json({
       success: true,

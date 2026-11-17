@@ -13,6 +13,7 @@ interface MultiImageUploadProps {
   onChange: (images: string[]) => void;
   label?: string;
   hint?: string;
+  folder?: string;
   coverImage?: string;
   onSetCover?: (url: string) => void;
 }
@@ -22,6 +23,7 @@ export default function MultiImageUpload({
   onChange,
   label = 'Gallery Photos (Upload Multiple Photos from Device)',
   hint = 'Select or drop multiple JPG, PNG, WEBP files at once',
+  folder = 'gallery',
   coverImage,
   onSetCover
 }: MultiImageUploadProps) {
@@ -50,12 +52,36 @@ export default function MultiImageUpload({
     setIsUploading(true);
 
     try {
-      // Automatically compress all uploaded images to web-optimized HD (~60KB each)
-      const compressedUrls = await Promise.all(validFiles.map(f => compressImageFile(f)));
-      const validUrls = compressedUrls.filter(u => u && u.length > 0);
-      onChange([...images, ...validUrls]);
+      // 1. Try server-side upload to Cloudflare R2 via /api/upload
+      const formData = new FormData();
+      formData.append('folder', folder);
+      for (const file of validFiles) {
+        formData.append('files', file);
+      }
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && Array.isArray(data.urls) && data.urls.length > 0) {
+        onChange([...images, ...data.urls]);
+      } else {
+        // Fallback: Client-side compression if API returned no URLs
+        const compressedUrls = await Promise.all(validFiles.map(f => compressImageFile(f)));
+        const validUrls = compressedUrls.filter(u => u && u.length > 0);
+        onChange([...images, ...validUrls]);
+      }
     } catch {
-      setUploadError('Failed to process one or more images.');
+      // Fallback: Client-side compression if network / fetch failed
+      try {
+        const compressedUrls = await Promise.all(validFiles.map(f => compressImageFile(f)));
+        const validUrls = compressedUrls.filter(u => u && u.length > 0);
+        onChange([...images, ...validUrls]);
+      } catch {
+        setUploadError('Failed to process one or more images.');
+      }
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {

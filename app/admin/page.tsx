@@ -12,8 +12,8 @@ import {
   Wine, Star, MessageSquare, HelpCircle, Mail, Pencil,
   Snowflake, Wind, Utensils, Key, Eye, EyeOff, BookOpen
 } from 'lucide-react';
-import { Booking, Villa, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry, BlogPost } from '@/lib/types';
-import { AGENCY_CONFIG, VILLAS } from '@/lib/data';
+import { Booking, Villa, HeroSlide, Attraction, CampingGear, KithulProduct, CustomerComment, CustomerInquiry, BlogPost, TourGuide } from '@/lib/types';
+import { AGENCY_CONFIG } from '@/lib/data';
 import ImageUploadDropzone from '@/components/ImageUploadDropzone';
 import MultiImageUpload from '@/components/MultiImageUpload';
 import { compressDataUrl } from '@/lib/imageCompressor';
@@ -24,7 +24,7 @@ export default function AdminPage() {
   const [pinError, setPinError] = useState('');
 
   // Sidebar navigation tab
-  const [activeTab, setActiveTab] = useState<'bookings' | 'slides' | 'villas' | 'kithul' | 'camping' | 'attractions' | 'blogs' | 'comments' | 'inquiries' | 'whatsapp'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'slides' | 'villas' | 'kithul' | 'camping' | 'attractions' | 'blogs' | 'guides' | 'comments' | 'inquiries' | 'whatsapp'>('bookings');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Data states
@@ -33,6 +33,7 @@ export default function AdminPage() {
   const [bookingSort, setBookingSort] = useState<'newest' | 'pending_first' | 'oldest'>('pending_first');
   const [bookingSearch, setBookingSearch] = useState('');
   const [editingNotes, setEditingNotes] = useState<{ [id: string]: string }>({});
+  const [guides, setGuides] = useState<TourGuide[]>([]);
 
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [isAddSlideModalOpen, setIsAddSlideModalOpen] = useState(false);
@@ -306,6 +307,19 @@ export default function AdminPage() {
     broadcastSync('SYNC_BLOGS', newBlogs);
   };
 
+  const fetchBookingsOnly = async (timestamp = Date.now()) => {
+    try {
+      const r = await fetch(`/api/bookings?t=${timestamp}`, { cache: 'no-store' });
+      const d = await r.json();
+      if (d.success && Array.isArray(d.bookings)) {
+        setBookings(d.bookings);
+        const notesMap: { [id: string]: string } = {};
+        d.bookings.forEach((b: Booking) => { notesMap[b.id] = b.adminNotes || ''; });
+        setEditingNotes(notesMap);
+      }
+    } catch {}
+  };
+
   const fetchAllData = async () => {
     setLoading(true);
     // 1. Initial check from localStorage for instant admin display
@@ -313,51 +327,47 @@ export default function AdminPage() {
       const v = localStorage.getItem('lankagama_synced_villas');
       if (v) {
         const parsed = JSON.parse(v);
-        if (Array.isArray(parsed)) setVillas(parsed.filter(villa => villa.id !== 'villa-3' && villa.id !== 'villa-4'));
+        if (Array.isArray(parsed)) setVillas(parsed.filter((villa: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(villa.id)));
       }
       const s = localStorage.getItem('lankagama_synced_slides');
       if (s) {
         const parsed = JSON.parse(s);
-        if (Array.isArray(parsed) && parsed.length > 0) setSlides(parsed);
+        if (Array.isArray(parsed)) setSlides(parsed);
       }
       const g = localStorage.getItem('lankagama_synced_camping');
       if (g) {
         const parsed = JSON.parse(g);
-        if (Array.isArray(parsed) && parsed.length > 0) setCampingGear(parsed);
+        if (Array.isArray(parsed)) setCampingGear(parsed);
       }
       const k = localStorage.getItem('lankagama_synced_kithul');
       if (k) {
         const parsed = JSON.parse(k);
-        if (Array.isArray(parsed) && parsed.length > 0) setKithulProducts(parsed);
+        if (Array.isArray(parsed)) setKithulProducts(parsed);
       }
       const a = localStorage.getItem('lankagama_synced_attractions');
       if (a) {
         const parsed = JSON.parse(a);
-        if (Array.isArray(parsed) && parsed.length > 0) setAttractions(parsed);
+        if (Array.isArray(parsed)) setAttractions(parsed);
       }
       const b = localStorage.getItem('lankagama_synced_blogs');
       if (b) {
         const parsed = JSON.parse(b);
-        if (Array.isArray(parsed) && parsed.length > 0) setBlogs(parsed);
+        if (Array.isArray(parsed)) setBlogs(parsed);
       }
     } catch {}
 
     const timestamp = Date.now();
     try {
       // 1. Bookings
-      fetch(`/api/bookings?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.bookings)) {
-          setBookings(d.bookings);
-          const notesMap: { [id: string]: string } = {};
-          d.bookings.forEach((b: Booking) => { notesMap[b.id] = b.adminNotes || ''; });
-          setEditingNotes(notesMap);
-        }
-      }).catch(() => {});
+      fetchBookingsOnly(timestamp);
 
       // 2. Slides
       fetch(`/api/hero-slides?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.slides) && d.slides.length > 0) {
+        if (d.success && Array.isArray(d.slides)) {
           setSlides(d.slides);
+          try {
+            localStorage.setItem('lankagama_synced_slides', JSON.stringify(d.slides));
+          } catch {}
         }
       }).catch(() => {});
 
@@ -366,27 +376,39 @@ export default function AdminPage() {
         if (d.success && Array.isArray(d.villas)) {
           const validVillas = d.villas.filter((v: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
           setVillas(validVillas);
+          try {
+            localStorage.setItem('lankagama_synced_villas', JSON.stringify(validVillas));
+          } catch {}
         }
       }).catch(() => {});
 
       // 4. Camping
       fetch(`/api/camping?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.gear) && d.gear.length > 0) {
+        if (d.success && Array.isArray(d.gear)) {
           setCampingGear(d.gear);
+          try {
+            localStorage.setItem('lankagama_synced_camping', JSON.stringify(d.gear));
+          } catch {}
         }
       }).catch(() => {});
 
       // 5. Attractions
       fetch(`/api/attractions?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.attractions) && d.attractions.length > 0) {
+        if (d.success && Array.isArray(d.attractions)) {
           setAttractions(d.attractions);
+          try {
+            localStorage.setItem('lankagama_synced_attractions', JSON.stringify(d.attractions));
+          } catch {}
         }
       }).catch(() => {});
 
       // 6. Kithul & Toddy
       fetch(`/api/kithul?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.products) && d.products.length > 0) {
+        if (d.success && Array.isArray(d.products)) {
           setKithulProducts(d.products);
+          try {
+            localStorage.setItem('lankagama_synced_kithul', JSON.stringify(d.products));
+          } catch {}
         }
       }).catch(() => {});
 
@@ -402,8 +424,18 @@ export default function AdminPage() {
 
       // 9. Blogs & Guides
       fetch(`/api/blogs?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
-        if (d.success && Array.isArray(d.blogs) && d.blogs.length > 0) {
+        if (d.success && Array.isArray(d.blogs)) {
           setBlogs(d.blogs);
+          try {
+            localStorage.setItem('lankagama_synced_blogs', JSON.stringify(d.blogs));
+          } catch {}
+        }
+      }).catch(() => {});
+
+      // 10. Tour Guides
+      fetch(`/api/guides?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).then(d => {
+        if (d.success && Array.isArray(d.guides)) {
+          setGuides(d.guides);
         }
       }).catch(() => {});
 
@@ -582,6 +614,7 @@ export default function AdminPage() {
 
   // ---------------- BOOKINGS ACTIONS ---------------- //
   const handleUpdateBookingStatus = async (id: string, newStatus: 'pending' | 'approved' | 'rejected') => {
+    const previousBookings = bookings;
     const currentNotes = editingNotes[id] || '';
     // Optimistic update
     setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus, adminNotes: currentNotes } : b));
@@ -597,11 +630,13 @@ export default function AdminPage() {
         showNotification(`Booking #${id} marked as: ${newStatus.toUpperCase()}`);
       } else {
         alert(data.message || 'Failed to update booking status.');
-        fetchAllData();
+        setBookings(previousBookings);
+        await fetchBookingsOnly();
       }
     } catch {
       alert('Failed to update booking status.');
-      fetchAllData();
+      setBookings(previousBookings);
+      await fetchBookingsOnly();
     }
   };
 
@@ -624,18 +659,24 @@ export default function AdminPage() {
   };
 
   const handleDeleteBooking = async (id: string, name: string) => {
-    if (!window.confirm(`Delete booking record #${id} for "${name}"?`)) return;
+    if (!window.confirm(`Permanently delete booking #${id} for "${name}"?\n\nThis will remove the booking record from the database.`)) return;
     try {
-      const res = await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setBookings(prev => prev.filter(b => b.id !== id));
+        setEditingNotes(prev => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
         showNotification(`Booking #${id} deleted.`);
+        fetchBookingsOnly();
       } else {
         alert(data.message || 'Failed to delete booking.');
       }
     } catch {
-      alert('Error deleting booking.');
+      alert('Network or server error while deleting booking.');
     }
   };
 
@@ -721,6 +762,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
   };
 
   const handleDeleteSlide = async (id: string, title: string) => {
+    if (['slide-1792419238486', 'slide-1792419274908', 'slide-1792419315235'].includes(id)) {
+      alert(`Protected Genuine Record: Slide "${title}" (${id}) is a protected owner photo and cannot be deleted.`);
+      return;
+    }
     if (!window.confirm(`Delete slide "${title}"?`)) return;
     try {
       const res = await fetch(`/api/hero-slides/${id}`, { method: 'DELETE' });
@@ -848,6 +893,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
   };
 
   const handleDeleteVilla = async (id: string, name: string) => {
+    if (id === 'villa-1792498331997') {
+      alert(`Protected Genuine Record: Villa "${name}" (${id}) is your genuine owner villa and cannot be deleted.`);
+      return;
+    }
     if (!window.confirm(`Delete villa "${name}" from website?`)) return;
     try {
       const res = await fetch(`/api/villas/${id}`, { method: 'DELETE' });
@@ -1059,6 +1108,23 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       }
     } catch {
       alert('Error deleting blog post.');
+    }
+  };
+
+  // ---------------- TOUR GUIDES ACTIONS ---------------- //
+  const handleDeleteGuide = async (id: string, name: string) => {
+    if (!window.confirm(`Delete tour guide profile "${name}" (ID: ${id})?`)) return;
+    try {
+      const res = await fetch(`/api/guides/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setGuides(prev => prev.filter(g => g.id !== id));
+        showNotification(`Guide profile "${name}" (${id}) deleted.`);
+      } else {
+        alert(data.message || 'Failed to delete guide profile.');
+      }
+    } catch {
+      alert('Error deleting guide profile.');
     }
   };
 
@@ -1683,6 +1749,22 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
               <span className="text-[11px] opacity-75">{blogs.length}</span>
             </button>
 
+            {/* Tour Guides */}
+            <button
+              onClick={() => { setActiveTab('guides'); setIsMobileSidebarOpen(false); }}
+              className={`w-full px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                activeTab === 'guides'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Compass className="w-4 h-4" />
+                <span>Tour Guides</span>
+              </div>
+              <span className="text-[11px] opacity-75">{guides.length}</span>
+            </button>
+
             {/* 6. Kithul & Toddy */}
             <button
               onClick={() => { setActiveTab('kithul'); setIsMobileSidebarOpen(false); }}
@@ -1808,6 +1890,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 activeTab === 'comments' ? 'Customer Reviews Wall' : 
                 activeTab === 'whatsapp' ? 'Agency Contact, Location & WhatsApp Settings' : 
                 activeTab === 'blogs' ? 'Blogs, Rainforest Guides & Articles' :
+                activeTab === 'guides' ? 'Tour Guides & Field Naturalists' :
                 'Waterfalls & Sanctuaries'
               }</span>
             </h1>
@@ -2153,9 +2236,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                               <span>Edit Details</span>
                             </button>
                             <button
+                              type="button"
                               onClick={() => handleDeleteBooking(b.id, b.customerName)}
-                              className="py-1.5 px-2.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 border border-red-200 flex items-center justify-center gap-1 cursor-pointer"
-                              title="Delete booking record"
+                              className="py-1.5 px-2.5 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 border border-red-200 flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                              title={`Delete booking #${b.id}`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                               <span>Delete</span>
@@ -2223,13 +2307,19 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                         <Pencil className="w-3.5 h-3.5" />
                         <span>Edit Slide</span>
                       </button>
-                      <button
-                        onClick={() => handleDeleteSlide(slide.id, slide.title)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 hover:bg-red-50 border border-red-200 flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Delete</span>
-                      </button>
+                      {['slide-1792419238486', 'slide-1792419274908', 'slide-1792419315235'].includes(slide.id) ? (
+                        <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300">
+                          Protected Genuine Photo
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleDeleteSlide(slide.id, slide.title)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 hover:bg-red-50 border border-red-200 flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -2353,13 +2443,19 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                           <Pencil className="w-3.5 h-3.5" />
                           <span>Edit Villa</span>
                         </button>
-                        <button
-                          onClick={() => handleDeleteVilla(villa.id, villa.name)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 hover:bg-red-50 border border-red-200 flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Delete</span>
-                        </button>
+                        {villa.id === 'villa-1792498331997' ? (
+                          <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300">
+                            Protected Genuine Villa
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleDeleteVilla(villa.id, villa.name)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 hover:bg-red-50 border border-red-200 flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2684,6 +2780,96 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   >
                     + Create First Blog Post
                   </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ============================================================
+             TAB: TOUR GUIDES
+             ============================================================ */}
+          {activeTab === 'guides' && (
+            <div className="space-y-6">
+              <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">
+                    Certified Sinharaja & Lankagama Tour Guides
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    View and manage registered rainforest guides, daily rates, and trekking profiles.
+                  </p>
+                </div>
+              </div>
+
+              {/* Guides List */}
+              {guides.length === 0 ? (
+                <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
+                  <Compass className="w-10 h-10 text-slate-300 mx-auto" />
+                  <p className="text-sm font-semibold text-slate-700">No tour guide profiles in database.</p>
+                  <p className="text-xs text-slate-400">All dummy guide profiles have been removed.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {guides.map((g) => (
+                    <div
+                      key={g.id}
+                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="relative h-44 bg-slate-100">
+                          <img src={g.imageUrl} alt={g.name} className="w-full h-full object-cover" />
+                          <div className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">
+                            ID: {g.id}
+                          </div>
+                          {g.nickname && (
+                            <div className="absolute bottom-2 left-2 bg-blue-600/90 text-white px-2 py-0.5 rounded text-[11px] font-semibold">
+                              &ldquo;{g.nickname}&rdquo;
+                            </div>
+                          )}
+                          <div className="absolute bottom-2 right-2 bg-slate-900/90 text-white px-2.5 py-1 rounded text-xs font-mono font-bold">
+                            Rs. {g.dailyRateLKR.toLocaleString()} / day
+                          </div>
+                        </div>
+
+                        <div className="p-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-slate-900">{g.name}</h3>
+                            <span className="text-xs font-bold text-amber-500 flex items-center gap-1">
+                              ★ {g.rating}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 line-clamp-3">{g.bio}</p>
+
+                          <div className="pt-2 space-y-1">
+                            <div className="text-[11px] text-slate-600">
+                              <span className="font-semibold text-slate-700">Experience:</span> {g.experienceYears} Years
+                            </div>
+                            {g.languages && (
+                              <div className="text-[11px] text-slate-600">
+                                <span className="font-semibold text-slate-700">Languages:</span> {g.languages.join(', ')}
+                              </div>
+                            )}
+                            {g.specialties && (
+                              <div className="text-[11px] text-slate-600">
+                                <span className="font-semibold text-slate-700">Specialties:</span> {g.specialties.join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                        <span className="text-[10px] font-mono text-slate-400">ID: {g.id}</span>
+                        <button
+                          onClick={() => handleDeleteGuide(g.id, g.name)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-700 hover:bg-red-50 border border-red-200 flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete Guide</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -3394,6 +3580,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 onChange={url => setNewSlide({ ...newSlide, url })}
                 label="Slide Photo (Drag & Drop or Select File) *"
                 hint="High-resolution landscape photo for main banner"
+                folder="general"
               />
 
               <div>
@@ -3697,6 +3884,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   }}
                   label="Primary Cover Photo (Drag & Drop or Select File)"
                   hint="Main display image for the villa card (Optional - default image will be used if empty)"
+                  folder="villa-images"
                 />
 
                 <MultiImageUpload
@@ -3706,6 +3894,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   onSetCover={url => setNewVilla({ ...newVilla, imageUrl: url })}
                   label="Additional Gallery Photos (Upload Multiple Photos from Device)"
                   hint="You can select or drop multiple image files at once from your computer"
+                  folder="gallery"
                 />
               </div>
 
@@ -3773,6 +3962,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 value={newCamping.imageUrl}
                 onChange={url => setNewCamping({ ...newCamping, imageUrl: url })}
                 label="Gear Photo (Drag & Drop or Select from Computer) *"
+                folder="camping"
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3885,6 +4075,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 value={newAttraction.imageUrl}
                 onChange={url => setNewAttraction({ ...newAttraction, imageUrl: url })}
                 label="Attraction Photo (Drag & Drop or Select Image)"
+                folder="attractions"
               />
 
               <div className="grid grid-cols-2 gap-3">
@@ -3978,6 +4169,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   onChange={url => setNewBlog({ ...newBlog, imageUrl: url })}
                   label="Article Cover Photo (Drag & Drop or Select Image)"
                   hint="Main display image for the blog card & article banner (1200x800px recommended)"
+                  folder="blogs"
                 />
 
                 <MultiImageUpload
@@ -3987,6 +4179,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   onSetCover={url => setNewBlog({ ...newBlog, imageUrl: url })}
                   label="Additional Article Photos (2-3 Gallery Photos)"
                   hint="Select or drop 2-3 additional photos from your computer for this field guide"
+                  folder="blogs"
                 />
               </div>
 
@@ -4204,6 +4397,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 onChange={url => setNewKithul({ ...newKithul, imageUrl: url })}
                 label="Product / Tour Photo (Drag & Drop or Select File) *"
                 hint="High-resolution image of the jar, clay pot, jaggery, or palm tapping"
+                folder="kithul"
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -4545,6 +4739,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 onChange={url => setEditingSlide({ ...editingSlide, url })}
                 label="Slide Photo (Drag & Drop or Select File) *"
                 hint="High-resolution landscape photo for main banner"
+                folder="general"
               />
 
               <div>
@@ -4610,6 +4805,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 onChange={url => setEditingVilla({ ...editingVilla, imageUrl: url })}
                 label="Primary Villa Cover Photo (Drag & Drop or Select File) *"
                 hint="Main landscape image displayed on villa cards"
+                folder="villa-images"
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -4854,6 +5050,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   onSetCover={url => setEditingVilla({ ...editingVilla, imageUrl: url })}
                   label="Gallery Photos (Upload Multiple Photos from Device)"
                   hint="You can select or drop multiple image files at once from your computer"
+                  folder="gallery"
                 />
               </div>
 
@@ -4947,6 +5144,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 onChange={url => setEditingCamping({ ...editingCamping, imageUrl: url })}
                 label="Gear Photo (Drag & Drop or Select File) *"
                 hint="Image of tent, stove, or camping kit"
+                folder="camping"
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -5068,6 +5266,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 onChange={url => setEditingAttraction({ ...editingAttraction, imageUrl: url })}
                 label="Attraction Photo (Drag & Drop or Select File)"
                 hint="Landscape photo of waterfall or natural pool"
+                folder="attractions"
               />
 
               <div>
@@ -5156,6 +5355,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   onChange={url => setEditingBlog({ ...editingBlog, imageUrl: url })}
                   label="Article Cover Photo (Drag & Drop or Select File)"
                   hint="Landscape photo recommended (1200x800px)"
+                  folder="blogs"
                 />
 
                 <MultiImageUpload
@@ -5165,6 +5365,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   onSetCover={url => setEditingBlog({ ...editingBlog, imageUrl: url })}
                   label="Additional Article Photos (2-3 Gallery Photos)"
                   hint="Select or drop 2-3 additional photos from your computer for this field guide"
+                  folder="blogs"
                 />
               </div>
 
@@ -5370,6 +5571,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 onChange={url => setEditingKithul({ ...editingKithul, imageUrl: url })}
                 label="Product / Tour Photo (Drag & Drop or Select File) *"
                 hint="Image of treacle bottle, jaggery halves, or fresh toddy"
+                folder="kithul"
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

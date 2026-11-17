@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { dbFindBooking, dbUpdateBooking, dbDeleteItem } from '@/lib/db';
 import { requireAdmin, isAuthenticatedAdmin } from '@/lib/auth';
 import { maskBookingForPublic } from '@/lib/validations';
@@ -88,6 +89,11 @@ export async function DELETE(
         { status: 404, headers: NO_CACHE_HEADERS }
       );
     }
+
+    try {
+      revalidateTag('bookings', { expire: 0 });
+      revalidateTag(`booking-${id}`, { expire: 0 });
+    } catch {}
 
     return NextResponse.json({
       success: true,

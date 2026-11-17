@@ -7,6 +7,7 @@ import {
   CampingGear, KithulProduct, CustomerComment, CustomerInquiry, AgencySettings, BlogPost 
 } from './types';
 import { AGENCY_CONFIG } from './data';
+import { normalizeImageToR2, normalizeImageArrayToR2 } from './r2';
 
 export class DatabaseError extends Error {
   constructor(message: string, public cause?: unknown) {
@@ -80,12 +81,15 @@ export async function query<T = unknown>(sql: string, params: unknown[] = []): P
 }
 
 let tablesInitialized = false;
+let tablesInitPromise: Promise<boolean> | null = null;
 
 // Ensure all database tables exist
 export async function ensurePostgresTables(): Promise<boolean> {
   if (tablesInitialized) return true;
+  if (tablesInitPromise) return tablesInitPromise;
 
-  await query(`
+  tablesInitPromise = (async () => {
+    await query(`
     CREATE TABLE IF NOT EXISTS lankagama_villas (
       id VARCHAR(255) PRIMARY KEY,
       data JSONB NOT NULL,
@@ -171,8 +175,15 @@ export async function ensurePostgresTables(): Promise<boolean> {
     );
   `);
 
-  tablesInitialized = true;
-  return true;
+    tablesInitialized = true;
+    return true;
+  })();
+
+  try {
+    return await tablesInitPromise;
+  } finally {
+    tablesInitPromise = null;
+  }
 }
 
 /* ============================================================
@@ -183,6 +194,12 @@ export async function dbGetAll<T>(table: string): Promise<T[]> {
   await ensurePostgresTables();
   const rows = await query<{ data: T }>(`SELECT data FROM ${table} ORDER BY created_at DESC`);
   return rows.map(r => r.data);
+}
+
+export async function dbCount(table: string): Promise<number> {
+  await ensurePostgresTables();
+  const rows = await query<{ count: number }>(`SELECT COUNT(*)::int AS count FROM ${table}`);
+  return Number(rows[0]?.count ?? 0);
 }
 
 export async function dbGetById<T>(table: string, id: string): Promise<T | null> {
@@ -253,38 +270,37 @@ export async function dbSaveSettings(settings: AgencySettings): Promise<AgencySe
 // 1. BOOKINGS
 export async function dbCreateBooking(newBooking: Omit<Booking, 'id' | 'createdAt' | 'status'>): Promise<Booking> {
   await ensurePostgresTables();
-  const existingRows = await query<{ id: string }>('SELECT id FROM lankagama_bookings');
-  const existingIds = new Set(existingRows.map(r => r.id.toUpperCase()));
-
-  let id = '';
-  for (let attempt = 0; attempt < 25; attempt++) {
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const candidate = `LET-${randomSuffix}`;
-    if (!existingIds.has(candidate)) {
-      id = candidate;
-      break;
-    }
-  }
-  if (!id) {
-    id = `LET-${Date.now().toString().slice(-4)}`;
-  }
 
   const trackingToken = crypto.randomBytes(8).toString('hex');
-  const booking: Booking = {
-    ...newBooking,
-    id,
-    trackingToken,
-    status: 'pending',
-    createdAt: new Date().toISOString(),
-    adminNotes: ''
-  };
+  const createdAt = new Date().toISOString();
+  const maxAttempts = 25;
 
-  await query(
-    `INSERT INTO lankagama_bookings (id, data, created_at, updated_at)
-     VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-    [booking.id, JSON.stringify(booking)]
-  );
-  return booking;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const randomSuffix = crypto.randomInt(1000, 10000);
+    const id = `LET-${randomSuffix}`;
+    const booking: Booking = {
+      ...newBooking,
+      id,
+      trackingToken,
+      status: 'pending',
+      createdAt,
+      adminNotes: ''
+    };
+
+    const inserted = await query<{ id: string }>(
+      `INSERT INTO lankagama_bookings (id, data, created_at, updated_at)
+       VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (id) DO NOTHING
+       RETURNING id`,
+      [id, JSON.stringify(booking)]
+    );
+
+    if (inserted.length > 0) {
+      return booking;
+    }
+  }
+
+  throw new DatabaseError('Unable to generate a unique booking ID after multiple attempts. Please try again.');
 }
 
 export async function dbFindBooking(idOrQuery: string): Promise<Booking | null> {
@@ -325,10 +341,15 @@ export async function dbUpdateBooking(id: string, updatedData: Partial<Booking>)
 export async function dbCreateVilla(newVilla: Omit<Villa, 'id'> & { id?: string }): Promise<Villa> {
   await ensurePostgresTables();
   const id = newVilla.id || `villa-${Date.now()}`;
+  const imageUrl = await normalizeImageToR2(newVilla.imageUrl, 'villa-images');
+  const rawImages = newVilla.images && newVilla.images.length > 0 ? newVilla.images : (imageUrl ? [imageUrl] : []);
+  const images = await normalizeImageArrayToR2(rawImages, 'gallery');
+
   const villa: Villa = {
     ...newVilla,
     id,
-    images: newVilla.images && newVilla.images.length > 0 ? newVilla.images : [newVilla.imageUrl],
+    imageUrl: imageUrl || (images.length > 0 ? images[0] : ''),
+    images: images.length > 0 ? images : (imageUrl ? [imageUrl] : []),
     features: newVilla.features || [],
     highlights: newVilla.highlights || [],
     facilities: newVilla.facilities || [],
@@ -344,32 +365,55 @@ export async function dbCreateVilla(newVilla: Omit<Villa, 'id'> & { id?: string 
   return villa;
 }
 
-export async function dbUpdateVilla(id: string, updatedData: Partial<Villa>): Promise<Villa> {
+export async function dbGetActiveVillas(): Promise<Villa[]> {
   await ensurePostgresTables();
-  const existing = await dbGetById<Villa>('lankagama_villas', id);
+  const rows = await query<{ data: Villa }>(
+    `SELECT data FROM lankagama_villas
+     WHERE id NOT IN ('villa-1', 'villa-2', 'villa-3', 'villa-4')
+     ORDER BY created_at DESC`
+  );
+  return rows.map(r => r.data);
+}
+
+export async function dbUpdateVilla(
+  id: string,
+  updatedData: Partial<Villa>,
+  existingVilla?: Villa | null
+): Promise<Villa> {
+  await ensurePostgresTables();
+  const existing = existingVilla !== undefined ? existingVilla : await dbGetById<Villa>('lankagama_villas', id);
+
+  const dataToUpdate = { ...updatedData };
+  if (dataToUpdate.imageUrl) {
+    dataToUpdate.imageUrl = await normalizeImageToR2(dataToUpdate.imageUrl, 'villa-images');
+  }
+  if (dataToUpdate.images && dataToUpdate.images.length > 0) {
+    dataToUpdate.images = await normalizeImageArrayToR2(dataToUpdate.images, 'gallery');
+  }
+
   const merged: Villa = {
     ...(existing || {
-      name: updatedData.name || 'Lankagama Villa',
-      sinhalaName: updatedData.sinhalaName || updatedData.name || 'ලංකාගම විලා',
-      tagline: updatedData.tagline || '',
-      pricePerNightLKR: updatedData.pricePerNightLKR || 0,
-      maxGuests: updatedData.maxGuests || 4,
-      bedrooms: updatedData.bedrooms || 1,
-      bathrooms: updatedData.bathrooms || 1,
-      bedConfig: updatedData.bedConfig || '1 Double Bed',
-      checkInTime: updatedData.checkInTime || '02:00 PM',
-      checkOutTime: updatedData.checkOutTime || '11:00 AM',
-      locationDetails: updatedData.locationDetails || 'Lankagama, Sinharaja',
-      description: updatedData.description || '',
-      imageUrl: updatedData.imageUrl || '',
-      images: updatedData.images && updatedData.images.length > 0 ? updatedData.images : (updatedData.imageUrl ? [updatedData.imageUrl] : []),
-      features: updatedData.features || [],
-      highlights: updatedData.highlights || [],
-      facilities: updatedData.facilities || [],
-      foodOptions: updatedData.foodOptions || [],
-      houseRules: updatedData.houseRules || []
+      name: dataToUpdate.name || 'Lankagama Villa',
+      sinhalaName: dataToUpdate.sinhalaName || dataToUpdate.name || 'ලංකාගම විලා',
+      tagline: dataToUpdate.tagline || '',
+      pricePerNightLKR: dataToUpdate.pricePerNightLKR || 0,
+      maxGuests: dataToUpdate.maxGuests || 4,
+      bedrooms: dataToUpdate.bedrooms || 1,
+      bathrooms: dataToUpdate.bathrooms || 1,
+      bedConfig: dataToUpdate.bedConfig || '1 Double Bed',
+      checkInTime: dataToUpdate.checkInTime || '02:00 PM',
+      checkOutTime: dataToUpdate.checkOutTime || '11:00 AM',
+      locationDetails: dataToUpdate.locationDetails || 'Lankagama, Sinharaja',
+      description: dataToUpdate.description || '',
+      imageUrl: dataToUpdate.imageUrl || '',
+      images: dataToUpdate.images && dataToUpdate.images.length > 0 ? dataToUpdate.images : (dataToUpdate.imageUrl ? [dataToUpdate.imageUrl] : []),
+      features: dataToUpdate.features || [],
+      highlights: dataToUpdate.highlights || [],
+      facilities: dataToUpdate.facilities || [],
+      foodOptions: dataToUpdate.foodOptions || [],
+      houseRules: dataToUpdate.houseRules || []
     }),
-    ...updatedData,
+    ...dataToUpdate,
     id
   };
 
@@ -385,9 +429,11 @@ export async function dbUpdateVilla(id: string, updatedData: Partial<Villa>): Pr
 export async function dbCreateGuide(newGuide: Omit<TourGuide, 'id'> & { id?: string }): Promise<TourGuide> {
   await ensurePostgresTables();
   const id = newGuide.id || `guide-${Date.now()}`;
+  const imageUrl = await normalizeImageToR2(newGuide.imageUrl, 'guides');
   const guide: TourGuide = {
     ...newGuide,
     id,
+    imageUrl: imageUrl || newGuide.imageUrl,
     languages: newGuide.languages || ['Sinhala', 'English'],
     specialties: newGuide.specialties || [],
     verifiedLocal: newGuide.verifiedLocal ?? true
@@ -405,9 +451,11 @@ export async function dbCreateGuide(newGuide: Omit<TourGuide, 'id'> & { id?: str
 export async function dbCreateCampingGear(newGear: Omit<CampingGear, 'id'> & { id?: string }): Promise<CampingGear> {
   await ensurePostgresTables();
   const id = newGear.id || `gear-${Date.now()}`;
+  const imageUrl = await normalizeImageToR2(newGear.imageUrl, 'camping');
   const gear: CampingGear = {
     ...newGear,
     id,
+    imageUrl: imageUrl || newGear.imageUrl,
     includes: newGear.includes || []
   };
 
@@ -424,9 +472,14 @@ export async function dbUpdateCampingGear(id: string, updatedData: Partial<Campi
   const existing = await dbGetById<CampingGear>('lankagama_camping', id);
   if (!existing) return null;
 
+  const dataToUpdate = { ...updatedData };
+  if (dataToUpdate.imageUrl) {
+    dataToUpdate.imageUrl = await normalizeImageToR2(dataToUpdate.imageUrl, 'camping');
+  }
+
   const merged: CampingGear = {
     ...existing,
-    ...updatedData,
+    ...dataToUpdate,
     id
   };
 
@@ -441,9 +494,11 @@ export async function dbUpdateCampingGear(id: string, updatedData: Partial<Campi
 export async function dbCreateAttraction(newAttr: Omit<Attraction, 'id'> & { id?: string }): Promise<Attraction> {
   await ensurePostgresTables();
   const id = newAttr.id || `attraction-${Date.now()}`;
+  const imageUrl = newAttr.imageUrl ? await normalizeImageToR2(newAttr.imageUrl, 'attractions') : undefined;
   const attr: Attraction = {
     ...newAttr,
-    id
+    id,
+    imageUrl: imageUrl || newAttr.imageUrl
   };
 
   await query(
@@ -459,9 +514,14 @@ export async function dbUpdateAttraction(id: string, updatedData: Partial<Attrac
   const existing = await dbGetById<Attraction>('lankagama_attractions', id);
   if (!existing) return null;
 
+  const dataToUpdate = { ...updatedData };
+  if (dataToUpdate.imageUrl) {
+    dataToUpdate.imageUrl = await normalizeImageToR2(dataToUpdate.imageUrl, 'attractions');
+  }
+
   const merged: Attraction = {
     ...existing,
-    ...updatedData,
+    ...dataToUpdate,
     id
   };
 
@@ -476,9 +536,11 @@ export async function dbUpdateAttraction(id: string, updatedData: Partial<Attrac
 export async function dbCreateHeroSlide(newSlide: Omit<HeroSlide, 'id'> & { id?: string }): Promise<HeroSlide> {
   await ensurePostgresTables();
   const id = newSlide.id || `slide-${Date.now()}`;
+  const url = await normalizeImageToR2(newSlide.url, 'general');
   const slide: HeroSlide = {
     ...newSlide,
-    id
+    id,
+    url: url || newSlide.url
   };
 
   await query(
@@ -494,9 +556,14 @@ export async function dbUpdateHeroSlide(id: string, updatedData: Partial<HeroSli
   const existing = await dbGetById<HeroSlide>('lankagama_slides', id);
   if (!existing) return null;
 
+  const dataToUpdate = { ...updatedData };
+  if (dataToUpdate.url) {
+    dataToUpdate.url = await normalizeImageToR2(dataToUpdate.url, 'general');
+  }
+
   const merged: HeroSlide = {
     ...existing,
-    ...updatedData,
+    ...dataToUpdate,
     id
   };
 
@@ -511,9 +578,11 @@ export async function dbUpdateHeroSlide(id: string, updatedData: Partial<HeroSli
 export async function dbCreateKithulProduct(newProd: Omit<KithulProduct, 'id'> & { id?: string }): Promise<KithulProduct> {
   await ensurePostgresTables();
   const id = newProd.id || `kithul-${Date.now()}`;
+  const imageUrl = await normalizeImageToR2(newProd.imageUrl, 'kithul');
   const prod: KithulProduct = {
     ...newProd,
     id,
+    imageUrl: imageUrl || newProd.imageUrl,
     inStock: newProd.inStock ?? true
   };
 
@@ -530,9 +599,14 @@ export async function dbUpdateKithulProduct(id: string, updatedData: Partial<Kit
   const existing = await dbGetById<KithulProduct>('lankagama_kithul', id);
   if (!existing) return null;
 
+  const dataToUpdate = { ...updatedData };
+  if (dataToUpdate.imageUrl) {
+    dataToUpdate.imageUrl = await normalizeImageToR2(dataToUpdate.imageUrl, 'kithul');
+  }
+
   const merged: KithulProduct = {
     ...existing,
-    ...updatedData,
+    ...dataToUpdate,
     id
   };
 
@@ -544,6 +618,16 @@ export async function dbUpdateKithulProduct(id: string, updatedData: Partial<Kit
 }
 
 // 8. CUSTOMER COMMENTS / REVIEWS
+export async function dbGetVerifiedComments(): Promise<CustomerComment[]> {
+  await ensurePostgresTables();
+  const rows = await query<{ data: CustomerComment }>(
+    `SELECT data FROM lankagama_comments
+     WHERE COALESCE(data->>'isVerified', '') = 'true'
+     ORDER BY created_at DESC`
+  );
+  return rows.map(r => r.data);
+}
+
 export async function dbCreateComment(newComment: Omit<CustomerComment, 'id' | 'createdAt' | 'isVerified'> & { isVerified?: boolean }): Promise<CustomerComment> {
   await ensurePostgresTables();
   const randomSuffix = Math.floor(100 + Math.random() * 900);
@@ -619,39 +703,33 @@ export async function dbUpdateInquiryStatus(id: string, status: 'new' | 'contact
 }
 
 // 10. BLOGS & GUIDES
+
+/**
+ * Auto-seeding of default/dummy blogs has been permanently disabled per Phase 2A requirements.
+ * Database is the single source of truth; empty tables remain empty.
+ */
+export async function dbSeedDefaultBlogsIfEmpty(): Promise<BlogPost[]> {
+  return [];
+}
+
 export async function dbGetAllBlogs(): Promise<BlogPost[]> {
   await ensurePostgresTables();
-  let blogs = await dbGetAll<BlogPost>('lankagama_blogs');
-  
-  // If table is empty, seed from data/blogs.json automatically
-  if (!blogs || blogs.length === 0) {
-    try {
-      const jsonPath = path.join(process.cwd(), 'data', 'blogs.json');
-      if (fs.existsSync(jsonPath)) {
-        const fileContent = fs.readFileSync(jsonPath, 'utf8');
-        const defaultBlogs = JSON.parse(fileContent) as BlogPost[];
-        if (Array.isArray(defaultBlogs) && defaultBlogs.length > 0) {
-          for (const item of defaultBlogs) {
-            await dbSaveItem('lankagama_blogs', item);
-          }
-          blogs = defaultBlogs;
-        }
-      }
-    } catch (seedErr) {
-      console.warn('Auto-seed blogs from JSON error:', seedErr);
-    }
-  }
-  
-  return blogs;
+  const blogs = await dbGetAll<BlogPost>('lankagama_blogs');
+  return blogs || [];
 }
 
 export async function dbCreateBlog(newBlog: Omit<BlogPost, 'id'> & { id?: string }): Promise<BlogPost> {
   await ensurePostgresTables();
   const id = newBlog.id || `blog-${Date.now()}`;
+  const imageUrl = await normalizeImageToR2(newBlog.imageUrl, 'blogs');
+  const rawImages = newBlog.images && newBlog.images.length > 0 ? newBlog.images : (imageUrl ? [imageUrl] : []);
+  const images = await normalizeImageArrayToR2(rawImages, 'blogs');
+
   const blog: BlogPost = {
     ...newBlog,
     id,
-    images: newBlog.images && newBlog.images.length > 0 ? newBlog.images : [newBlog.imageUrl],
+    imageUrl: imageUrl || (images.length > 0 ? images[0] : ''),
+    images: images.length > 0 ? images : (imageUrl ? [imageUrl] : []),
     highlights: newBlog.highlights || [],
     highlightsSi: newBlog.highlightsSi || []
   };
@@ -669,9 +747,17 @@ export async function dbUpdateBlog(id: string, updatedData: Partial<BlogPost>): 
   const existing = await dbGetById<BlogPost>('lankagama_blogs', id);
   if (!existing) return null;
 
+  const dataToUpdate = { ...updatedData };
+  if (dataToUpdate.imageUrl) {
+    dataToUpdate.imageUrl = await normalizeImageToR2(dataToUpdate.imageUrl, 'blogs');
+  }
+  if (dataToUpdate.images && dataToUpdate.images.length > 0) {
+    dataToUpdate.images = await normalizeImageArrayToR2(dataToUpdate.images, 'blogs');
+  }
+
   const merged: BlogPost = {
     ...existing,
-    ...updatedData,
+    ...dataToUpdate,
     id
   };
 

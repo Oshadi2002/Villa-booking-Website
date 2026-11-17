@@ -18,7 +18,7 @@ export default function TrackModal({ isOpen, onClose }: TrackModalProps) {
     modalId: 'track-booking'
   });
 
-  const { getWhatsAppLink, waLink } = useWhatsApp();
+  const { getWhatsAppLink, waLink } = useWhatsApp({ enabled: isOpen });
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { dbDeleteItem } from '@/lib/db';
+import { CACHE_TAGS } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -13,6 +15,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Guide not found or already deleted' }, { status: 404 });
     }
+
+    revalidateTag(CACHE_TAGS.GUIDES, { expire: 0 });
 
     return NextResponse.json({
       success: true,

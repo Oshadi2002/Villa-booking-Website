@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { dbGetAll, dbCreateHeroSlide } from '@/lib/db';
-import { HeroSlide } from '@/lib/types';
+import { revalidateTag } from 'next/cache';
+import { dbCreateHeroSlide } from '@/lib/db';
+import { CACHE_TAGS, getCachedHeroSlides } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const slides = await dbGetAll<HeroSlide>('lankagama_slides');
+    const slides = await getCachedHeroSlides();
     return NextResponse.json({ success: true, slides }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
@@ -39,6 +40,8 @@ export async function POST(req: Request) {
       title: body.title,
       sinhala: body.sinhala || body.title
     });
+
+    revalidateTag(CACHE_TAGS.SLIDES, { expire: 0 });
 
     return NextResponse.json({
       success: true,

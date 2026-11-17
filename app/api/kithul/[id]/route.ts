@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { dbUpdateKithulProduct, dbDeleteItem } from '@/lib/db';
+import { CACHE_TAGS } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -19,6 +21,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Kithul product not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
+
+    revalidateTag(CACHE_TAGS.KITHUL, { expire: 0 });
 
     return NextResponse.json({ success: true, message: 'Kithul product deleted' }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
@@ -40,6 +44,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!updated) {
       return NextResponse.json({ success: false, message: 'Kithul product not found' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
+
+    revalidateTag(CACHE_TAGS.KITHUL, { expire: 0 });
 
     return NextResponse.json({ success: true, product: updated }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {

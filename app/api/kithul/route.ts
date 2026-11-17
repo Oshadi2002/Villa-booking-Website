@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { dbGetAll, dbCreateKithulProduct } from '@/lib/db';
-import { KithulProduct } from '@/lib/types';
+import { revalidateTag } from 'next/cache';
+import { dbCreateKithulProduct } from '@/lib/db';
+import { CACHE_TAGS, getCachedKithulProducts } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const products = await dbGetAll<KithulProduct>('lankagama_kithul');
+    const products = await getCachedKithulProducts();
     return NextResponse.json({ success: true, products }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
@@ -49,6 +50,8 @@ export async function POST(req: Request) {
       inStock: body.inStock ?? true,
       featured: body.featured ?? false
     });
+
+    revalidateTag(CACHE_TAGS.KITHUL, { expire: 0 });
 
     return NextResponse.json({
       success: true,

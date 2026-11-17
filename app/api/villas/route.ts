@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { dbGetAll, dbCreateVilla } from '@/lib/db';
-import { Villa } from '@/lib/types';
+import { revalidateTag } from 'next/cache';
+import { dbCreateVilla } from '@/lib/db';
+import { CACHE_TAGS, getCachedVillas } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -14,8 +15,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const rawVillas = await dbGetAll<Villa>('lankagama_villas');
-    const villas = rawVillas.filter(v => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
+    const villas = await getCachedVillas();
 
     return NextResponse.json(
       { success: true, villas },
@@ -83,6 +83,9 @@ export async function POST(req: Request) {
       acType: body.acType || 'both',
       hasKitchen: body.hasKitchen !== undefined ? Boolean(body.hasKitchen) : true
     });
+
+    revalidateTag(CACHE_TAGS.VILLAS, { expire: 0 });
+    revalidateTag(CACHE_TAGS.VILLA_BY_ID(villa.id), { expire: 0 });
 
     return NextResponse.json({
       success: true,

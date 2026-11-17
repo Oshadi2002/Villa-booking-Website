@@ -1,26 +1,54 @@
-import { dbGetAll } from '@/lib/db';
+import { connection } from 'next/server';
+import {
+  getCachedVillas,
+  getCachedHeroSlides,
+  getCachedCampingGear,
+  getCachedKithulProducts,
+} from '@/lib/cached-data';
 import { Villa, HeroSlide, CampingGear, KithulProduct } from '@/lib/types';
 import HomePageClient from '@/components/HomePageClient';
 
 export default async function HomePage() {
+  await connection();
+
   let initialVillas: Villa[] = [];
   let initialSlides: HeroSlide[] = [];
   let initialGear: CampingGear[] = [];
   let initialKithul: KithulProduct[] = [];
+  let ssrStatus = {
+    villas: false,
+    slides: false,
+    camping: false,
+    kithul: false,
+  };
 
   try {
-    const [rawVillas, rawSlides, rawCamping, rawKithul] = await Promise.all([
-      dbGetAll<Villa>('lankagama_villas').catch(() => [] as Villa[]),
-      dbGetAll<HeroSlide>('lankagama_slides').catch(() => [] as HeroSlide[]),
-      dbGetAll<CampingGear>('lankagama_camping').catch(() => [] as CampingGear[]),
-      dbGetAll<KithulProduct>('lankagama_kithul').catch(() => [] as KithulProduct[]),
+    const [villasRes, slidesRes, campingRes, kithulRes] = await Promise.allSettled([
+      getCachedVillas(),
+      getCachedHeroSlides(),
+      getCachedCampingGear(),
+      getCachedKithulProducts(),
     ]);
-    initialVillas = rawVillas.filter(v => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(v.id));
-    initialSlides = rawSlides;
-    initialGear = rawCamping;
-    initialKithul = rawKithul.filter(k => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(k.id));
+
+    if (villasRes.status === 'fulfilled') {
+      initialVillas = villasRes.value;
+      ssrStatus.villas = true;
+    }
+    if (slidesRes.status === 'fulfilled') {
+      initialSlides = slidesRes.value;
+      ssrStatus.slides = true;
+    }
+    if (campingRes.status === 'fulfilled') {
+      initialGear = campingRes.value;
+      ssrStatus.camping = true;
+    }
+    if (kithulRes.status === 'fulfilled') {
+      initialKithul = kithulRes.value.filter(k => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(k.id));
+      ssrStatus.kithul = true;
+    }
   } catch (error) {
     console.warn('Server prefetch fallback:', error);
+    ssrStatus = { villas: false, slides: false, camping: false, kithul: false };
   }
 
   return (
@@ -29,6 +57,7 @@ export default async function HomePage() {
       initialSlides={initialSlides}
       initialGear={initialGear}
       initialKithul={initialKithul}
+      ssrStatus={ssrStatus}
     />
   );
 }

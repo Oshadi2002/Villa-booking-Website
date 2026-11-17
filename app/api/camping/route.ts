@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { dbGetAll, dbCreateCampingGear } from '@/lib/db';
-import { CampingGear } from '@/lib/types';
+import { revalidateTag } from 'next/cache';
+import { dbCreateCampingGear } from '@/lib/db';
+import { CACHE_TAGS, getCachedCampingGear } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const gear = await dbGetAll<CampingGear>('lankagama_camping');
+    const gear = await getCachedCampingGear();
     return NextResponse.json({ success: true, gear }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
@@ -44,6 +45,8 @@ export async function POST(req: Request) {
       capacity: body.capacity || 'Camp Equipment',
       imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
     });
+
+    revalidateTag(CACHE_TAGS.CAMPING, { expire: 0 });
 
     return NextResponse.json({
       success: true,

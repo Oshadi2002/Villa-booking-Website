@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { dbUpdateComment, dbDeleteItem } from '@/lib/db';
+import { CACHE_TAGS } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -20,6 +22,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ success: false, message: 'Comment not found' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
+    revalidateTag(CACHE_TAGS.COMMENTS, { expire: 0 });
+
     return NextResponse.json({ success: true, message: 'Comment updated successfully', comment: updated }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
@@ -39,6 +43,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     if (!deleted) {
       return NextResponse.json({ success: false, message: 'Comment not found or already deleted' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
+
+    revalidateTag(CACHE_TAGS.COMMENTS, { expire: 0 });
 
     return NextResponse.json({ success: true, message: 'Comment deleted successfully' }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {

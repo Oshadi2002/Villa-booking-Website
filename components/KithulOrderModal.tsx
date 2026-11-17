@@ -19,7 +19,7 @@ interface KithulOrderModalProps {
 }
 
 export default function KithulOrderModal({ isOpen, onClose, product, villas }: KithulOrderModalProps) {
-  const { getWhatsAppLink } = useWhatsApp();
+  const { getWhatsAppLink } = useWhatsApp({ enabled: Boolean(isOpen && product) });
   const [quantity, setQuantity] = useState(1);
   const [deliveryLocationType, setDeliveryLocationType] = useState<'villa' | 'campsite' | 'takeaway'>('villa');
   const [selectedVillaName, setSelectedVillaName] = useState(villas[0]?.name || 'Sinharaja Gin Ganga River Edge Villa');

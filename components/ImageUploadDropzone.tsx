@@ -9,13 +9,15 @@ interface ImageUploadDropzoneProps {
   onChange: (url: string) => void;
   label?: string;
   hint?: string;
+  folder?: string;
 }
 
 export default function ImageUploadDropzone({
   value,
   onChange,
   label = 'Upload Image (Drag & Drop or Select File)',
-  hint = 'Supports JPG, PNG, WEBP from your computer or phone'
+  hint = 'Supports JPG, PNG, WEBP from your computer or phone',
+  folder = 'general'
 }: ImageUploadDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -37,6 +39,7 @@ export default function ImageUploadDropzone({
 
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('folder', folder);
 
       const res = await fetch('/api/upload', {
         method: 'POST',

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { dbGetAllBlogs, dbCreateBlog } from '@/lib/db';
+import { revalidateTag } from 'next/cache';
+import { dbCreateBlog } from '@/lib/db';
+import { CACHE_TAGS, getCachedBlogs } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -13,8 +15,8 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     void searchParams;
 
-    const blogs = await dbGetAllBlogs();
-    return NextResponse.json({ success: true, blogs }, { headers: NO_CACHE_HEADERS });
+    const blogs = await getCachedBlogs();
+    return NextResponse.json({ success: true, blogs: blogs || [] }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
     const error = err as Error;
     console.error('API /api/blogs GET error:', error);
@@ -56,6 +58,8 @@ export async function POST(req: Request) {
       highlights: Array.isArray(body.highlights) ? body.highlights : [],
       highlightsSi: Array.isArray(body.highlightsSi) ? body.highlightsSi : []
     });
+
+    revalidateTag(CACHE_TAGS.BLOGS, { expire: 0 });
 
     return NextResponse.json({
       success: true,

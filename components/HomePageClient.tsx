@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import WhyChooseUs from '@/components/WhyChooseUs';
@@ -24,19 +25,102 @@ import { MessageCircle, ShoppingBag, BookOpen, MessageSquare, ArrowRight } from 
 import { useWhatsApp } from '@/lib/useWhatsApp';
 import { useLanguage } from '@/lib/LanguageContext';
 
+interface SsrStatus {
+  villas: boolean;
+  slides: boolean;
+  camping: boolean;
+  kithul: boolean;
+}
+
 interface HomePageClientProps {
   initialVillas?: Villa[];
   initialSlides?: HeroSlide[];
   initialGear?: CampingGear[];
   initialKithul?: KithulProduct[];
+  ssrStatus?: SsrStatus;
+}
+
+const DEFAULT_SSR_STATUS: SsrStatus = {
+  villas: false,
+  slides: false,
+  camping: false,
+  kithul: false,
+};
+
+// Track whether user navigated away from `/` and returned via browser Back/Forward
+let returnedViaPopstate = false;
+let popstateTrackerAttached = false;
+
+function ensurePopstateTracker() {
+  if (typeof window === 'undefined' || popstateTrackerAttached) return;
+  popstateTrackerAttached = true;
+
+  // Modern browsers (Chromium): Navigation API fires `navigate` synchronously on traversal
+  // BEFORE Next.js mounts the restored route and BEFORE `popstate` fires.
+  const nav = (window as unknown as {
+    navigation?: {
+      currentEntry?: { url?: string | null };
+      addEventListener?: (
+        type: string,
+        listener: (event: {
+          navigationType?: string;
+          hashChange?: boolean;
+          destination?: { url?: string | null };
+        }) => void
+      ) => void;
+    };
+  }).navigation;
+
+  if (nav?.addEventListener) {
+    nav.addEventListener('navigate', (event) => {
+      if (event.navigationType === 'traverse' && !event.hashChange) {
+        try {
+          const destUrl = event.destination?.url ? new URL(event.destination.url) : null;
+          const currUrl = nav.currentEntry?.url ? new URL(nav.currentEntry.url) : null;
+          if (destUrl?.pathname === '/' && currUrl?.pathname !== '/') {
+            returnedViaPopstate = true;
+          }
+        } catch {}
+      } else if (event.navigationType === 'push') {
+        returnedViaPopstate = false;
+      }
+    });
+  }
+
+  // Fallback for browsers without Navigation API (e.g. Firefox, Safari)
+  window.addEventListener(
+    'popstate',
+    () => {
+      if (window.location.pathname === '/' && !nav?.addEventListener) {
+        returnedViaPopstate = true;
+      }
+    },
+    { capture: true }
+  );
+}
+
+if (typeof window !== 'undefined') {
+  ensurePopstateTracker();
+}
+
+function syncStorageItem(key: string, items: unknown[]) {
+  try {
+    if (items.length > 0) {
+      localStorage.setItem(key, JSON.stringify(items));
+    } else {
+      localStorage.removeItem(key);
+    }
+  } catch {}
 }
 
 export default function HomePageClient({
   initialVillas = [],
   initialSlides = [],
   initialGear = [],
-  initialKithul = []
+  initialKithul = [],
+  ssrStatus = DEFAULT_SSR_STATUS
 }: HomePageClientProps) {
+  const router = useRouter();
   const { isSi, t } = useLanguage();
   const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -51,12 +135,15 @@ export default function HomePageClient({
   const [bookingType, setBookingType] = useState<BookingType>('villa');
   const [selectedItem, setSelectedItem] = useState<{ id: string; name: string; price: number; [key: string]: unknown } | null>(null);
 
+  const allSsrLoaded = ssrStatus.villas && ssrStatus.slides && ssrStatus.camping && ssrStatus.kithul;
+
   // Data lists initialized with server-prefetched data for instant loading
   const [villasList, setVillasList] = useState<Villa[]>(initialVillas);
   const [slidesList, setSlidesList] = useState<HeroSlide[]>(initialSlides);
   const [gearList, setGearList] = useState<CampingGear[]>(initialGear);
   const [kithulList, setKithulList] = useState<KithulProduct[]>(initialKithul);
-  const [isLoading, setIsLoading] = useState<boolean>(initialVillas.length === 0);
+  const [isLoading, setIsLoading] = useState<boolean>(!ssrStatus.villas && initialVillas.length === 0);
+  const hasTriggeredBackRefreshRef = useRef(false);
 
   const { getWhatsAppLink } = useWhatsApp();
   const whatsappFloatingUrl = getWhatsAppLink(
@@ -64,41 +151,76 @@ export default function HomePageClient({
   );
 
   // Helper to load locally synced data from Admin panel if available
-  const loadLocalSyncedData = () => {
+  const loadLocalSyncedData = (onlyKeys?: Partial<SsrStatus>) => {
     try {
-      const v = localStorage.getItem('lankagama_synced_villas');
-      if (v) {
-        const parsed = JSON.parse(v);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const cleaned = parsed.filter((villa: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(villa.id));
-          if (cleaned.length > 0) setVillasList(cleaned);
+      if (!onlyKeys || onlyKeys.villas) {
+        const v = localStorage.getItem('lankagama_synced_villas');
+        if (v) {
+          const parsed = JSON.parse(v);
+          if (Array.isArray(parsed)) {
+            const cleaned = parsed.filter((villa: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(villa.id));
+            setVillasList(cleaned);
+            setIsLoading(false);
+          }
         }
       }
-      const s = localStorage.getItem('lankagama_synced_slides');
-      if (s) {
-        const parsed = JSON.parse(s);
-        if (Array.isArray(parsed) && parsed.length > 0) setSlidesList(parsed);
+      if (!onlyKeys || onlyKeys.slides) {
+        const s = localStorage.getItem('lankagama_synced_slides');
+        if (s) {
+          const parsed = JSON.parse(s);
+          if (Array.isArray(parsed)) setSlidesList(parsed);
+        }
       }
-      const g = localStorage.getItem('lankagama_synced_camping');
-      if (g) {
-        const parsed = JSON.parse(g);
-        if (Array.isArray(parsed) && parsed.length > 0) setGearList(parsed);
+      if (!onlyKeys || onlyKeys.camping) {
+        const g = localStorage.getItem('lankagama_synced_camping');
+        if (g) {
+          const parsed = JSON.parse(g);
+          if (Array.isArray(parsed)) setGearList(parsed);
+        }
       }
-      const k = localStorage.getItem('lankagama_synced_kithul');
-      if (k) {
-        const parsed = JSON.parse(k);
-        if (Array.isArray(parsed)) {
-          const cleaned = parsed.filter((p: KithulProduct) => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(p.id));
-          if (cleaned.length > 0) setKithulList(cleaned);
+      if (!onlyKeys || onlyKeys.kithul) {
+        const k = localStorage.getItem('lankagama_synced_kithul');
+        if (k) {
+          const parsed = JSON.parse(k);
+          if (Array.isArray(parsed)) {
+            const cleaned = parsed.filter((p: KithulProduct) => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(p.id));
+            setKithulList(cleaned);
+          }
         }
       }
     } catch {}
   };
 
+  // Keep state and localStorage synchronized whenever fresh SSR props arrive (e.g. initial load or router.refresh)
   useEffect(() => {
-    loadLocalSyncedData();
+    if (ssrStatus.villas) {
+      setVillasList(initialVillas);
+      syncStorageItem('lankagama_synced_villas', initialVillas);
+    }
+    if (ssrStatus.slides) {
+      setSlidesList(initialSlides);
+      syncStorageItem('lankagama_synced_slides', initialSlides);
+    }
+    if (ssrStatus.camping) {
+      setGearList(initialGear);
+      syncStorageItem('lankagama_synced_camping', initialGear);
+    }
+    if (ssrStatus.kithul) {
+      setKithulList(initialKithul);
+      syncStorageItem('lankagama_synced_kithul', initialKithul);
+    }
+    if (ssrStatus.villas) {
+      setIsLoading(false);
+    }
+  }, [ssrStatus, initialVillas, initialSlides, initialGear, initialKithul]);
 
-    // Listen for storage events across tabs
+  const routerRef = useRef(router);
+  routerRef.current = router;
+
+  // Mount-only effect: cross-tab sync listeners + browser Back/Forward freshness
+  useEffect(() => {
+    ensurePopstateTracker();
+
     const handleStorage = () => {
       loadLocalSyncedData();
     };
@@ -111,65 +233,138 @@ export default function HomePageClient({
     try {
       bc = new BroadcastChannel('lankagama_sync_channel');
       bc.onmessage = (event) => {
-        if (event.data?.type === 'SYNC_VILLAS' && Array.isArray(event.data.data)) setVillasList(event.data.data);
+        if (event.data?.type === 'SYNC_VILLAS' && Array.isArray(event.data.data)) {
+          const validVillas = event.data.data.filter((villa: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(villa.id));
+          setVillasList(validVillas);
+          setIsLoading(false);
+        }
         if (event.data?.type === 'SYNC_SLIDES' && Array.isArray(event.data.data)) setSlidesList(event.data.data);
         if (event.data?.type === 'SYNC_CAMPING' && Array.isArray(event.data.data)) setGearList(event.data.data);
-        if (event.data?.type === 'SYNC_KITHUL' && Array.isArray(event.data.data)) setKithulList(event.data.data);
-        loadLocalSyncedData();
+        if (event.data?.type === 'SYNC_KITHUL' && Array.isArray(event.data.data)) {
+          const cleaned = event.data.data.filter((p: KithulProduct) => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(p.id));
+          setKithulList(cleaned);
+        }
       };
     } catch {}
 
-    const timestamp = Date.now();
+    // Handle browser Back/Forward navigation (Next.js history restore or browser bfcache)
+    // so users returning from another page always get up-to-date homepage content.
+    const navEntry = performance.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming | undefined;
+    const isBackForwardNav = returnedViaPopstate || navEntry?.type === 'back_forward';
+    returnedViaPopstate = false;
 
-    Promise.all([
-      fetch(`/api/villas?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).catch(() => null),
-      fetch(`/api/hero-slides?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).catch(() => null),
-      fetch(`/api/camping?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).catch(() => null),
-      fetch(`/api/kithul?t=${timestamp}`, { cache: 'no-store' }).then(r => r.json()).catch(() => null),
-    ]).then(([villasData, slidesData, campingData, kithulData]) => {
-      if (villasData?.success && Array.isArray(villasData.villas)) {
-        const validVillas = villasData.villas.filter((villa: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(villa.id));
-        setVillasList(validVillas);
-        try {
-          if (validVillas.length > 0) {
-            localStorage.setItem('lankagama_synced_villas', JSON.stringify(validVillas));
-          }
-        } catch {}
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    if (isBackForwardNav && !hasTriggeredBackRefreshRef.current) {
+      hasTriggeredBackRefreshRef.current = true;
+      refreshTimer = setTimeout(() => {
+        routerRef.current.refresh();
+      }, 0);
+    }
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        loadLocalSyncedData();
+        routerRef.current.refresh();
       }
-
-      if (slidesData?.success && Array.isArray(slidesData.slides)) {
-        setSlidesList(slidesData.slides);
-        try {
-          localStorage.setItem('lankagama_synced_slides', JSON.stringify(slidesData.slides));
-        } catch {}
-      }
-
-      if (campingData?.success && Array.isArray(campingData.gear)) {
-        setGearList(campingData.gear);
-        try {
-          localStorage.setItem('lankagama_synced_camping', JSON.stringify(campingData.gear));
-        } catch {}
-      }
-
-      if (kithulData?.success && Array.isArray(kithulData.products)) {
-        const cleaned = kithulData.products.filter((p: KithulProduct) => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(p.id));
-        setKithulList(cleaned);
-        try {
-          localStorage.setItem('lankagama_synced_kithul', JSON.stringify(cleaned));
-        } catch {}
-      }
-
-      setIsLoading(false);
-    }).catch(() => {
-      setIsLoading(false);
-    });
+    };
+    window.addEventListener('pageshow', handlePageShow);
 
     return () => {
+      returnedViaPopstate = false;
+      hasTriggeredBackRefreshRef.current = false;
+      if (refreshTimer) clearTimeout(refreshTimer);
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('lankagama_data_updated', handleStorage);
+      window.removeEventListener('pageshow', handlePageShow);
       if (bc) bc.close();
     };
   }, []);
+
+  // Recovery fallback effect: only runs for datasets where SSR failed
+  useEffect(() => {
+    if (allSsrLoaded) return;
+
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    loadLocalSyncedData({
+      villas: !ssrStatus.villas,
+      slides: !ssrStatus.slides,
+      camping: !ssrStatus.camping,
+      kithul: !ssrStatus.kithul,
+    });
+
+    const timestamp = Date.now();
+    const recoveryTasks: Promise<void>[] = [];
+
+    if (!ssrStatus.villas) {
+      recoveryTasks.push(
+        fetch(`/api/villas?t=${timestamp}`, { cache: 'no-store', signal })
+          .then(r => r.json())
+          .then(villasData => {
+            if (villasData?.success && Array.isArray(villasData.villas)) {
+              const validVillas = villasData.villas.filter((villa: Villa) => !['villa-1', 'villa-2', 'villa-3', 'villa-4'].includes(villa.id));
+              setVillasList(validVillas);
+              syncStorageItem('lankagama_synced_villas', validVillas);
+            }
+          })
+          .catch(() => {})
+      );
+    }
+
+    if (!ssrStatus.slides) {
+      recoveryTasks.push(
+        fetch(`/api/hero-slides?t=${timestamp}`, { cache: 'no-store', signal })
+          .then(r => r.json())
+          .then(slidesData => {
+            if (slidesData?.success && Array.isArray(slidesData.slides)) {
+              setSlidesList(slidesData.slides);
+              syncStorageItem('lankagama_synced_slides', slidesData.slides);
+            }
+          })
+          .catch(() => {})
+      );
+    }
+
+    if (!ssrStatus.camping) {
+      recoveryTasks.push(
+        fetch(`/api/camping?t=${timestamp}`, { cache: 'no-store', signal })
+          .then(r => r.json())
+          .then(campingData => {
+            if (campingData?.success && Array.isArray(campingData.gear)) {
+              setGearList(campingData.gear);
+              syncStorageItem('lankagama_synced_camping', campingData.gear);
+            }
+          })
+          .catch(() => {})
+      );
+    }
+
+    if (!ssrStatus.kithul) {
+      recoveryTasks.push(
+        fetch(`/api/kithul?t=${timestamp}`, { cache: 'no-store', signal })
+          .then(r => r.json())
+          .then(kithulData => {
+            if (kithulData?.success && Array.isArray(kithulData.products)) {
+              const cleaned = kithulData.products.filter((p: KithulProduct) => !['kithul-treacle-clay-1000', 'kithul-jaggery-1000'].includes(p.id));
+              setKithulList(cleaned);
+              syncStorageItem('lankagama_synced_kithul', cleaned);
+            }
+          })
+          .catch(() => {})
+      );
+    }
+
+    Promise.all(recoveryTasks).finally(() => {
+      if (!signal.aborted) {
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      controller.abort();
+    };
+  }, [allSsrLoaded, ssrStatus.camping, ssrStatus.kithul, ssrStatus.slides, ssrStatus.villas]);
 
   const handleSelectVilla = (villa: Villa) => {
     setBookingType('villa');

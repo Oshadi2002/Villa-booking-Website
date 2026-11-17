@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { dbGetAll, dbCreateComment } from '@/lib/db';
-import { CustomerComment } from '@/lib/types';
+import { revalidateTag } from 'next/cache';
+import { dbCreateComment } from '@/lib/db';
+import { CACHE_TAGS, getCachedPublicComments, getCachedAllComments } from '@/lib/cached-data';
 import { isAuthenticatedAdmin } from '@/lib/auth';
 import { commentCreateSchema } from '@/lib/validations';
 
@@ -13,10 +14,10 @@ const NO_CACHE_HEADERS = {
 export async function GET(req: Request) {
   try {
     const isAdmin = isAuthenticatedAdmin(req);
-    const comments = await dbGetAll<CustomerComment>('lankagama_comments');
-
-    // Public visitors only see approved/verified comments; admins see all for moderation
-    const visibleComments = isAdmin ? comments : comments.filter(c => c.isVerified);
+    // Public visitors query & cache only verified comments; admins query & cache all comments separately
+    const visibleComments = isAdmin
+      ? await getCachedAllComments()
+      : await getCachedPublicComments();
 
     return NextResponse.json({ success: true, comments: visibleComments }, { headers: NO_CACHE_HEADERS });
   } catch (err: unknown) {
@@ -57,6 +58,8 @@ export async function POST(req: Request) {
       stayedAtOrOrdered: data.stayedAtOrOrdered ? data.stayedAtOrOrdered.trim() : undefined,
       isVerified: false
     });
+
+    revalidateTag(CACHE_TAGS.COMMENTS, { expire: 0 });
 
     return NextResponse.json({
       success: true,

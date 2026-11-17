@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { dbUpdateBlog, dbDeleteItem } from '@/lib/db';
+import { CACHE_TAGS } from '@/lib/cached-data';
 import { requireAdmin } from '@/lib/auth';
 
 const NO_CACHE_HEADERS = {
@@ -23,6 +25,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         { status: 404, headers: NO_CACHE_HEADERS }
       );
     }
+
+    revalidateTag(CACHE_TAGS.BLOGS, { expire: 0 });
 
     return NextResponse.json({
       success: true,
@@ -50,6 +54,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
         { status: 404, headers: NO_CACHE_HEADERS }
       );
     }
+
+    revalidateTag(CACHE_TAGS.BLOGS, { expire: 0 });
 
     return NextResponse.json({
       success: true,

@@ -34,7 +34,7 @@ interface BookingModalProps {
 }
 
 export default function BookingModal({ isOpen, onClose, bookingType, item }: BookingModalProps) {
-  const { getWhatsAppLink } = useWhatsApp();
+  const { getWhatsAppLink } = useWhatsApp({ enabled: Boolean(isOpen && item) });
   const [todayStr, setTodayStr] = useState('');
 
   useEffect(() => {
