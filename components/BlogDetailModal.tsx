@@ -58,9 +58,20 @@ export default function BlogDetailModal({
     ? blog.highlightsSi 
     : blog.highlights;
 
-  const paragraphs = displayContent
-    ? displayContent.split('\n\n').filter(p => p.trim().length > 0)
-    : [displaySummary];
+  const validHighlights = (displayHighlights || []).filter(h => typeof h === 'string' && h.trim().length > 0);
+
+  // Content blocks parser (split on double linebreaks)
+  const contentBlocks = displayContent
+    ? displayContent.split(/\n{2,}/).map(p => p.trim()).filter(p => p.length > 0)
+    : (displaySummary ? [displaySummary.trim()] : []);
+
+  // Show summary quote only if distinct from content body and not empty
+  const isSummaryDistinct = Boolean(
+    displaySummary && 
+    displaySummary.trim().length > 0 && 
+    displaySummary.trim() !== (displayContent || '').trim() &&
+    !(displayContent || '').trim().startsWith(displaySummary.trim().slice(0, 50))
+  );
 
   const whatsappInquireUrl = `https://wa.me/${AGENCY_CONFIG.whatsappNumber}?text=${encodeURIComponent(
     `Hello The Sinharaja Collection! I read your field guide "${blog.title}" and would like to arrange a guided trek / visit with a local guide.`
@@ -79,8 +90,12 @@ export default function BlogDetailModal({
             <span className="text-[10px] sm:text-xs font-semibold tracking-wider uppercase text-[#D4AF37] bg-[#14231B] px-3 py-1 rounded-full border border-[#3B5244] truncate">
               {blog.category}
             </span>
-            <span className="text-xs text-[#9EA89F] hidden sm:inline">•</span>
-            <span className="text-xs text-[#9EA89F] hidden sm:inline">{blog.badge}</span>
+            {blog.badge && blog.badge.trim().length > 0 && (
+              <>
+                <span className="text-xs text-[#9EA89F] hidden sm:inline">•</span>
+                <span className="text-xs text-[#9EA89F] hidden sm:inline">{blog.badge}</span>
+              </>
+            )}
           </div>
 
           {/* Controls: Language Toggle, Share, Close */}
@@ -208,49 +223,61 @@ export default function BlogDetailModal({
           {/* Article Header & Metadata */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3 text-xs text-[#A6B2A8]">
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
-                {blog.readTime}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
-                {blog.publishedDate}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-[#D4AF37]" />
-                {displayAuthor}
-              </span>
+              {blog.readTime && blog.readTime.trim().length > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                  {blog.readTime}
+                </span>
+              )}
+              {blog.publishedDate && blog.publishedDate.trim().length > 0 && (
+                <>
+                  {blog.readTime && blog.readTime.trim().length > 0 && <span>•</span>}
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    {blog.publishedDate}
+                  </span>
+                </>
+              )}
+              {displayAuthor && displayAuthor.trim().length > 0 && (
+                <>
+                  <span>•</span>
+                  <span className="flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    {displayAuthor}
+                  </span>
+                </>
+              )}
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#F5F2EB] leading-tight">
               {displayTitle}
             </h1>
 
-            {secondaryTitle && (
+            {secondaryTitle && secondaryTitle.trim().length > 0 && (
               <p className="text-sm font-medium text-[#D4AF37]/90 italic">
                 {secondaryTitle}
               </p>
             )}
           </div>
 
-          {/* Quick Summary Lead Box */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-[#14231B] border border-[#3B5244] text-[#C2BCB0] text-sm sm:text-base leading-relaxed">
-            <p className="font-normal italic">
-              &ldquo;{displaySummary}&rdquo;
-            </p>
-          </div>
+          {/* Quick Summary Lead Box - Only when distinct & non-empty */}
+          {isSummaryDistinct && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-[#14231B] border border-[#3B5244] text-[#C2BCB0] text-sm sm:text-base leading-relaxed">
+              <p className="font-normal italic">
+                &ldquo;{displaySummary}&rdquo;
+              </p>
+            </div>
+          )}
 
           {/* Key Highlights */}
-          {displayHighlights && displayHighlights.length > 0 && (
+          {validHighlights.length > 0 && (
             <div className="p-4 sm:p-5 rounded-2xl bg-[#16271E] border border-[#2C3E33] space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#D4AF37] flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#D4AF37]" />
                 <span>{isSi ? 'විශේෂ ආකර්ෂණ සහ කරුණු' : 'Key Highlights & Features'}</span>
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                {displayHighlights.map((highlight, idx) => (
+                {validHighlights.map((highlight, idx) => (
                   <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-[#F5F2EB]">
                     <span className="text-[#D4AF37] mt-0.5">•</span>
                     <span>{highlight}</span>
@@ -268,21 +295,55 @@ export default function BlogDetailModal({
             </h3>
 
             <div className="space-y-4 text-sm sm:text-base text-[#D4CFCE] leading-relaxed font-normal">
-              {paragraphs.map((p, idx) => (
-                <p key={idx} className="leading-relaxed">
-                  {p}
-                </p>
-              ))}
+              {contentBlocks.map((block, idx) => {
+                const trimmed = block.trim();
+
+                // 1. Heading check (## Subtitle, ### Subtitle, # Subtitle)
+                if (/^#{1,4}\s+/.test(trimmed)) {
+                  const headingText = trimmed.replace(/^#{1,4}\s+/, '').trim();
+                  return (
+                    <div key={idx} className="pt-3 pb-1">
+                      <h4 className="text-base sm:text-lg font-serif font-bold text-[#D4AF37] flex items-center gap-2.5 border-b border-[#3B5244]/60 pb-1.5">
+                        <span className="w-1.5 h-4 bg-[#D4AF37] rounded-full inline-block shrink-0" />
+                        <span>{headingText}</span>
+                      </h4>
+                    </div>
+                  );
+                }
+
+                // 2. Bullet list check (starts with - , * , • )
+                const lines = trimmed.split('\n');
+                const isBulletList = lines.length > 0 && lines.every(l => /^[-*•]\s+/.test(l.trim()));
+                if (isBulletList) {
+                  return (
+                    <ul key={idx} className="space-y-2 pl-1 py-1">
+                      {lines.map((l, li) => (
+                        <li key={li} className="flex items-start gap-2 text-xs sm:text-sm text-[#F5F2EB]">
+                          <span className="text-[#D4AF37] mt-1 text-xs shrink-0">•</span>
+                          <span className="leading-relaxed">{l.trim().replace(/^[-*•]\s+/, '')}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                }
+
+                // 3. Normal paragraph
+                return (
+                  <p key={idx} className="leading-relaxed whitespace-pre-line">
+                    {trimmed}
+                  </p>
+                );
+              })}
             </div>
           </div>
 
-          {/* Field Advice & Safety Caution */}
-          {displayCaution && (
+          {/* Field Advice & Forest Rules Caution */}
+          {displayCaution && displayCaution.trim().length > 0 && (
             <div className="p-4 sm:p-5 rounded-2xl bg-[#2A1E1E]/80 border border-red-900/50 text-xs sm:text-sm text-amber-200/95 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <strong className="block text-amber-300 font-bold mb-1">
-                  {isSi ? 'ආරක්ෂිත උපදෙස් සහ පූර්ව සූදානම:' : 'Field Advice & Safety Caution:'}
+                  {isSi ? 'ආරක්ෂිත උපදෙස් සහ වන නීති:' : 'Field Advice & Forest Rules:'}
                 </strong>
                 <span>{displayCaution}</span>
               </div>

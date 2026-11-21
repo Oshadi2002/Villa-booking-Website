@@ -31,21 +31,29 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    if (!body.title || !body.summary) {
+    const rawContent = (body.content || '').trim();
+    const rawContentSi = (body.contentSi || '').trim();
+    const autoSummaryEn = body.summary || rawContent.replace(/^#+\s.*$/gm, '').trim().split('\n')[0]?.slice(0, 180) || body.title;
+    const autoSummarySi = body.summarySi || rawContentSi.replace(/^#+\s.*$/gm, '').trim().split('\n')[0]?.slice(0, 180) || body.sinhalaTitle || '';
+
+    if (!body.title || !autoSummaryEn) {
       return NextResponse.json(
-        { success: false, message: 'Blog title and summary are required' },
+        { success: false, message: 'Blog title and content are required' },
         { status: 400, headers: NO_CACHE_HEADERS }
       );
     }
+
+    const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
+    const computedReadTime = body.readTime || `${Math.max(2, Math.ceil(wordCount / 160))} min read`;
 
     const blog = await dbCreateBlog({
       title: body.title,
       sinhalaTitle: body.sinhalaTitle || '',
       category: body.category || 'Waterfalls',
-      readTime: body.readTime || '5 min read',
-      badge: body.badge || 'Field Guide',
-      summary: body.summary,
-      summarySi: body.summarySi || '',
+      readTime: computedReadTime,
+      badge: body.badge || '',
+      summary: autoSummaryEn,
+      summarySi: autoSummarySi,
       content: body.content || '',
       contentSi: body.contentSi || '',
       caution: body.caution || '',

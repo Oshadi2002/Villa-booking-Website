@@ -181,11 +181,14 @@ export default function BlogsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredPosts.map((post) => {
               const cardTitle = isSi && post.sinhalaTitle ? post.sinhalaTitle : post.title;
-              const cardSummary = isSi && post.summarySi ? post.summarySi : post.summary;
+              const rawBody = isSi && post.contentSi ? post.contentSi : (post.content || '');
+              const fallbackSnippet = rawBody.replace(/^#+\s.*$/gm, '').replace(/^[-*•]\s.*$/gm, '').trim().slice(0, 140);
+              const cardSummary = (isSi && post.summarySi ? post.summarySi : post.summary) || (fallbackSnippet ? `${fallbackSnippet}...` : '');
               const cardAuthor = isSi && post.authorSi ? post.authorSi : post.author;
-              const cardHighlights = isSi && post.highlightsSi && post.highlightsSi.length > 0 
+              const rawHighlights = isSi && post.highlightsSi && post.highlightsSi.length > 0 
                 ? post.highlightsSi 
                 : post.highlights;
+              const cardHighlights = (rawHighlights || []).filter(h => h && h.trim().length > 0);
 
               return (
                 <article
@@ -207,10 +210,12 @@ export default function BlogsPage() {
                         <span className="px-3 py-1 rounded-full bg-[#14231B]/90 backdrop-blur-md text-[#D4AF37] border border-[#3B5244] text-[10px] font-bold uppercase tracking-wider">
                           {post.category}
                         </span>
-                        <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-[#F5F2EB] text-[10px] font-medium flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-[#D4AF37]" />
-                          {post.readTime}
-                        </span>
+                        {post.readTime && post.readTime.trim().length > 0 && (
+                          <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-[#F5F2EB] text-[10px] font-medium flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-[#D4AF37]" />
+                            {post.readTime}
+                          </span>
+                        )}
                         {post.images && post.images.length > 1 && (
                           <span className="px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-[#D4AF37] text-[10px] font-semibold border border-white/10 flex items-center gap-1">
                             <ImageIcon className="w-3 h-3 text-[#D4AF37]" />
@@ -274,9 +279,13 @@ export default function BlogsPage() {
 
                   {/* Footer metadata & Action */}
                   <div className="p-6 pt-0 border-t border-[#2C3E33]/60 flex items-center justify-between mt-4">
-                    <div className="text-[11px] text-[#9EA89F]">
-                      <span>{isSi ? 'කර්තෘ:' : 'By'} {cardAuthor}</span>
-                    </div>
+                    {cardAuthor && cardAuthor.trim().length > 0 ? (
+                      <div className="text-[11px] text-[#9EA89F]">
+                        <span>{isSi ? 'කර්තෘ:' : 'By'} {cardAuthor}</span>
+                      </div>
+                    ) : (
+                      <div />
+                    )}
 
                     <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#D4AF37] group-hover:text-white transition-colors">
                       <span>{isSi ? 'සම්පූර්ණ විස්තරය' : 'Read Guide'}</span>

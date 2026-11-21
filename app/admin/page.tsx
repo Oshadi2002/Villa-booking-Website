@@ -105,10 +105,10 @@ export default function AdminPage() {
     title: '',
     sinhalaTitle: '',
     category: 'Waterfalls' as BlogPost['category'],
-    readTime: '4 min read',
-    badge: '35m Waterfall',
-    author: 'Sunil Shantha (Native Guide)',
-    authorSi: 'සුනිල් ශාන්ත (ප්‍රදේශවාසී මඟපෙන්වන්නා)',
+    readTime: '',
+    badge: '',
+    author: '',
+    authorSi: '',
     imageUrl: '',
     galleryImages: [] as string[],
     summary: '',
@@ -1042,27 +1042,33 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
   // ---------------- BLOGS & GUIDES ACTIONS ---------------- //
   const handleCreateBlog = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBlog.title || !newBlog.summary) {
-      alert('Please enter blog title and summary.');
+    if (!newBlog.title || (!newBlog.content && !newBlog.summary)) {
+      alert('Please enter blog title and description/content.');
       return;
     }
 
     try {
       const compressedImage = newBlog.imageUrl ? await compressDataUrl(newBlog.imageUrl) : '';
-      const highlights = newBlog.highlightsText
-        .split('\n')
-        .map(h => h.trim())
-        .filter(h => h.length > 0);
-      const highlightsSi = newBlog.highlightsSiText
-        .split('\n')
-        .map(h => h.trim())
-        .filter(h => h.length > 0);
-
       const coverUrl = compressedImage || newBlog.imageUrl || '';
       const allImages = [
         coverUrl,
         ...(newBlog.galleryImages || []).filter(img => img && img !== coverUrl)
       ].filter(Boolean);
+
+      const rawContent = (newBlog.content || '').trim();
+      const rawContentSi = (newBlog.contentSi || '').trim();
+      const autoSummaryEn = newBlog.summary || rawContent.replace(/^#+\s.*$/gm, '').replace(/^[-*•]\s.*$/gm, '').trim().split('\n')[0]?.slice(0, 180) || newBlog.title;
+      const autoSummarySi = newBlog.summarySi || (rawContentSi ? rawContentSi.replace(/^#+\s.*$/gm, '').replace(/^[-*•]\s.*$/gm, '').trim().split('\n')[0]?.slice(0, 180) : '') || newBlog.sinhalaTitle || '';
+
+      const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
+      const computedReadTime = newBlog.readTime || `${Math.max(2, Math.ceil(wordCount / 160))} min read`;
+
+      const highlights = newBlog.highlightsText
+        ? newBlog.highlightsText.split('\n').map(h => h.trim()).filter(h => h.length > 0)
+        : [];
+      const highlightsSi = newBlog.highlightsSiText
+        ? newBlog.highlightsSiText.split('\n').map(h => h.trim()).filter(h => h.length > 0)
+        : [];
 
       const res = await fetch('/api/blogs', {
         method: 'POST',
@@ -1071,6 +1077,12 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           ...newBlog,
           imageUrl: coverUrl || (allImages[0] || ''),
           images: allImages.length > 0 ? allImages : (coverUrl ? [coverUrl] : []),
+          summary: autoSummaryEn,
+          summarySi: autoSummarySi,
+          readTime: computedReadTime,
+          badge: newBlog.badge || '',
+          author: newBlog.author || '',
+          authorSi: newBlog.authorSi || '',
           highlights,
           highlightsSi
         })
@@ -1084,10 +1096,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           title: '',
           sinhalaTitle: '',
           category: 'Waterfalls',
-          readTime: '4 min read',
-          badge: '35m Waterfall',
-          author: 'Sunil Shantha (Native Guide)',
-          authorSi: 'සුනිල් ශාන්ත (ප්‍රදේශවාසී මඟපෙන්වන්නා)',
+          readTime: '',
+          badge: '',
+          author: '',
+          authorSi: '',
           imageUrl: '',
           galleryImages: [],
           summary: '',
@@ -1452,6 +1464,14 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
         ...(editingBlogGallery || []).filter(img => img && img !== coverUrl)
       ].filter(Boolean);
 
+      const rawContent = (editingBlog.content || '').trim();
+      const rawContentSi = (editingBlog.contentSi || '').trim();
+      const autoSummaryEn = editingBlog.summary || rawContent.replace(/^#+\s.*$/gm, '').replace(/^[-*•]\s.*$/gm, '').trim().split('\n')[0]?.slice(0, 180) || editingBlog.title;
+      const autoSummarySi = editingBlog.summarySi || (rawContentSi ? rawContentSi.replace(/^#+\s.*$/gm, '').replace(/^[-*•]\s.*$/gm, '').trim().split('\n')[0]?.slice(0, 180) : '') || editingBlog.sinhalaTitle || '';
+
+      const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
+      const computedReadTime = editingBlog.readTime || `${Math.max(2, Math.ceil(wordCount / 160))} min read`;
+
       const res = await fetch(`/api/blogs/${encodeURIComponent(editingBlog.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -1459,6 +1479,9 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           ...editingBlog,
           imageUrl: coverUrl || (allImages[0] || ''),
           images: allImages.length > 0 ? allImages : (coverUrl ? [coverUrl] : []),
+          summary: autoSummaryEn,
+          summarySi: autoSummarySi,
+          readTime: computedReadTime,
           highlights,
           highlightsSi
         })
@@ -4264,6 +4287,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 />
               </div>
 
+              {/* Title Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Title (English) *</label>
@@ -4288,134 +4312,114 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category *</label>
-                  <select
-                    value={newBlog.category}
-                    onChange={e => setNewBlog({ ...newBlog, category: e.target.value as BlogPost['category'] })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  >
-                    <option value="Waterfalls">Waterfalls</option>
-                    <option value="Trekking">Trekking</option>
-                    <option value="Rainforest Tips">Rainforest Tips</option>
-                    <option value="Village Culture">Village Culture</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Badge / Tag</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 35m Waterfall"
-                    value={newBlog.badge}
-                    onChange={e => setNewBlog({ ...newBlog, badge: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Read Time</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. 4 min read"
-                    value={newBlog.readTime}
-                    onChange={e => setNewBlog({ ...newBlog, readTime: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Author (English)</label>
-                  <input
-                    type="text"
-                    value={newBlog.author}
-                    onChange={e => setNewBlog({ ...newBlog, author: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Author (Sinhala)</label>
-                  <input
-                    type="text"
-                    value={newBlog.authorSi}
-                    onChange={e => setNewBlog({ ...newBlog, authorSi: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-              </div>
-
+              {/* Category */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Short Summary (English) *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category *</label>
+                <select
+                  value={newBlog.category}
+                  onChange={e => setNewBlog({ ...newBlog, category: e.target.value as BlogPost['category'] })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                >
+                  <option value="Waterfalls">Waterfalls</option>
+                  <option value="Trekking">Trekking</option>
+                  <option value="Rainforest Tips">Rainforest Tips</option>
+                  <option value="Village Culture">Village Culture</option>
+                </select>
+              </div>
+
+              {/* Full Description (English) with Subheading & Bullet Buttons */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    Description &amp; Article (English) *
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const addition = (newBlog.content ? '\n\n' : '') + '## Subtitle Here\n';
+                        setNewBlog(prev => ({ ...prev, content: (prev.content || '') + addition }));
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 cursor-pointer"
+                      title="Insert a Subheading"
+                    >
+                      + Subtitle (##)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const addition = (newBlog.content ? '\n' : '') + '- Point description here';
+                        setNewBlog(prev => ({ ...prev, content: (prev.content || '') + addition }));
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
+                      title="Insert a bullet point"
+                    >
+                      + Bullet (•)
+                    </button>
+                  </div>
+                </div>
                 <textarea
-                  rows={2}
+                  rows={6}
                   required
-                  placeholder="A brief overview shown on the blog cards..."
-                  value={newBlog.summary}
-                  onChange={e => setNewBlog({ ...newBlog, summary: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Short Summary (Sinhala / සිංහල සාරාංශය)</label>
-                <textarea
-                  rows={2}
-                  placeholder="කාඩ්පත් වල පෙනෙන කෙටි හැඳින්වීම..."
-                  value={newBlog.summarySi}
-                  onChange={e => setNewBlog({ ...newBlog, summarySi: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Key Highlights (English, 1 per line)</label>
-                  <textarea
-                    rows={3}
-                    placeholder="15-min easy walk&#10;Natural swimming basins&#10;Photogenic suspension bridge"
-                    value={newBlog.highlightsText}
-                    onChange={e => setNewBlog({ ...newBlog, highlightsText: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Key Highlights (Sinhala, 1 per line)</label>
-                  <textarea
-                    rows={3}
-                    placeholder="විලාස් වල සිට විනාඩි 15ක පාගමන&#10;ස්වාභාවික ආරක්ෂිත නාන තටාක&#10;සුන්දර එල්ලෙන පාලම"
-                    value={newBlog.highlightsSiText}
-                    onChange={e => setNewBlog({ ...newBlog, highlightsSiText: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Article Content (English - Paragraphs)</label>
-                <textarea
-                  rows={4}
-                  placeholder="Full detailed article text for the popup modal. Separate paragraphs with double enter..."
+                  placeholder="Full detailed article text. You can add subtitles anywhere by typing '## Subtitle Name' or clicking '+ Subtitle' above..."
                   value={newBlog.content}
                   onChange={e => setNewBlog({ ...newBlog, content: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-sans"
                 />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  💡 Type <code className="bg-slate-100 px-1 py-0.5 rounded text-amber-800 font-bold">## Subtitle Name</code> to format subheadings inside the guide.
+                </p>
               </div>
 
+              {/* Full Description (Sinhala) with Subheading & Bullet Buttons */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Article Content (Sinhala - ඡේද වශයෙන්)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    Description &amp; Article (Sinhala / සිංහල සම්පූර්ණ විස්තරය)
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const addition = (newBlog.contentSi ? '\n\n' : '') + '## උප මාතෘකාව මෙතන ලියන්න\n';
+                        setNewBlog(prev => ({ ...prev, contentSi: (prev.contentSi || '') + addition }));
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 cursor-pointer"
+                      title="උප මාතෘකාවක් එක් කරන්න"
+                    >
+                      + උප මාතෘකාවක් (##)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const addition = (newBlog.contentSi ? '\n' : '') + '- විශේෂ කරුණ මෙතන ලියන්න';
+                        setNewBlog(prev => ({ ...prev, contentSi: (prev.contentSi || '') + addition }));
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
+                      title="ලැයිස්තු කරුණක් එක් කරන්න"
+                    >
+                      + ලැයිස්තුවක් (•)
+                    </button>
+                  </div>
+                </div>
                 <textarea
-                  rows={4}
-                  placeholder="Popup එකේ දිස්වන සම්පූර්ණ ලිපිය. ඡේද වෙන් කිරීමට Double Enter යොදන්න..."
+                  rows={6}
+                  placeholder="සම්පූර්ණ ලිපිය මෙතන ලියන්න. ලිපිය මැදින් උප මාතෘකා දැමීමට '## මාතෘකාව' ලෙස ලියන්න හෝ ඉහත '+ උප මාතෘකාවක්' ක්ලික් කරන්න..."
                   value={newBlog.contentSi}
                   onChange={e => setNewBlog({ ...newBlog, contentSi: e.target.value })}
                   className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                 />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  💡 ලිපිය මැදින් ලස්සන උප මාතෘකා පෙන්වීමට <code className="bg-slate-100 px-1 py-0.5 rounded text-amber-800 font-bold">## උප මාතෘකාව</code> ලෙස යොදන්න.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Rules & Safety Advice / Caution */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Field Advice / Caution (English)</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Rules &amp; Safety Advice (English)
+                  </label>
                   <input
                     type="text"
                     placeholder="e.g. Strictly avoid slippery waterfall top ledges..."
@@ -4425,7 +4429,9 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Field Advice / Caution (Sinhala)</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Rules &amp; Safety Advice (Sinhala / වන නීති සහ ආරක්ෂිත උපදෙස්)
+                  </label>
                   <input
                     type="text"
                     placeholder="e.g. ලිස්සන සුළු ගල් තලා මතට යාමෙන් වළකින්න..."
@@ -5485,6 +5491,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 />
               </div>
 
+              {/* Title Fields */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Title (English) *</label>
@@ -5507,137 +5514,129 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category *</label>
-                  <select
-                    value={editingBlog.category}
-                    onChange={e => setEditingBlog({ ...editingBlog, category: e.target.value as BlogPost['category'] })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  >
-                    <option value="Waterfalls">Waterfalls</option>
-                    <option value="Trekking">Trekking</option>
-                    <option value="Rainforest Tips">Rainforest Tips</option>
-                    <option value="Village Culture">Village Culture</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Badge / Tag</label>
-                  <input
-                    type="text"
-                    value={editingBlog.badge || ''}
-                    onChange={e => setEditingBlog({ ...editingBlog, badge: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Read Time</label>
-                  <input
-                    type="text"
-                    value={editingBlog.readTime || ''}
-                    onChange={e => setEditingBlog({ ...editingBlog, readTime: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Author (English)</label>
-                  <input
-                    type="text"
-                    value={editingBlog.author || ''}
-                    onChange={e => setEditingBlog({ ...editingBlog, author: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Author (Sinhala)</label>
-                  <input
-                    type="text"
-                    value={editingBlog.authorSi || ''}
-                    onChange={e => setEditingBlog({ ...editingBlog, authorSi: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-              </div>
-
+              {/* Category */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Short Summary (English) *</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category *</label>
+                <select
+                  value={editingBlog.category}
+                  onChange={e => setEditingBlog({ ...editingBlog, category: e.target.value as BlogPost['category'] })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                >
+                  <option value="Waterfalls">Waterfalls</option>
+                  <option value="Trekking">Trekking</option>
+                  <option value="Rainforest Tips">Rainforest Tips</option>
+                  <option value="Village Culture">Village Culture</option>
+                </select>
+              </div>
+
+              {/* Full Description (English) with Subheading & Bullet Buttons */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    Description &amp; Article (English) *
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const addition = (editingBlog.content ? '\n\n' : '') + '## Subtitle Here\n';
+                        setEditingBlog(prev => prev ? ({ ...prev, content: (prev.content || '') + addition }) : null);
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 cursor-pointer"
+                      title="Insert a Subheading"
+                    >
+                      + Subtitle (##)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const addition = (editingBlog.content ? '\n' : '') + '- Point description here';
+                        setEditingBlog(prev => prev ? ({ ...prev, content: (prev.content || '') + addition }) : null);
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
+                      title="Insert a bullet point"
+                    >
+                      + Bullet (•)
+                    </button>
+                  </div>
+                </div>
                 <textarea
-                  rows={2}
+                  rows={6}
                   required
-                  value={editingBlog.summary}
-                  onChange={e => setEditingBlog({ ...editingBlog, summary: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Short Summary (Sinhala / සිංහල සාරාංශය)</label>
-                <textarea
-                  rows={2}
-                  value={editingBlog.summarySi || ''}
-                  onChange={e => setEditingBlog({ ...editingBlog, summarySi: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Key Highlights (English, 1 per line)</label>
-                  <textarea
-                    rows={3}
-                    value={editingBlogHighlights}
-                    onChange={e => setEditingBlogHighlights(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Key Highlights (Sinhala, 1 per line)</label>
-                  <textarea
-                    rows={3}
-                    value={editingBlogHighlightsSi}
-                    onChange={e => setEditingBlogHighlightsSi(e.target.value)}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Article Content (English - Paragraphs)</label>
-                <textarea
-                  rows={5}
+                  placeholder="Full detailed article text. You can add subtitles anywhere by typing '## Subtitle Name' or clicking '+ Subtitle' above..."
                   value={editingBlog.content || ''}
                   onChange={e => setEditingBlog({ ...editingBlog, content: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-sans"
                 />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  💡 Type <code className="bg-slate-100 px-1 py-0.5 rounded text-amber-800 font-bold">## Subtitle Name</code> to format subheadings inside the guide.
+                </p>
               </div>
 
+              {/* Full Description (Sinhala) with Subheading & Bullet Buttons */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Article Content (Sinhala - ඡේද වශයෙන්)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase">
+                    Description &amp; Article (Sinhala / සිංහල සම්පූර්ණ විස්තරය)
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const addition = (editingBlog.contentSi ? '\n\n' : '') + '## උප මාතෘකාව මෙතන ලියන්න\n';
+                        setEditingBlog(prev => prev ? ({ ...prev, contentSi: (prev.contentSi || '') + addition }) : null);
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 cursor-pointer"
+                      title="උප මාතෘකාවක් එක් කරන්න"
+                    >
+                      + උප මාතෘකාවක් (##)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const addition = (editingBlog.contentSi ? '\n' : '') + '- විශේෂ කරුණ මෙතන ලියන්න';
+                        setEditingBlog(prev => prev ? ({ ...prev, contentSi: (prev.contentSi || '') + addition }) : null);
+                      }}
+                      className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
+                      title="ලැයිස්තු කරුණක් එක් කරන්න"
+                    >
+                      + ලැයිස්තුවක් (•)
+                    </button>
+                  </div>
+                </div>
                 <textarea
-                  rows={5}
+                  rows={6}
+                  placeholder="සම්පූර්ණ ලිපිය මෙතන ලියන්න. ලිපිය මැදින් උප මාතෘකා දැමීමට '## මාතෘකාව' ලෙස ලියන්න හෝ ඉහත '+ උප මාතෘකාවක්' ක්ලික් කරන්න..."
                   value={editingBlog.contentSi || ''}
                   onChange={e => setEditingBlog({ ...editingBlog, contentSi: e.target.value })}
                   className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                 />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  💡 ලිපිය මැදින් ලස්සන උප මාතෘකා පෙන්වීමට <code className="bg-slate-100 px-1 py-0.5 rounded text-amber-800 font-bold">## උප මාතෘකාව</code> ලෙස යොදන්න.
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Rules & Safety Advice / Caution */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Field Advice / Caution (English)</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Rules &amp; Safety Advice (English)
+                  </label>
                   <input
                     type="text"
+                    placeholder="e.g. Strictly avoid slippery waterfall top ledges..."
                     value={editingBlog.caution || ''}
                     onChange={e => setEditingBlog({ ...editingBlog, caution: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Field Advice / Caution (Sinhala)</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    Rules &amp; Safety Advice (Sinhala / වන නීති සහ ආරක්ෂිත උපදෙස්)
+                  </label>
                   <input
                     type="text"
+                    placeholder="e.g. ලිස්සන සුළු ගල් තලා මතට යාමෙන් වළකින්න..."
                     value={editingBlog.cautionSi || ''}
                     onChange={e => setEditingBlog({ ...editingBlog, cautionSi: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
