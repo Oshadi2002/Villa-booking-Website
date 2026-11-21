@@ -124,17 +124,12 @@ export default function CampingDetailModal({ isOpen, onClose, gear, onBookNow }:
 
               {/* Badges on Image */}
               <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2 pointer-events-none">
-                {gear.maxGuests ? (
-                  <span className="px-3 py-1.5 rounded-full bg-[#14231B]/90 backdrop-blur-md text-[#F5F2EB] text-xs font-semibold border border-[#3B5244] flex items-center gap-1.5 shadow-md">
-                    <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>{isSi ? `උපරිම ${gear.maxGuests} දෙනෙකුට` : `Max ${gear.maxGuests} Guests`}</span>
-                  </span>
-                ) : gear.capacity ? (
+                {gear.capacity && (
                   <span className="px-3 py-1.5 rounded-full bg-[#14231B]/90 backdrop-blur-md text-[#F5F2EB] text-xs font-semibold border border-[#3B5244] flex items-center gap-1.5 shadow-md">
                     <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
                     <span>{gear.capacity}</span>
                   </span>
-                ) : null}
+                )}
 
                 {gear.meals && (
                   <span className="px-3 py-1.5 rounded-full bg-[#14231B]/90 backdrop-blur-md text-[#D4AF37] text-xs font-semibold border border-[#D4AF37]/50 flex items-center gap-1.5 shadow-md">
@@ -232,7 +227,7 @@ export default function CampingDetailModal({ isOpen, onClose, gear, onBookNow }:
                 <div>
                   <span className="text-[10px] text-[#C2BCB0] block uppercase">{isSi ? 'ධාරිතාව' : 'Capacity'}</span>
                   <span className="text-xs font-semibold text-[#F5F2EB]">
-                    {gear.maxGuests ? (isSi ? `${gear.maxGuests} දෙනෙකුට` : `${gear.maxGuests} Persons`) : (gear.capacity || 'Flexible')}
+                    {gear.capacity || (isSi ? 'පුද්ගලයින් 2-4' : '2-4 Persons')}
                   </span>
                 </div>
               </div>

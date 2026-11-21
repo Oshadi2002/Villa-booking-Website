@@ -74,16 +74,12 @@ function CampingCardItem({
                 : (isSi ? 'උපාංග' : 'Accessory')}
             </span>
 
-            {item.maxGuests ? (
+            {item.capacity && (
               <span className="px-2 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-[10px] font-semibold border border-[#3B5244] flex items-center gap-1 shadow-sm">
                 <Users className="w-3 h-3 text-[#D4AF37]" />
-                <span>{isSi ? `උපරිම ${item.maxGuests}` : `Max ${item.maxGuests}`}</span>
+                <span>{item.capacity}</span>
               </span>
-            ) : item.capacity ? (
-              <span className="px-2 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-[10px] font-semibold border border-[#3B5244] shadow-sm">
-                {item.capacity}
-              </span>
-            ) : null}
+            )}
 
             {item.meals && (
               <span className="px-2 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#D4AF37] text-[10px] font-semibold border border-[#D4AF37]/50 flex items-center gap-1 shadow-sm">

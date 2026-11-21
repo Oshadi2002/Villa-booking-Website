@@ -82,7 +82,6 @@ export default function AdminPage() {
     includesText: '3000mm Waterproof Tent, 4x Insulated Ground Mats, Gas Cooker + Butane, 4x Leech Socks',
     pricePerDayLKR: 3500,
     capacity: '4 Persons',
-    maxGuests: 4,
     imageUrl: '',
     galleryImages: [] as string[],
     meals: ''
@@ -942,8 +941,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           description: newCamping.description,
           includes: includesList,
           pricePerDayLKR: Number(newCamping.pricePerDayLKR),
-          capacity: newCamping.capacity || (newCamping.maxGuests ? `${newCamping.maxGuests} Persons` : 'Camp Equipment'),
-          maxGuests: Number(newCamping.maxGuests) || 4,
+          capacity: newCamping.capacity || 'Camp Equipment',
           imageUrl: compressedCover,
           images: compressedImages,
           meals: newCamping.meals ? newCamping.meals.trim() : undefined
@@ -963,7 +961,6 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           includesText: '3000mm Waterproof Tent, 4x Insulated Ground Mats, Gas Cooker + Butane, 4x Leech Socks',
           pricePerDayLKR: 3500,
           capacity: '4 Persons',
-          maxGuests: 4,
           imageUrl: '',
           galleryImages: [],
           meals: ''
@@ -1341,7 +1338,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           imageUrl: compressedImage || editingCamping.imageUrl,
           images: compressedImages,
           includes: incList,
-          maxGuests: editingCamping.maxGuests ? Number(editingCamping.maxGuests) : undefined,
+          capacity: editingCamping.capacity || '',
           meals: editingCamping.meals ? editingCamping.meals.trim() : ''
         })
       });
@@ -2543,9 +2540,11 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                       <div className="p-4 space-y-2">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-[11px] font-semibold text-blue-600">{item.sinhalaName}</span>
-                          <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                            👥 {item.maxGuests ? `Max ${item.maxGuests}` : (item.capacity || '4 Guests')}
-                          </span>
+                          {item.capacity && (
+                            <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                              👥 {item.capacity}
+                            </span>
+                          )}
                         </div>
                         <h3 className="text-sm font-bold text-slate-900">{item.name}</h3>
                         <p className="text-xs text-slate-500 line-clamp-2">{item.description}</p>
@@ -4045,7 +4044,20 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
+                  <select
+                    value={newCamping.category}
+                    onChange={e => setNewCamping({ ...newCamping, category: e.target.value as CampingGear['category'] })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                  >
+                    <option value="package">Full Package Set</option>
+                    <option value="tent">Tent Only</option>
+                    <option value="cooking">Cooking / Stove</option>
+                    <option value="accessory">Accessory</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Daily Rate (LKR) *</label>
                   <input
@@ -4058,29 +4070,14 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Max Guests (උපරිම)</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Capacity</label>
                   <input
-                    type="number"
-                    min="1"
-                    max="30"
-                    placeholder="4"
-                    value={newCamping.maxGuests}
-                    onChange={e => setNewCamping({ ...newCamping, maxGuests: Number(e.target.value) || 1 })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
-                  />
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
-                  <select
-                    value={newCamping.category}
-                    onChange={e => setNewCamping({ ...newCamping, category: e.target.value as CampingGear['category'] })}
+                    type="text"
+                    placeholder="e.g. 4 Persons / 7+ Persons"
+                    value={newCamping.capacity}
+                    onChange={e => setNewCamping({ ...newCamping, capacity: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
-                  >
-                    <option value="package">Full Package Set</option>
-                    <option value="tent">Tent Only</option>
-                    <option value="cooking">Cooking / Stove</option>
-                    <option value="accessory">Accessory</option>
-                  </select>
+                  />
                 </div>
               </div>
 
@@ -5263,7 +5260,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
                   <select
@@ -5288,21 +5285,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Max Guests</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="30"
-                    placeholder="4"
-                    value={editingCamping.maxGuests ?? 4}
-                    onChange={e => setEditingCamping({ ...editingCamping, maxGuests: Number(e.target.value) || 1 })}
-                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
-                  />
-                </div>
-                <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Capacity</label>
                   <input
                     type="text"
+                    placeholder="e.g. 4 Persons / 7+ Persons"
                     value={editingCamping.capacity || ''}
                     onChange={e => setEditingCamping({ ...editingCamping, capacity: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
