@@ -585,10 +585,13 @@ export async function dbCreateKithulProduct(newProd: Omit<KithulProduct, 'id'> &
   await ensurePostgresTables();
   const id = newProd.id || `kithul-${Date.now()}`;
   const imageUrl = await normalizeImageToR2(newProd.imageUrl, 'kithul');
+  const rawImages = newProd.images && newProd.images.length > 0 ? newProd.images : (imageUrl ? [imageUrl] : []);
+  const images = await normalizeImageArrayToR2(rawImages, 'kithul');
   const prod: KithulProduct = {
     ...newProd,
     id,
-    imageUrl: imageUrl || newProd.imageUrl,
+    imageUrl: imageUrl || (images.length > 0 ? images[0] : newProd.imageUrl),
+    images: images.length > 0 ? images : (imageUrl ? [imageUrl] : []),
     inStock: newProd.inStock ?? true
   };
 
@@ -608,6 +611,9 @@ export async function dbUpdateKithulProduct(id: string, updatedData: Partial<Kit
   const dataToUpdate = { ...updatedData };
   if (dataToUpdate.imageUrl) {
     dataToUpdate.imageUrl = await normalizeImageToR2(dataToUpdate.imageUrl, 'kithul');
+  }
+  if (dataToUpdate.images && dataToUpdate.images.length > 0) {
+    dataToUpdate.images = await normalizeImageArrayToR2(dataToUpdate.images, 'kithul');
   }
 
   const merged: KithulProduct = {

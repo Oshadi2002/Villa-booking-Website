@@ -9,6 +9,7 @@ import WhyChooseUs from '@/components/WhyChooseUs';
 import VillaSection from '@/components/VillaSection';
 import VillaDetailModal from '@/components/VillaDetailModal';
 import KithulSection from '@/components/KithulSection';
+import KithulDetailModal from '@/components/KithulDetailModal';
 import KithulOrderModal from '@/components/KithulOrderModal';
 import CampingSection from '@/components/CampingSection';
 import CampingDetailModal from '@/components/CampingDetailModal';
@@ -132,9 +133,11 @@ export default function HomePageClient({
   const [isCampingDetailModalOpen, setIsCampingDetailModalOpen] = useState(false);
   const [detailCampingGear, setDetailCampingGear] = useState<CampingGear | null>(null);
 
-  // Kithul Order Modal state
+  // Kithul Order & Detail Modal state
   const [isKithulModalOpen, setIsKithulModalOpen] = useState(false);
+  const [isKithulDetailModalOpen, setIsKithulDetailModalOpen] = useState(false);
   const [selectedKithulProduct, setSelectedKithulProduct] = useState<KithulProduct | null>(null);
+  const [detailKithulProduct, setDetailKithulProduct] = useState<KithulProduct | null>(null);
 
   // Booking Modal State
   const [bookingType, setBookingType] = useState<BookingType>('villa');
@@ -421,6 +424,10 @@ export default function HomePageClient({
       {/* 2. Pure Sinharaja Kithul Products & Fresh Toddy Experience */}
       <KithulSection
         onSelectProduct={handleSelectKithul}
+        onViewDetails={(product) => {
+          setDetailKithulProduct(product);
+          setIsKithulDetailModalOpen(true);
+        }}
         products={kithulList}
       />
 
@@ -538,6 +545,17 @@ export default function HomePageClient({
         onClose={() => setIsBookingModalOpen(false)}
         bookingType={bookingType}
         item={selectedItem}
+      />
+
+      {/* Detailed Kithul & Hakuru Delicacies Specs Modal */}
+      <KithulDetailModal
+        isOpen={isKithulDetailModalOpen}
+        onClose={() => setIsKithulDetailModalOpen(false)}
+        product={detailKithulProduct}
+        onOrderNow={(product) => {
+          setIsKithulDetailModalOpen(false);
+          handleSelectKithul(product);
+        }}
       />
 
       {/* Dedicated Kithul & Toddy Villa Delivery Modal */}

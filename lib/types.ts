@@ -144,6 +144,7 @@ export interface KithulProduct {
   harvestOrigin: string;
   deliveryNote: string;
   imageUrl: string;
+  images?: string[];
   inStock: boolean;
   featured?: boolean;
 }

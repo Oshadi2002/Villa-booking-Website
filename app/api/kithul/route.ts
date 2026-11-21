@@ -47,6 +47,7 @@ export async function POST(req: Request) {
       harvestOrigin: body.harvestOrigin || 'Lankagama, Sinharaja',
       deliveryNote: body.deliveryNote || 'Delivered directly to your Villa or Campsite in Lankagama',
       imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80',
+      images: Array.isArray(body.images) && body.images.length > 0 ? body.images : [body.imageUrl || 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80'],
       inStock: body.inStock ?? true,
       featured: body.featured ?? false
     });

@@ -4,17 +4,18 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Sparkles, ShieldCheck, MapPin, CheckCircle2, 
   Wine, ShoppingBag, Droplets, ArrowRight, HeartHandshake,
-  Check, Flame, Compass, ChevronLeft, ChevronRight
+  Check, Flame, Compass, ChevronLeft, ChevronRight, Eye
 } from 'lucide-react';
 import { KithulProduct } from '@/lib/types';
 import { useLanguage } from '@/lib/LanguageContext';
 
 interface KithulSectionProps {
   onSelectProduct: (product: KithulProduct) => void;
+  onViewDetails?: (product: KithulProduct) => void;
   products?: KithulProduct[];
 }
 
-export default function KithulSection({ onSelectProduct, products = [] }: KithulSectionProps) {
+export default function KithulSection({ onSelectProduct, onViewDetails, products = [] }: KithulSectionProps) {
   const { isSi, t } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<'all' | 'treacle' | 'jaggery' | 'toddy' | 'experience'>('all');
   const trackRef = useRef<HTMLDivElement>(null);
@@ -225,7 +226,8 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
             {filteredProducts.map((item) => (
               <div
                 key={item.id}
-                className="w-[85vw] sm:w-[360px] lg:w-[380px] shrink-0 snap-start bg-[#1E2A22] rounded-3xl border border-[#3B5244] hover:border-[#D4AF37]/60 overflow-hidden shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
+                onClick={() => onViewDetails ? onViewDetails(item) : onSelectProduct(item)}
+                className="w-[85vw] sm:w-[360px] lg:w-[380px] shrink-0 snap-start bg-[#1E2A22] rounded-3xl border border-[#3B5244] hover:border-[#D4AF37]/60 overflow-hidden shadow-xl transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1 cursor-pointer"
               >
                 <div>
                   {/* Image Container with Badges */}
@@ -235,7 +237,7 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                       alt={item.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1E2A22] via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1E2A22] via-black/20 to-transparent pointer-events-none" />
 
                     {/* Top Badges */}
                     <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
@@ -287,7 +289,7 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                 </div>
 
                 {/* Card Footer: Price & Order Action */}
-                <div className="p-6 pt-0 border-t border-[#3B5244]/60 mt-4 flex items-center justify-between">
+                <div className="p-6 pt-0 border-t border-[#3B5244]/60 mt-4 flex items-center justify-between gap-2">
                   <div>
                     <span className="text-[10px] text-[#C2BCB0] uppercase tracking-wider block">
                       {isSi ? 'මිල' : 'Price'}
@@ -298,17 +300,36 @@ export default function KithulSection({ onSelectProduct, products = [] }: Kithul
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => onSelectProduct(item)}
-                    className="px-4 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md group-hover:scale-102"
-                  >
-                    <span>
-                      {item.category === 'experience'
-                        ? (isSi ? 'අත්දැකීම වෙන්කරන්න' : 'Book Experience')
-                        : (isSi ? 'විලා එකට ඇණවුම් කරන්න' : 'Order to Villa')}
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {onViewDetails && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewDetails(item);
+                        }}
+                        type="button"
+                        className="py-2.5 px-3 rounded-xl border border-[#3B5244] hover:border-[#D4AF37] text-xs font-semibold text-[#F5F2EB] hover:text-[#D4AF37] bg-[#14231B] transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span className="hidden sm:inline">{isSi ? 'විස්තර' : 'Details'}</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectProduct(item);
+                      }}
+                      className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#C5A880] text-[#14231B] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md group-hover:scale-102"
+                    >
+                      <span>
+                        {item.category === 'experience'
+                          ? (isSi ? 'වෙන්කරන්න' : 'Book')
+                          : (isSi ? 'ඇණවුම් කරන්න' : 'Order')}
+                      </span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
               </div>
