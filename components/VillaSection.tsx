@@ -42,13 +42,13 @@ function VillaCardItem({
   };
 
   return (
-    <div className="group bg-[#2C3E33] rounded-2xl overflow-hidden border border-[#3B5244] hover:border-[#D4AF37] shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-full">
+    <div 
+      onClick={() => onViewDetails(villa)}
+      className="group bg-[#2C3E33] rounded-2xl overflow-hidden border border-[#3B5244] hover:border-[#D4AF37] shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-full cursor-pointer"
+    >
       <div>
         {/* Photo Slider Stage */}
-        <div 
-          onClick={() => onViewDetails(villa)}
-          className="relative h-64 sm:h-72 overflow-hidden bg-[#14231B] cursor-pointer select-none"
-        >
+        <div className="relative h-64 sm:h-72 overflow-hidden bg-[#14231B] select-none">
           <img
             src={images[photoIndex]}
             alt={`${villa.name} - Photo ${photoIndex + 1}`}
@@ -202,7 +202,10 @@ function VillaCardItem({
       <div className="p-6 pt-0 space-y-2.5">
         <div className="grid grid-cols-2 gap-2.5">
           <button
-            onClick={() => onViewDetails(villa)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(villa);
+            }}
             className="py-2.5 px-3 rounded-xl font-medium text-xs text-[#F5F2EB] bg-[#1E2A22] hover:bg-[#14231B] transition-colors flex items-center justify-center gap-1.5 border border-[#3B5244] hover:border-[#D4AF37] cursor-pointer"
           >
             <Eye className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -210,7 +213,10 @@ function VillaCardItem({
           </button>
 
           <button
-            onClick={() => onSelectVilla(villa)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectVilla(villa);
+            }}
             className="py-2.5 px-3 rounded-xl font-semibold text-xs text-[#14231B] bg-[#D4AF37] hover:bg-[#C5A880] active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
           >
             <span>{isSi ? 'කාමර / විලා වෙන්කරන්න' : 'Book Villa / Room'}</span>

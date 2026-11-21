@@ -42,8 +42,11 @@ export async function POST(req: Request) {
       description: body.description || '',
       includes: Array.isArray(body.includes) ? body.includes : (body.includes ? String(body.includes).split(',').map((s: string) => s.trim()) : []),
       pricePerDayLKR: Number(body.pricePerDayLKR) || 0,
-      capacity: body.capacity || 'Camp Equipment',
-      imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
+      capacity: body.capacity || (body.maxGuests ? `${body.maxGuests} Persons` : 'Camp Equipment'),
+      maxGuests: body.maxGuests ? Number(body.maxGuests) : undefined,
+      imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80',
+      images: Array.isArray(body.images) && body.images.length > 0 ? body.images : [body.imageUrl || 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'],
+      meals: body.meals || undefined
     });
 
     revalidateTag(CACHE_TAGS.CAMPING, { expire: 0 });

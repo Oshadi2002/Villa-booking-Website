@@ -82,7 +82,10 @@ export default function AdminPage() {
     includesText: '3000mm Waterproof Tent, 4x Insulated Ground Mats, Gas Cooker + Butane, 4x Leech Socks',
     pricePerDayLKR: 3500,
     capacity: '4 Persons',
-    imageUrl: ''
+    maxGuests: 4,
+    imageUrl: '',
+    galleryImages: [] as string[],
+    meals: ''
   });
 
   const [attractions, setAttractions] = useState<Attraction[]>([]);
@@ -198,6 +201,8 @@ export default function AdminPage() {
 
   const [editingCamping, setEditingCamping] = useState<CampingGear | null>(null);
   const [editingCampingIncludes, setEditingCampingIncludes] = useState('');
+  const [editingCampingGallery, setEditingCampingGallery] = useState<string[]>([]);
+  const [isSavingCamping, setIsSavingCamping] = useState(false);
 
   const [editingKithul, setEditingKithul] = useState<KithulProduct | null>(null);
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
@@ -922,19 +927,26 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
     try {
       const includesList = newCamping.includesText.split(',').map(i => i.trim()).filter(i => i.length > 0);
+      const coverUrl = newCamping.imageUrl || 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80';
+      const allImgs = Array.from(new Set([coverUrl, ...(newCamping.galleryImages || [])])).filter(Boolean);
+      const compressedCover = await compressDataUrl(coverUrl);
+      const compressedImages = await Promise.all(allImgs.map(img => compressDataUrl(img)));
 
       const res = await fetch('/api/camping', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: newCamping.name,
-          sinhalaName: newCamping.sinhalaName || newCamping.name,
+          name: newCamping.name.trim(),
+          sinhalaName: newCamping.sinhalaName?.trim() || newCamping.name.trim(),
           category: newCamping.category,
           description: newCamping.description,
           includes: includesList,
           pricePerDayLKR: Number(newCamping.pricePerDayLKR),
-          capacity: newCamping.capacity,
-          imageUrl: newCamping.imageUrl || 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
+          capacity: newCamping.capacity || (newCamping.maxGuests ? `${newCamping.maxGuests} Persons` : 'Camp Equipment'),
+          maxGuests: Number(newCamping.maxGuests) || 4,
+          imageUrl: compressedCover,
+          images: compressedImages,
+          meals: newCamping.meals ? newCamping.meals.trim() : undefined
         })
       });
 
@@ -951,7 +963,10 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           includesText: '3000mm Waterproof Tent, 4x Insulated Ground Mats, Gas Cooker + Butane, 4x Leech Socks',
           pricePerDayLKR: 3500,
           capacity: '4 Persons',
-          imageUrl: ''
+          maxGuests: 4,
+          imageUrl: '',
+          galleryImages: [],
+          meals: ''
         });
       } else {
         alert(data.message || 'Failed to add camping gear.');
@@ -1302,6 +1317,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
   const handleOpenEditCamping = (g: CampingGear) => {
     setEditingCamping(g);
     setEditingCampingIncludes(g.includes ? g.includes.join(', ') : '');
+    const gallery = g.images && g.images.length > 0 ? g.images.filter(img => img !== g.imageUrl) : [];
+    setEditingCampingGallery(gallery);
   };
 
   const handleUpdateCampingSubmit = async (e: React.FormEvent) => {
@@ -1309,15 +1326,23 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
     if (!editingCamping) return;
 
     try {
+      setIsSavingCamping(true);
       const incList = editingCampingIncludes.split(',').map(i => i.trim()).filter(i => i.length > 0);
-      const compressedImage = editingCamping.imageUrl ? await compressDataUrl(editingCamping.imageUrl) : '';
+      const coverUrl = editingCamping.imageUrl || 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80';
+      const allImgs = Array.from(new Set([coverUrl, ...(editingCampingGallery || [])])).filter(Boolean);
+      const compressedImage = await compressDataUrl(coverUrl);
+      const compressedImages = await Promise.all(allImgs.map(img => compressDataUrl(img)));
+
       const res = await fetch(`/api/camping/${encodeURIComponent(editingCamping.id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...editingCamping,
           imageUrl: compressedImage || editingCamping.imageUrl,
-          includes: incList
+          images: compressedImages,
+          includes: incList,
+          maxGuests: editingCamping.maxGuests ? Number(editingCamping.maxGuests) : undefined,
+          meals: editingCamping.meals ? editingCamping.meals.trim() : ''
         })
       });
       const data = await res.json();
@@ -1330,6 +1355,8 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
       }
     } catch {
       alert('Error updating camping gear.');
+    } finally {
+      setIsSavingCamping(false);
     }
   };
 
@@ -2498,8 +2525,15 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                     <div>
                       <div className="relative h-44 bg-slate-100">
                         <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                        <div className="absolute top-2 left-2 bg-slate-900/80 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">
-                          {item.category}
+                        <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                          <span className="bg-slate-900/80 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">
+                            {item.category}
+                          </span>
+                          {item.images && item.images.length > 1 && (
+                            <span className="bg-blue-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                              📸 {item.images.length}
+                            </span>
+                          )}
                         </div>
                         <div className="absolute bottom-2 right-2 bg-slate-900/90 text-white px-2.5 py-1 rounded text-xs font-mono font-bold">
                           Rs. {item.pricePerDayLKR.toLocaleString()} / day
@@ -2507,9 +2541,21 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                       </div>
 
                       <div className="p-4 space-y-2">
-                        <span className="text-[11px] font-semibold text-blue-600 block">{item.sinhalaName}</span>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-semibold text-blue-600">{item.sinhalaName}</span>
+                          <span className="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                            👥 {item.maxGuests ? `Max ${item.maxGuests}` : (item.capacity || '4 Guests')}
+                          </span>
+                        </div>
                         <h3 className="text-sm font-bold text-slate-900">{item.name}</h3>
                         <p className="text-xs text-slate-500 line-clamp-2">{item.description}</p>
+
+                        {item.meals && (
+                          <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900 line-clamp-2">
+                            <span className="font-bold">🍲 Meals: </span>
+                            <span>{item.meals}</span>
+                          </div>
+                        )}
 
                         <div className="pt-2">
                           <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Includes:</span>
@@ -3961,7 +4007,17 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
               <ImageUploadDropzone
                 value={newCamping.imageUrl}
                 onChange={url => setNewCamping({ ...newCamping, imageUrl: url })}
-                label="Gear Photo (Drag & Drop or Select from Computer) *"
+                label="Main Cover Photo (Drag & Drop or Select from Computer) *"
+                folder="camping"
+              />
+
+              <MultiImageUpload
+                images={newCamping.galleryImages}
+                onChange={imgs => setNewCamping({ ...newCamping, galleryImages: imgs })}
+                coverImage={newCamping.imageUrl}
+                onSetCover={url => setNewCamping({ ...newCamping, imageUrl: url })}
+                label="Additional Gallery Photos (2-3 Photos from Device)"
+                hint="You can select or drop 2-3 additional photos from your computer for this gear"
                 folder="camping"
               />
 
@@ -3981,7 +4037,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Sinhala Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. Complete Expedition Camping Set"
+                    placeholder="e.g. පුද්ගලයින් 4 කඳවුරු කට්ටලය"
                     value={newCamping.sinhalaName}
                     onChange={e => setNewCamping({ ...newCamping, sinhalaName: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
@@ -3989,7 +4045,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Daily Rate (LKR) *</label>
                   <input
@@ -4002,6 +4058,18 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Max Guests (උපරිම)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    placeholder="4"
+                    value={newCamping.maxGuests}
+                    onChange={e => setNewCamping({ ...newCamping, maxGuests: Number(e.target.value) || 1 })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
+                  />
+                </div>
+                <div className="col-span-2 sm:col-span-1">
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
                   <select
                     value={newCamping.category}
@@ -4024,6 +4092,22 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   onChange={e => setNewCamping({ ...newCamping, includesText: e.target.value })}
                   className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Campsite Meals / ආහාර විකල්ප (Optional - කැමතිනම් පමණක් ඇතුළත් කරන්න)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Traditional Village Woodfire Rice & Curry dinner and fresh Morning Camp Tea with local rotti/hoppers can be arranged upon request."
+                  value={newCamping.meals}
+                  onChange={e => setNewCamping({ ...newCamping, meals: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+                <span className="text-[11px] text-slate-400 block mt-0.5">
+                  හිස්ව තැබිය හැක. ඇතුළත් කළහොත් පමණක් විස්තර popup එකේ පාරිභෝගිකයින්ට දිස්වේ.
+                </span>
               </div>
 
               <div>
@@ -5142,8 +5226,18 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
               <ImageUploadDropzone
                 value={editingCamping.imageUrl}
                 onChange={url => setEditingCamping({ ...editingCamping, imageUrl: url })}
-                label="Gear Photo (Drag & Drop or Select File) *"
-                hint="Image of tent, stove, or camping kit"
+                label="Main Cover Photo (Drag & Drop or Select File) *"
+                hint="Main image of tent, stove, or camping kit"
+                folder="camping"
+              />
+
+              <MultiImageUpload
+                images={editingCampingGallery}
+                onChange={imgs => setEditingCampingGallery(imgs)}
+                coverImage={editingCamping.imageUrl}
+                onSetCover={url => setEditingCamping({ ...editingCamping, imageUrl: url })}
+                label="Additional Gallery Photos (2-3 Photos from Device)"
+                hint="You can select or drop multiple image files at once from your computer"
                 folder="camping"
               />
 
@@ -5169,7 +5263,7 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Category</label>
                   <select
@@ -5194,10 +5288,22 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Max Guests</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    placeholder="4"
+                    value={editingCamping.maxGuests ?? 4}
+                    onChange={e => setEditingCamping({ ...editingCamping, maxGuests: Number(e.target.value) || 1 })}
+                    className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white font-mono"
+                  />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Capacity</label>
                   <input
                     type="text"
-                    value={editingCamping.capacity}
+                    value={editingCamping.capacity || ''}
                     onChange={e => setEditingCamping({ ...editingCamping, capacity: e.target.value })}
                     className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                   />
@@ -5212,6 +5318,22 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                   onChange={e => setEditingCampingIncludes(e.target.value)}
                   className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Campsite Meals / ආහාර විකල්ප (Optional - කැමතිනම් පමණක් ඇතුළත් කරන්න)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Village woodfire dinner and morning camp tea available upon request."
+                  value={editingCamping.meals || ''}
+                  onChange={e => setEditingCamping({ ...editingCamping, meals: e.target.value })}
+                  className="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                />
+                <span className="text-[11px] text-slate-400 block mt-0.5">
+                  හිස්ව තැබිය හැක. ඇතුළත් කළහොත් පමණක් විස්තර popup එකේ පාරිභෝගිකයින්ට දිස්වේ.
+                </span>
               </div>
 
               <div>
@@ -5234,9 +5356,17 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-sm"
+                  disabled={isSavingCamping}
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 cursor-pointer shadow-sm flex items-center gap-1.5"
                 >
-                  Save Gear Changes
+                  {isSavingCamping ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    <span>Save Gear Changes</span>
+                  )}
                 </button>
               </div>
             </form>

@@ -21,7 +21,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const updated = await dbUpdateCampingGear(id, {
       ...body,
       pricePerDayLKR: body.pricePerDayLKR !== undefined ? Number(body.pricePerDayLKR) : undefined,
-      includes: body.includes ? (Array.isArray(body.includes) ? body.includes : String(body.includes).split(',').map((s: string) => s.trim())) : undefined
+      maxGuests: body.maxGuests !== undefined ? (body.maxGuests ? Number(body.maxGuests) : undefined) : undefined,
+      includes: body.includes ? (Array.isArray(body.includes) ? body.includes : String(body.includes).split(',').map((s: string) => s.trim())) : undefined,
+      images: Array.isArray(body.images) ? body.images : undefined
     });
 
     if (!updated) {

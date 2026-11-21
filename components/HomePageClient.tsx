@@ -11,6 +11,7 @@ import VillaDetailModal from '@/components/VillaDetailModal';
 import KithulSection from '@/components/KithulSection';
 import KithulOrderModal from '@/components/KithulOrderModal';
 import CampingSection from '@/components/CampingSection';
+import CampingDetailModal from '@/components/CampingDetailModal';
 import Footer from '@/components/Footer';
 import BookingModal from '@/components/BookingModal';
 import TrackModal from '@/components/TrackModal';
@@ -126,6 +127,10 @@ export default function HomePageClient({
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [detailVilla, setDetailVilla] = useState<Villa | null>(null);
+
+  // Camping Detail Modal state
+  const [isCampingDetailModalOpen, setIsCampingDetailModalOpen] = useState(false);
+  const [detailCampingGear, setDetailCampingGear] = useState<CampingGear | null>(null);
 
   // Kithul Order Modal state
   const [isKithulModalOpen, setIsKithulModalOpen] = useState(false);
@@ -422,6 +427,10 @@ export default function HomePageClient({
       {/* 3. Expedition Camping Gear Rentals */}
       <CampingSection
         onSelectGear={handleSelectGear}
+        onViewDetails={(gear) => {
+          setDetailCampingGear(gear);
+          setIsCampingDetailModalOpen(true);
+        }}
         gearList={gearList}
         isLoading={isLoading}
       />
@@ -509,6 +518,17 @@ export default function HomePageClient({
         onBookNow={(villa) => {
           setIsDetailModalOpen(false);
           handleSelectVilla(villa);
+        }}
+      />
+
+      {/* Detailed Camping Gear Photos & Equipment Specs Modal */}
+      <CampingDetailModal
+        isOpen={isCampingDetailModalOpen}
+        onClose={() => setIsCampingDetailModalOpen(false)}
+        gear={detailCampingGear}
+        onBookNow={(gear) => {
+          setIsCampingDetailModalOpen(false);
+          handleSelectGear(gear);
         }}
       />
 

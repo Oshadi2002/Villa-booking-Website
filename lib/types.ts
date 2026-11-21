@@ -93,7 +93,10 @@ export interface CampingGear {
   includes: string[];
   pricePerDayLKR: number;
   capacity?: string;
+  maxGuests?: number;
   imageUrl: string;
+  images?: string[];
+  meals?: string;
 }
 
 export interface TourGuide {

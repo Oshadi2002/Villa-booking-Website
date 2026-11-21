@@ -452,10 +452,13 @@ export async function dbCreateCampingGear(newGear: Omit<CampingGear, 'id'> & { i
   await ensurePostgresTables();
   const id = newGear.id || `gear-${Date.now()}`;
   const imageUrl = await normalizeImageToR2(newGear.imageUrl, 'camping');
+  const rawImages = newGear.images && newGear.images.length > 0 ? newGear.images : (imageUrl ? [imageUrl] : []);
+  const images = await normalizeImageArrayToR2(rawImages, 'camping');
   const gear: CampingGear = {
     ...newGear,
     id,
-    imageUrl: imageUrl || newGear.imageUrl,
+    imageUrl: imageUrl || (images.length > 0 ? images[0] : newGear.imageUrl),
+    images: images.length > 0 ? images : (imageUrl ? [imageUrl] : []),
     includes: newGear.includes || []
   };
 
@@ -475,6 +478,9 @@ export async function dbUpdateCampingGear(id: string, updatedData: Partial<Campi
   const dataToUpdate = { ...updatedData };
   if (dataToUpdate.imageUrl) {
     dataToUpdate.imageUrl = await normalizeImageToR2(dataToUpdate.imageUrl, 'camping');
+  }
+  if (dataToUpdate.images && dataToUpdate.images.length > 0) {
+    dataToUpdate.images = await normalizeImageArrayToR2(dataToUpdate.images, 'camping');
   }
 
   const merged: CampingGear = {

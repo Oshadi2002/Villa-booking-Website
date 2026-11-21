@@ -3,18 +3,199 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Shield, Check, Package, ChevronLeft, ChevronRight, 
-  Sparkles, Tent
+  Sparkles, Tent, Eye, Users, Utensils, Image as ImageIcon
 } from 'lucide-react';
 import { CampingGear } from '@/lib/types';
 import { useLanguage } from '@/lib/LanguageContext';
 
 interface CampingSectionProps {
   onSelectGear: (gear: CampingGear) => void;
+  onViewDetails?: (gear: CampingGear) => void;
   gearList?: CampingGear[];
   isLoading?: boolean;
 }
 
-export default function CampingSection({ onSelectGear, gearList = [], isLoading = false }: CampingSectionProps) {
+// Subcomponent: Individual Camping Gear Card with Photo Slider & Quick Details
+function CampingCardItem({
+  item,
+  onSelectGear,
+  onViewDetails
+}: {
+  item: CampingGear;
+  onSelectGear: (gear: CampingGear) => void;
+  onViewDetails?: (gear: CampingGear) => void;
+}) {
+  const images = item.images && item.images.length > 0 ? item.images : [item.imageUrl];
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const { isSi } = useLanguage();
+
+  const prevPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPhotoIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const nextPhoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPhotoIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleCardClick = () => {
+    if (onViewDetails) {
+      onViewDetails(item);
+    } else {
+      onSelectGear(item);
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleCardClick}
+      className="h-full group/card bg-[#2C3E33] border border-[#3B5244] hover:border-[#D4AF37] rounded-2xl overflow-hidden transition-all duration-300 flex flex-col justify-between shadow-xl hover:shadow-2xl cursor-pointer"
+    >
+      <div>
+        {/* Photo Stage & Pricing */}
+        <div className="relative h-56 overflow-hidden bg-[#1E2A22] select-none">
+          <img
+            src={images[photoIndex]}
+            alt={`${item.name} - photo ${photoIndex + 1}`}
+            className="w-full h-full object-cover group-hover/card:scale-104 transition-transform duration-600"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#14231B] via-transparent to-transparent opacity-85 pointer-events-none" />
+          
+          {/* Top Badges */}
+          <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10 max-w-[85%]">
+            <span className="px-2.5 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#D4AF37] border border-[#3B5244] text-[10px] font-bold uppercase tracking-[0.14em] shadow-sm">
+              {item.category === 'package' 
+                ? (isSi ? 'සම්පූර්ණ කට්ටලය' : 'Complete Set') 
+                : item.category === 'tent'
+                ? (isSi ? 'කූඩාරම' : 'Tent')
+                : item.category === 'cooking'
+                ? (isSi ? 'ඉවුම් පිහුම්' : 'Cooking')
+                : (isSi ? 'උපාංග' : 'Accessory')}
+            </span>
+
+            {item.maxGuests ? (
+              <span className="px-2 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-[10px] font-semibold border border-[#3B5244] flex items-center gap-1 shadow-sm">
+                <Users className="w-3 h-3 text-[#D4AF37]" />
+                <span>{isSi ? `උපරිම ${item.maxGuests}` : `Max ${item.maxGuests}`}</span>
+              </span>
+            ) : item.capacity ? (
+              <span className="px-2 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-[10px] font-semibold border border-[#3B5244] shadow-sm">
+                {item.capacity}
+              </span>
+            ) : null}
+
+            {item.meals && (
+              <span className="px-2 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#D4AF37] text-[10px] font-semibold border border-[#D4AF37]/50 flex items-center gap-1 shadow-sm">
+                <Utensils className="w-3 h-3 text-[#D4AF37]" />
+                <span>{isSi ? 'ආහාර' : 'Meals'}</span>
+              </span>
+            )}
+
+            {images.length > 1 && (
+              <span className="px-2 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#F5F2EB] text-[10px] font-medium border border-[#3B5244] flex items-center gap-1 shadow-sm">
+                <ImageIcon className="w-3 h-3 text-[#D4AF37]" />
+                <span>{photoIndex + 1}/{images.length}</span>
+              </span>
+            )}
+          </div>
+
+          {/* Quick Photo Switcher Arrows (if multiple photos) */}
+          {images.length > 1 && (
+            <div className="absolute inset-x-2 top-1/2 -translate-y-1/2 flex items-center justify-between pointer-events-none z-10">
+              <button
+                onClick={prevPhoto}
+                type="button"
+                aria-label="Previous photo"
+                className="w-7 h-7 rounded-full bg-black/60 hover:bg-[#D4AF37] hover:text-[#14231B] text-white flex items-center justify-center transition-all pointer-events-auto border border-white/20 active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={nextPhoto}
+                type="button"
+                aria-label="Next photo"
+                className="w-7 h-7 rounded-full bg-black/60 hover:bg-[#D4AF37] hover:text-[#14231B] text-white flex items-center justify-center transition-all pointer-events-auto border border-white/20 active:scale-95 cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          <div className="absolute bottom-3 right-3 bg-[#14231B]/95 text-[#D4AF37] border border-[#3B5244] px-3.5 py-1.5 rounded-xl text-right font-bold text-xs font-mono shadow z-10">
+            <span>{isSi ? `රු. ${item.pricePerDayLKR.toLocaleString()} / දිනකට` : `Rs. ${item.pricePerDayLKR.toLocaleString()} / day`}</span>
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="p-6">
+          <span className="text-[11px] font-semibold text-[#D4AF37] block mb-1">
+            {isSi ? item.name : item.sinhalaName}
+          </span>
+          <h3 
+            onClick={handleCardClick}
+            className="text-base font-serif font-semibold text-[#F5F2EB] leading-snug group-hover/card:text-[#D4AF37] transition-colors cursor-pointer"
+          >
+            {isSi && item.sinhalaName ? item.sinhalaName : item.name}
+          </h3>
+          <p className="text-xs text-[#C2BCB0] mt-2 leading-relaxed font-normal line-clamp-2">
+            {item.description}
+          </p>
+
+          {/* Included Items Checklist */}
+          {item.includes && item.includes.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-[#3B5244] space-y-2">
+              <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.14em] block">
+                {isSi ? 'ඇතුළත් අයිතම:' : 'Included in Package:'}
+              </span>
+              {item.includes.slice(0, 3).map((inc, i) => (
+                <div key={i} className="flex items-start gap-2 text-xs text-[#F5F2EB]">
+                  <Check className="w-3.5 h-3.5 text-[#D4AF37] shrink-0 mt-0.5" />
+                  <span className="leading-tight line-clamp-1">{inc}</span>
+                </div>
+              ))}
+              {item.includes.length > 3 && (
+                <span className="text-[10px] text-[#D4AF37] font-semibold pl-5 block">
+                  +{item.includes.length - 3} {isSi ? 'තවත් අයිතම...' : 'more items included...'}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Action Buttons: View Details & Reserve */}
+      <div className="p-6 pt-0 flex items-center gap-2">
+        {onViewDetails && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(item);
+            }}
+            type="button"
+            className="flex-1 py-2.5 px-3 rounded-xl border border-[#3B5244] hover:border-[#D4AF37] text-xs font-semibold text-[#F5F2EB] hover:text-[#D4AF37] bg-[#1E2A22] transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>{isSi ? 'විස්තර බලන්න' : 'View Details'}</span>
+          </button>
+        )}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelectGear(item);
+          }}
+          type="button"
+          className={`${onViewDetails ? 'flex-1' : 'w-full'} py-2.5 px-3 rounded-xl font-semibold text-xs text-[#14231B] bg-[#D4AF37] hover:bg-[#C5A880] active:scale-98 transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer`}
+        >
+          <Package className="w-3.5 h-3.5 text-[#14231B]" />
+          <span>{isSi ? 'වෙන්කරගන්න' : 'Reserve'}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function CampingSection({ onSelectGear, onViewDetails, gearList = [], isLoading = false }: CampingSectionProps) {
   const { isSi, t } = useLanguage();
   const displayGear = gearList || [];
   const trackRef = useRef<HTMLDivElement>(null);
@@ -179,74 +360,18 @@ export default function CampingSection({ onSelectGear, gearList = [], isLoading 
               </div>
             ) : (
               displayGear.map((item) => (
-              <div
-                key={item.id}
-                className="w-[85vw] sm:w-[380px] lg:w-[calc(33.333%-16px)] shrink-0 snap-start"
-              >
-                <div className="h-full group/card bg-[#2C3E33] border border-[#3B5244] hover:border-[#D4AF37] rounded-2xl overflow-hidden transition-all duration-300 flex flex-col justify-between shadow-xl hover:shadow-2xl">
-                  <div>
-                    {/* Photo & Pricing */}
-                    <div className="relative h-56 overflow-hidden bg-[#1E2A22]">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="w-full h-full object-cover group-hover/card:scale-104 transition-transform duration-600"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#14231B] via-transparent to-transparent opacity-85" />
-                      
-                      <div className="absolute top-3 left-3">
-                        <span className="px-3 py-1 rounded-full bg-[#14231B]/85 backdrop-blur-md text-[#D4AF37] border border-[#3B5244] text-[10px] font-bold uppercase tracking-[0.14em] shadow-sm">
-                          {item.category === 'package' 
-                            ? (isSi ? 'සම්පූර්ණ කට්ටලය' : 'Complete Set') 
-                            : (isSi ? 'තනි උපකරණ' : 'Individual Gear')}
-                        </span>
-                      </div>
-
-                      <div className="absolute bottom-3 right-3 bg-[#14231B]/95 text-[#D4AF37] border border-[#3B5244] px-3.5 py-1.5 rounded-xl text-right font-bold text-xs font-mono shadow">
-                        <span>{isSi ? `රු. ${item.pricePerDayLKR.toLocaleString()} / දිනකට` : `Rs. ${item.pricePerDayLKR.toLocaleString()} / day`}</span>
-                      </div>
-                    </div>
-
-                    {/* Details */}
-                    <div className="p-6">
-                      <span className="text-[11px] font-semibold text-[#D4AF37] block mb-1">
-                        {isSi ? item.name : item.sinhalaName}
-                      </span>
-                      <h3 className="text-base font-serif font-semibold text-[#F5F2EB] leading-snug group-hover/card:text-[#D4AF37] transition-colors">
-                        {isSi && item.sinhalaName ? item.sinhalaName : item.name}
-                      </h3>
-                      <p className="text-xs text-[#C2BCB0] mt-2 leading-relaxed font-normal line-clamp-2">
-                        {item.description}
-                      </p>
-
-                      {/* Included Items Checklist */}
-                      <div className="mt-4 pt-4 border-t border-[#3B5244] space-y-2">
-                        <span className="text-[10px] font-bold text-[#D4AF37] uppercase tracking-[0.14em] block">
-                          {isSi ? 'ඇතුළත් අයිතම:' : 'Included in Package:'}
-                        </span>
-                        {item.includes.map((inc, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-[#F5F2EB]">
-                            <Check className="w-3.5 h-3.5 text-[#D4AF37] shrink-0 mt-0.5" />
-                            <span className="leading-tight line-clamp-1">{inc}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="p-6 pt-0">
-                    <button
-                      onClick={() => onSelectGear(item)}
-                      className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs text-[#14231B] bg-[#D4AF37] hover:bg-[#C5A880] active:scale-98 transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-                    >
-                      <Package className="w-4 h-4 text-[#14231B]" />
-                      <span>{isSi ? 'උපකරණ කට්ටලය වෙන්කරගන්න' : 'Reserve Equipment Set'}</span>
-                    </button>
-                  </div>
+                <div
+                  key={item.id}
+                  className="w-[85vw] sm:w-[380px] lg:w-[calc(33.333%-16px)] shrink-0 snap-start"
+                >
+                  <CampingCardItem
+                    item={item}
+                    onSelectGear={onSelectGear}
+                    onViewDetails={onViewDetails}
+                  />
                 </div>
-              </div>
-            )))}
+              ))
+            )}
           </div>
 
           {/* Floating Next/Prev Buttons on track sides for desktop */}
