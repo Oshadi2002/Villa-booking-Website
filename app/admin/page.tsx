@@ -1049,10 +1049,13 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
     try {
       const compressedImage = newBlog.imageUrl ? await compressDataUrl(newBlog.imageUrl) : '';
+      const compressedGallery = await Promise.all(
+        (newBlog.galleryImages || []).map(img => (img ? compressDataUrl(img) : Promise.resolve('')))
+      );
       const coverUrl = compressedImage || newBlog.imageUrl || '';
       const allImages = [
         coverUrl,
-        ...(newBlog.galleryImages || []).filter(img => img && img !== coverUrl)
+        ...compressedGallery.filter(img => img && img !== coverUrl)
       ].filter(Boolean);
 
       const rawContent = (newBlog.content || '').trim();
@@ -1087,8 +1090,16 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           highlightsSi
         })
       });
-      const data = await res.json();
-      if (data.success && data.blog) {
+
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text();
+        throw new Error(`Server returned response ${res.status}: ${text.slice(0, 120)}`);
+      }
+
+      if (res.ok && data && data.success && data.blog) {
         syncBlogsState([data.blog, ...blogs]);
         setIsAddBlogModalOpen(false);
         showNotification(`Blog article "${data.blog.title}" published!`);
@@ -1112,10 +1123,12 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           cautionSi: ''
         });
       } else {
-        alert(data.message || 'Failed to create blog post.');
+        alert((data && data.message) || `Failed to create blog post (HTTP ${res.status})`);
       }
-    } catch {
-      alert('Error creating blog post.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('handleCreateBlog error:', error);
+      alert(`Error creating blog post: ${error?.message || 'Network error'}`);
     }
   };
 
@@ -1449,19 +1462,20 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
 
     try {
       const compressedImage = editingBlog.imageUrl ? await compressDataUrl(editingBlog.imageUrl) : '';
+      const compressedGallery = await Promise.all(
+        (editingBlogGallery || []).map(img => (img ? compressDataUrl(img) : Promise.resolve('')))
+      );
       const highlights = editingBlogHighlights
-        .split('\n')
-        .map(h => h.trim())
-        .filter(h => h.length > 0);
+        ? editingBlogHighlights.split('\n').map(h => h.trim()).filter(h => h.length > 0)
+        : [];
       const highlightsSi = editingBlogHighlightsSi
-        .split('\n')
-        .map(h => h.trim())
-        .filter(h => h.length > 0);
+        ? editingBlogHighlightsSi.split('\n').map(h => h.trim()).filter(h => h.length > 0)
+        : [];
 
       const coverUrl = compressedImage || editingBlog.imageUrl || '';
       const allImages = [
         coverUrl,
-        ...(editingBlogGallery || []).filter(img => img && img !== coverUrl)
+        ...compressedGallery.filter(img => img && img !== coverUrl)
       ].filter(Boolean);
 
       const rawContent = (editingBlog.content || '').trim();
@@ -1486,17 +1500,27 @@ Your sanctuary in Lankagama is reserved. Looking forward to welcoming you!`;
           highlightsSi
         })
       });
-      const data = await res.json();
-      if (data.success && data.blog) {
+
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text();
+        throw new Error(`Server returned response ${res.status}: ${text.slice(0, 120)}`);
+      }
+
+      if (res.ok && data && data.success && data.blog) {
         syncBlogsState(blogs.map(b => b.id === editingBlog.id ? data.blog : b));
         setEditingBlog(null);
         setEditingBlogGallery([]);
         showNotification(`Blog post "${data.blog.title}" updated successfully!`);
       } else {
-        alert(data.message || 'Failed to update blog post.');
+        alert((data && data.message) || `Failed to update blog post (HTTP ${res.status})`);
       }
-    } catch {
-      alert('Error updating blog post.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('handleUpdateBlogSubmit error:', error);
+      alert(`Error updating blog post: ${error?.message || 'Network error'}`);
     }
   };
 

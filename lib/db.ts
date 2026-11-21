@@ -732,6 +732,14 @@ export async function dbGetAllBlogs(): Promise<BlogPost[]> {
 
 export async function dbCreateBlog(newBlog: Omit<BlogPost, 'id'> & { id?: string }): Promise<BlogPost> {
   await ensurePostgresTables();
+  await query(`
+    CREATE TABLE IF NOT EXISTS lankagama_blogs (
+      id VARCHAR(255) PRIMARY KEY,
+      data JSONB NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
   const id = newBlog.id || `blog-${Date.now()}`;
   const imageUrl = await normalizeImageToR2(newBlog.imageUrl, 'blogs');
   const rawImages = newBlog.images && newBlog.images.length > 0 ? newBlog.images : (imageUrl ? [imageUrl] : []);

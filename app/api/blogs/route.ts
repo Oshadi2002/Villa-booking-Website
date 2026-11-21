@@ -46,6 +46,15 @@ export async function POST(req: Request) {
     const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
     const computedReadTime = body.readTime || `${Math.max(2, Math.ceil(wordCount / 160))} min read`;
 
+    const defaultCover = 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1200&q=80';
+    const finalCover = (body.imageUrl && typeof body.imageUrl === 'string' && body.imageUrl.trim().length > 0)
+      ? body.imageUrl.trim()
+      : defaultCover;
+
+    const finalImages = Array.isArray(body.images) && body.images.length > 0
+      ? body.images.filter((img: unknown) => typeof img === 'string' && (img as string).trim().length > 0)
+      : [finalCover];
+
     const blog = await dbCreateBlog({
       title: body.title,
       sinhalaTitle: body.sinhalaTitle || '',
@@ -58,8 +67,8 @@ export async function POST(req: Request) {
       contentSi: body.contentSi || '',
       caution: body.caution || '',
       cautionSi: body.cautionSi || '',
-      imageUrl: body.imageUrl || 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1200&q=80',
-      images: Array.isArray(body.images) && body.images.length > 0 ? body.images : [body.imageUrl],
+      imageUrl: finalCover,
+      images: finalImages.length > 0 ? finalImages : [finalCover],
       publishedDate: body.publishedDate || new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
       author: body.author || 'Sinharaja Field Naturalist',
       authorSi: body.authorSi || 'සිංහරාජ ගවේෂණ කණ්ඩායම',

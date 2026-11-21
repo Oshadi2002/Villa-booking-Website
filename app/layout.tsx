@@ -15,7 +15,7 @@ const sansFont = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lakagama.com';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://lankagama.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
